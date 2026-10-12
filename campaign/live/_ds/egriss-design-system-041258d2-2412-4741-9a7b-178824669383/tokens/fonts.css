@@ -1,0 +1,53 @@
+/* =====================================================================
+   EGRISS — Webfonts
+   Headings : Obvia Medium (LICENSED, not free) → falls back to Figtree.
+   Body     : IBM Plex Sans (free, Google Fonts).
+   Mono     : IBM Plex Mono (data tables, figures, code).
+   Loaded from Google Fonts; Obvia must be self-hosted by licensees.
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Figtree:wght@500;600;700;800;900&display=swap");
+
+/* Obvia — self-hosted licensed webfont. Takes precedence over the Figtree
+   fallback wherever --font-head resolves. (Fontspring demo files in use;
+   swap for the full licence binaries before production.) */
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-Light.otf") format("opentype");
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-Regular.otf") format("opentype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-Italic.otf") format("opentype");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-Medium.otf") format("opentype");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-MediumItalic.otf") format("opentype");
+  font-weight: 500; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-SemiBold.otf") format("opentype");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-Bold.otf") format("opentype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Obvia";
+  src: url("../assets/fonts/Obvia-Black.otf") format("opentype");
+  font-weight: 800 900; font-style: normal; font-display: swap;
+}

@@ -1,0 +1,76 @@
+/* =====================================================================
+   EGRISS — Base element styling & helpers
+   Light-touch resets + the brand's signature primitives
+   (accent rule, eyebrow, key-figure). Keep this minimal.
+   ===================================================================== */
+
+.egriss {
+  font-family: var(--font-body);
+  color: var(--text-body);
+  font-size: var(--text-md);
+  line-height: var(--lh-body);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.egriss h1, .egriss h2, .egriss h3, .egriss h4 {
+  font-family: var(--font-heading);
+  color: var(--text-strong);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-weight: var(--fw-bold);
+  margin: 0 0 var(--space-4);
+  text-wrap: balance;
+}
+.egriss h1 { font-size: var(--text-3xl); }
+.egriss h2 { font-size: var(--text-2xl); }
+.egriss h3 { font-size: var(--text-xl); letter-spacing: var(--ls-normal); }
+.egriss h4 { font-size: var(--text-lg); letter-spacing: var(--ls-normal); }
+
+.egriss p { margin: 0 0 var(--space-4); text-wrap: pretty; }
+.egriss a { color: var(--text-link); text-decoration: none; }
+.egriss a:hover { text-decoration: underline; }
+
+/* ---- Signature primitives ---- */
+
+/* The teal accent rule — a short bar that fades to transparent. */
+.egriss-rule {
+  height: var(--rule-accent);
+  width: 72px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent), rgba(76, 195, 201, 0));
+}
+
+/* All-caps eyebrow / descriptor — echoes the logo's descriptor line. */
+.egriss-eyebrow {
+  font-family: var(--font-eyebrow);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+/* Key figure — large mono numeral, the way GAIN charts surface stats. */
+.egriss-figure {
+  font-family: var(--font-figure);
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-4xl);
+  line-height: 1;
+  color: var(--text-strong);
+  letter-spacing: var(--ls-tight);
+}
+.egriss-figure--teal { color: var(--accent); }
+
+/* Dark sections invert text colour. */
+.egriss-on-dark { color: var(--text-on-dark); }
+.egriss-on-dark h1, .egriss-on-dark h2, .egriss-on-dark h3, .egriss-on-dark h4 {
+  color: var(--text-on-dark);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}

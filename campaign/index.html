@@ -1,0 +1,361 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>GAIN 2026 Campaign Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a fielding timeline, one column of post cards grouped by week, date rail on the left */
+:root{
+  --bg:#F7FAFD; --surface:#FFFFFF; --sunk:#EEF3FA; --fg:#14234C; --muted:#5B6782; --line:#D9E2EF;
+  --navy:#14234C; --teal:#2FA9AF; --teal-soft:#DDF3F4; --blue:#3B71B9; --coral:#D9534F;
+  --ok:#1F8A5B; --ok-soft:#DFF3E9; --warn:#A86A00; --warn-soft:#FBEFD6; --todo-soft:#EEF1F6;
+  --egriss:#3B71B9; --filip:#2FA9AF;
+  --f-display:"Figtree",system-ui,sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1630; --surface:#14213F; --sunk:#1A2A4E; --fg:#E8EEF8; --muted:#A3B0C9; --line:#2A3B62;
+  --teal:#4CC3C9; --teal-soft:#16404A; --blue:#7FA6E0; --coral:#F07C78;
+  --ok:#5CCB98; --ok-soft:#163E30; --warn:#E8B24E; --warn-soft:#3D3115; --todo-soft:#22304F;
+  --egriss:#7FA6E0; --filip:#4CC3C9; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1630; --surface:#14213F; --sunk:#1A2A4E; --fg:#E8EEF8; --muted:#A3B0C9; --line:#2A3B62;
+  --teal:#4CC3C9; --teal-soft:#16404A; --blue:#7FA6E0; --coral:#F07C78;
+  --ok:#5CCB98; --ok-soft:#163E30; --warn:#E8B24E; --warn-soft:#3D3115; --todo-soft:#22304F;
+  --egriss:#7FA6E0; --filip:#4CC3C9; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:36px 64px}
+header .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4.5vw,40px);line-height:1.1;letter-spacing:-.02em;margin:.25em 0 .3em;text-wrap:balance}
+.rule{width:72px;height:3px;background:linear-gradient(90deg,var(--teal),transparent);margin:6px 0 16px}
+.lede{color:var(--muted);max-width:68ch;margin:0}
+.keydates{display:flex;flex-wrap:wrap;gap:10px 22px;margin:18px 0 0;font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.keydates b{color:var(--fg);font-weight:500}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:28px 0 8px;padding:12px 0;border-block:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 13px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:5px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#0C1630}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#0C1630}}
+.tally{display:flex;gap:14px;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.tally span b{color:var(--fg);font-weight:500}
+.week{margin-top:30px}
+.week h2{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:12px}
+.date{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.date .d{font-size:26px;line-height:1;font-weight:500}
+.date .m{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.date .w{font-size:12px;color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+h3{font-family:var(--f-display);font-weight:600;font-size:19px;line-height:1.25;margin:0;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.acct{font:500 12px var(--f-body);padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.acct.egriss{color:var(--egriss)} .acct.filip{color:var(--filip)}
+.fmt{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+select.status{font:500 12.5px var(--f-body);border-radius:6px;border:1px solid var(--line);padding:4px 8px;background:var(--todo-soft);color:var(--fg)}
+select.status[data-s="ready"]{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+select.status[data-s="posted"]{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+select.status[data-s="production"]{background:var(--teal-soft);color:var(--fg);border-color:transparent}
+.body{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;margin-top:14px}
+@media (max-width:760px){.body{grid-template-columns:1fr}.card{grid-template-columns:1fr;gap:8px}.date{display:flex;gap:10px;align-items:baseline}.date .d{font-size:20px}}
+.copy{background:var(--sunk);border-radius:8px;padding:12px 14px;position:relative}
+.copy .lbl,.video .lbl{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.copy p{margin:0 0 .7em;font-size:14px;max-width:62ch}
+.copy p:last-child{margin-bottom:0}
+.copy .tags{color:var(--blue)}
+.copy h4{font:600 12.5px var(--f-body);margin:.9em 0 .3em;color:var(--muted)}
+button.btn{font:500 12.5px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:4px 10px;cursor:pointer}
+button.btn:hover{border-color:var(--blue)}
+button.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid rgba(59,113,185,.45);outline-offset:2px}
+.video{display:flex;flex-direction:column;gap:8px}
+.vbox{aspect-ratio:4/5;max-height:330px;max-width:100%;border-radius:8px;background:var(--navy);display:grid;place-items:center;overflow:hidden;position:relative}
+.vbox video{width:100%;height:100%;object-fit:contain;background:#000}
+.vbox .empty{color:#C9D6EE;text-align:center;font-size:13px;padding:16px;display:grid;gap:8px;justify-items:center}
+.dots{display:grid;grid-template-columns:repeat(6,8px);gap:5px}
+.dots i{width:8px;height:8px;border-radius:50%;background:#4CC3C9;opacity:.35}
+.dots i.on{opacity:1}
+.vnote{font-size:12.5px;color:var(--muted);margin:0}
+.vactions{display:flex;flex-wrap:wrap;gap:6px}
+.vactions a{font:500 12.5px var(--f-body);color:var(--blue)}
+.linkrow{display:flex;gap:6px}
+.linkrow input{flex:1;min-width:0;font:13px var(--f-body);padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.msg{font-size:12.5px;color:var(--coral);min-height:0}
+.notice{margin-top:14px;font-size:13px;color:var(--muted);background:var(--sunk);border-radius:8px;padding:10px 14px}
+footer{margin-top:40px;font-size:12.5px;color:var(--muted)}
+.views{display:flex;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.views .chip{border:0;border-radius:0}
+.cal{margin-top:22px;overflow-x:auto}
+.calgrid{display:flex;flex-direction:column;gap:6px;min-width:720px}
+.wkrow{display:grid;gap:6px;align-items:stretch}
+.wklabel{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px}
+.day.empty{min-height:0;padding:6px 4px;background:transparent;border-style:dashed;align-items:center}
+.day.empty .dnum{flex-direction:column;align-items:center;gap:0;font-size:11px;line-height:1.25}
+.day.has{min-height:96px}
+.dow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 4px 4px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-height:118px;padding:6px;display:flex;flex-direction:column;gap:5px}
+.day.out{background:transparent;border-style:dashed;opacity:.55}
+.day.key{border-color:var(--teal);box-shadow:inset 0 0 0 1px var(--teal)}
+.dnum{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}
+.dnum em{font-style:normal;color:var(--teal);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.tile{all:unset;box-sizing:border-box;cursor:pointer;display:block;border-radius:6px;padding:6px 7px;background:var(--sunk);border-left:3px solid var(--blue);font-size:12.5px;line-height:1.3}
+.tile.filip{border-left-color:var(--filip)}
+.tile.both{border-left-color:var(--teal);background:linear-gradient(90deg,var(--teal-soft),var(--sunk))}
+.tile:hover{outline:1px solid var(--blue)}
+.tile:focus-visible{outline:3px solid rgba(59,113,185,.45)}
+.tile b{display:block;font-weight:600;font-family:var(--f-display);font-size:13px}
+.tile .tm{display:flex;gap:6px;align-items:center;margin-top:3px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted)}
+.pip{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.pip.production{background:var(--teal)} .pip.ready{background:var(--warn)} .pip.posted{background:var(--ok)}
+.tile .vid{font-size:10.5px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.overlay{position:fixed;inset:0;background:rgba(10,18,40,.55);z-index:20;display:flex;align-items:flex-start;justify-content:center;padding:max(24px,env(safe-area-inset-top,0px)) 16px 24px;overflow-y:auto}
+.overlay .card{width:min(940px,100%);margin:0;box-shadow:0 20px 50px rgba(10,18,40,.35)}
+.close{float:right}
+.thumb{display:block;width:100%;aspect-ratio:4/5;border-radius:5px;overflow:hidden;margin-bottom:6px;position:relative;background:#14234C}
+.thumb svg,.vbox svg.mock{display:block;width:100%;height:100%}
+.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.mocktag{position:absolute;top:5px;right:5px;font:500 9px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#C9D6EE;background:rgba(20,35,76,.75);padding:1px 5px;border-radius:3px}
+.vbox .mocktag{font-size:11px;top:8px;right:8px}
+.vbox{max-height:none}
+.tl{margin-top:18px;overflow-x:auto;scroll-snap-type:x proximity;padding:8px 2px 14px;-webkit-overflow-scrolling:touch}
+.tltrack{display:flex;gap:10px;align-items:flex-end;position:relative;width:max-content;padding-top:22px}
+.tltrack::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:var(--line)}
+.tlsep{align-self:stretch;display:flex;flex-direction:column;justify-content:flex-start;padding:0 2px;position:relative}
+.tlsep span{position:absolute;top:-20px;left:0;white-space:nowrap;font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tlsep i{display:block;width:1px;height:100%;background:var(--line)}
+.tlitem{all:unset;box-sizing:border-box;cursor:pointer;width:132px;scroll-snap-align:start;display:flex;flex-direction:column;gap:5px;position:relative;padding:6px;border-radius:8px;border:1px solid transparent}
+.tlitem::before{content:"";position:absolute;top:-17px;left:14px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--blue)}
+.tlitem.filip::before{border-color:var(--filip)} .tlitem.both::before{border-color:var(--teal);background:var(--teal)}
+.tlitem:hover{background:var(--surface);border-color:var(--line)}
+.tlitem[aria-current="true"]{background:var(--surface);border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.tlitem:focus-visible{outline:3px solid rgba(59,113,185,.45)}
+.tlitem .thumb{margin:0}
+.tldate{font:500 11.5px var(--f-mono);color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.tlitem b{font:600 12.5px/1.25 var(--f-display)}
+.tlmark{width:58px;flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--teal);border-radius:8px;font:500 10.5px var(--f-mono);color:var(--teal);text-transform:uppercase;letter-spacing:.06em;text-align:center}
+.tlmark b{font:600 15px var(--f-mono);color:var(--fg)}
+.tlnav{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.tldetail{margin-top:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>
+.vbox.w{aspect-ratio:16/9}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{all:unset;cursor:pointer;font:500 11.5px var(--f-mono);padding:3px 9px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:var(--teal);color:#0C1630}
+.seg button:focus-visible{outline:3px solid rgba(59,113,185,.45)}
+.vactions a.dl{font:500 12.5px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:4px 10px;text-decoration:none}
+.vactions a.dl:hover{border-color:var(--blue)}
+.lib{display:grid;gap:14px;margin-top:22px}
+.work{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.work .pair{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7.1fr);gap:16px;margin-top:14px;align-items:start}
+.work .side{display:flex;flex-direction:column;gap:8px}
+.work .used{font-size:13px;color:var(--muted);margin:6px 0 0}
+@media (max-width:760px){.work .pair{grid-template-columns:1fr}}
+a{color:var(--blue)} a:hover{color:var(--fg)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">EGRISS · GAIN 2026 · LinkedIn</div>
+    <h1>GAIN 2026 campaign calendar</h1>
+    <div class="rule"></div>
+    <p class="lede">Ten posts from the teaser to the thank-you, with the final copy and the video for each. Watch a video in place in either size, download the MP4, or open the live version. The Videos view lists every film, including the UN Statistical Commission clip.</p>
+    <div class="keydates"><span>Opens <b>Tue 3 Nov</b></span><span>Deadline <b>Sun 22 Nov</b></span><span>Final push <b>Thu 19 and Fri 20 Nov</b></span><span>Landing page <b>How GAIN data is used</b></span></div>
+  </header>
+
+  <div class="toolbar" role="region" aria-label="Filters">
+    <div class="chips" id="chips">
+      <button class="chip" data-f="all" aria-pressed="true">All posts</button>
+      <button class="chip" data-f="egriss" aria-pressed="false">EGRISS page</button>
+      <button class="chip" data-f="filip" aria-pressed="false">Filip's account</button>
+    </div>
+    <div class="views" id="views">
+      <button class="chip" data-v="timeline" aria-pressed="true">Timeline</button>
+      <button class="chip" data-v="list" aria-pressed="false">List</button>
+      <button class="chip" data-v="videos" aria-pressed="false">Videos</button>
+    </div>
+  </div>
+
+  <main id="list"></main>
+  <div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-label="Post details"></div>
+
+  <footer>Videos are stored in the <code>campaign/videos</code> folder of the GAIN-story repository. Post copy follows EGRISS style: recommendations, never standards.</footer>
+</div>
+
+<script>
+const POSTS = [
+ {id:"teaser", week:"Week of 26 October", date:"2026-10-27", accts:["egriss"], title:"Teaser: every example counts", fmt:"Video · 6 s · dot columns 2021 to 2026", dots:2,
+  copy:["Since 2021, national statistical offices and partners have reported how they include refugees, internally displaced and stateless people in official statistics, guided by the International Recommendations.","GAIN 2026 opens on 3 November. Every example counts."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"post1", week:"Week of 26 October", date:"2026-10-29", accts:["filip"], title:"Post 1: why the global record matters", fmt:"Text post · reshare the teaser", dots:2,
+  copy:["Every year we ask national statistical offices and international organisations one question: how are the International Recommendations on refugee, IDP and statelessness statistics being used in practice?","That is what GAIN, the Global Annual Inclusion survey, records. The 2026 round opens on 3 November. Most questionnaires arrive prefilled with the examples and pledges you reported before, so the task is updating rather than starting over, and the survey is available in English, French, Spanish, Arabic and Russian.","If you are a GAIN focal point, look out for the invitation from 3 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"launch", week:"Launch week", date:"2026-11-03", accts:["egriss"], title:"Launch: hero film and landing page", fmt:"Video · 60 s hero film · link to landing page", dots:3,
+  copy:["GAIN 2026 is open.","Collecting data on refugees, internally displaced and stateless people is hard work. GAIN is how that work is seen: it shows where countries stand in applying the International Recommendations, informs EGRISS methodological work and guidance, and brings national evidence to the forums where statistical policy is shaped.","Invitations are going out by email today, with previous examples already filled in. The deadline is 22 November.","Find out how GAIN data is used: [landing page link]"], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"post2", week:"Launch week", date:"2026-11-03", accts:["filip"], title:"Post 2: what a response does", fmt:"Reshare of the hero film with a personal note", dots:3,
+  copy:["GAIN 2026 is open, and this year I want to say clearly what a response does.","It makes your work visible: examples reported to GAIN enter the global record and can become EGRISS case studies. It shapes policy: GAIN evidence is presented at the UN Statistical Commission and regional forums. It improves the methods: the challenges you report show where guidance and support are most needed. And it feeds the reports and tools partners rely on.","Your invitation arrives by email from today, with your previous examples already filled in. Deadline 22 November. If it did not reach the right person in your institution, message me and I will make sure it does."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"qa", week:"Launch week", date:"2026-11-04", accts:["egriss"], title:"Q&A: your questions answered", fmt:"Video · 75 s full Q&A · also 8 single-question clips", dots:3,
+  copy:["Questions about GAIN 2026? Here are the answers our focal points ask for most: who should respond, how long it takes, which examples to report, and why a response matters even when there is nothing new to report.","Full FAQ and the questionnaire in five languages: https://egrisstats.org/implementation/gain-survey/resources/","GAIN 2026 is open until 22 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"post3", week:"Launch week", date:"2026-11-05", accts:["filip"], title:"Post 3: case study, DR Congo", fmt:"Video · 30 s case study clip", dots:3,
+  copy:["Good statistical work deserves to be seen beyond the country that did it.","In 2025, the Democratic Republic of the Congo included refugees and internally displaced people in its national Survey on Household Living Conditions, with questions aligned with the IRRS and IRIS. Despite operating in conflict-affected provinces, the survey gathered information on more than 7,500 forcibly displaced people.","The work was reported to GAIN and is now an EGRISS case study, documenting the approach and lessons for statistical offices facing similar challenges. If your institution has a new example this year, GAIN 2026 is where to record it. Deadline 22 November.","Read the case study: [link]"], tags:"#RefugeeStatistics #IDPs #OfficialStatistics #EGRISS", note:"Let INS DR Congo know before posting."},
+ {id:"mid", week:"Fielding week 2", date:"2026-11-11", accts:["egriss"], title:"Mid-way reminder, tagging partners", fmt:"Video · reuse the full Q&A video", dots:4,
+  copy:["GAIN 2026 is halfway through, and responses are coming in from national statistical offices and partners. Thank you to everyone who has already responded.","Not sure who in your institution should respond, or what to report? The Q&A answers the most common questions.","Thank you to our partners for sharing with their networks: [tag World Bank, IOM, JDC, UNHCR and regional partners]. Deadline 22 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"week", week:"Final week", date:"2026-11-16", accts:["egriss"], title:"Countdown: 1 week left", fmt:"Video · 6 s countdown", dots:5,
+  copy:["One week left to respond to GAIN 2026. If your institution has new work on including refugees, internally displaced or stateless people in official statistics, please add it to the global record.","Deadline Sunday 22 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"three", week:"Final week", date:"2026-11-19", accts:["egriss","filip"], title:"Countdown: 3 days left", fmt:"Video · 6 s countdown", dots:5,
+  copy:["Three days left: GAIN 2026 closes on Sunday 22 November.","If the invitation did not reach you, or reached the wrong person, message me and we will resend it today."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"last", week:"Final week", date:"2026-11-20", accts:["egriss","filip"], title:"Countdown: last working day", fmt:"Video · 6 s countdown", dots:6,
+  copy:["Today is the last working day to respond to GAIN 2026, which closes on Sunday 22 November.","A response with no new activity this year is also valuable. Thank you to everyone who has already responded."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {id:"thanks", week:"After close", date:"2026-11-24", accts:["egriss","filip"], title:"Thank you and next steps", fmt:"Video · 6 s thank-you clip", dots:6,
+  copy:["GAIN 2026 is now closed. Thank you to every national statistical office and partner organisation that responded.","Your examples will feed the GAIN Tables, EGRISS case studies and the methodological work of the year ahead. Results will be published in the GAIN Tables in [month]."],
+  copy2:["GAIN 2026 closed on Sunday. Thank you to every focal point who took the time to respond.","Over the coming months the examples you reported will be cleaned, analysed and published in the GAIN Tables. Some will become case studies, and the challenges you described will shape the guidance and support EGRISS develops next. I will share the first results here."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"}
+];
+const KIND={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd|1|week left",three:"cd|3|days left",last:"cd||Last working day",thanks:"thanks"};
+const WORKS={
+ teaser:{title:"Teaser: every example counts",dur:"6 s",main:"1080x1350",slug:"teaser",kind:"teaser"},
+ hero:{title:"Hero film",dur:"63 s",main:"1920x1080",slug:"hero",kind:"hero"},
+ qa:{title:"Q&A: your questions answered",dur:"75 s",main:"1920x1080",slug:"qa",kind:"qa"},
+ case:{title:"Case study: DR Congo",dur:"30 s",main:"1080x1350",slug:"case-study",kind:"case"},
+ commission:{title:"UN Statistical Commission",dur:"15 s",main:"1080x1350",slug:"commission",kind:"hero"},
+ cd1:{title:"Countdown: 1 week left",dur:"6 s",main:"1080x1350",slug:"countdown-1-week",kind:"cd|1|week left"},
+ cd3:{title:"Countdown: 3 days left",dur:"6 s",main:"1080x1350",slug:"countdown-3-days",kind:"cd|3|days left"},
+ cdl:{title:"Countdown: last working day",dur:"6 s",main:"1080x1350",slug:"countdown-last-day",kind:"cd||Last working day"}
+};
+const POST_WORK={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
+const SIZES=[["1080x1350","4:5 · 1080×1350"],["1920x1080","16:9 · 1920×1080"]];
+const vidUrl=(w,s)=>"videos/"+WORKS[w].slug+"-"+s+".mp4", liveUrl=(w,s)=>"live/"+WORKS[w].slug+"-"+s+".dc.html";
+function mockSVG(kind){
+  const N="#14234C",T="#4CC3C9",W="#FFFFFF",M="#9FB0D0",B="#3B71B9";
+  const yrs=["21","22","23","24","25","26"];
+  const cols=(fills,y0=170,dashLast=false)=>yrs.map((y,i)=>{const x=22+i*23;let s="";
+    for(let k=0;k<fills[i];k++)s+=`<circle cx="${x}" cy="${y0-k*10}" r="3.6" fill="${T}" opacity="${i===5?1:.85}"/>`;
+    if(dashLast&&i===5)s+=`<circle cx="${x}" cy="${y0-fills[i]*10}" r="3.6" fill="none" stroke="${T}" stroke-dasharray="2 2"/>`;
+    return s+`<text x="${x}" y="${y0+16}" font-size="7" fill="${M}" text-anchor="middle" font-family="IBM Plex Mono,monospace">${y}</text>`}).join("");
+  const txt=(s,y,size=11,fill=W,w=600)=>`<text x="80" y="${y}" font-size="${size}" fill="${fill}" text-anchor="middle" font-family="Figtree,sans-serif" font-weight="${w}">${s}</text>`;
+  const logo=`<text x="80" y="196" font-size="6.5" fill="${M}" text-anchor="middle" font-family="IBM Plex Mono,monospace" letter-spacing="1.5">EGRISS</text>`;
+  let body="";const [k,num,lbl]=kind.split("|");
+  if(k==="teaser")body=cols([4,5,6,7,8,1],150,true)+txt("Every example counts.",40,11)+txt("GAIN 2026 opens 3 November",56,7.5,M,500);
+  else if(k==="cd")body=cols([6,6,7,7,8,num==="1"?3:num==="3"?5:7],170)+(num?`<text x="80" y="62" font-size="40" fill="${T}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="500">${num}</text>`+txt(lbl,80,9,W,500):txt(lbl,58,13))+txt("Closes Sunday 22 November",100,7,M,500);
+  else if(k==="thanks")body=cols([7,7,8,8,9,9],170)+txt("Thank you.",48,14)+txt("GAIN 2026 is closed",64,7.5,M,500);
+  else if(k==="hero"){let dots="";const pts=[[62,78],[70,92],[84,70],[96,86],[78,104],[90,112],[66,110],[102,100],[74,84],[88,96],[58,94],[98,74]];pts.forEach(([x,y])=>dots+=`<circle cx="${x}" cy="${y}" r="2.6" fill="${T}"/>`);
+    body=`<circle cx="80" cy="92" r="42" fill="#1B2E57" stroke="${T}" stroke-opacity=".35"/><path d="M48 88q14-10 26-4t30 2" stroke="#2A4C7E" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M58 108q10 6 22 2" stroke="#2A4C7E" stroke-width="6" fill="none" stroke-linecap="round"/>`+dots+
+      `<polygon points="80,146 116,160 80,174 44,160" fill="#E8EEF8" opacity=".9"/><rect x="74" y="148" width="5" height="12" rx="2" fill="${B}"/><circle cx="76.5" cy="146" r="3" fill="#C98E6B"/>`+txt("GAIN 2026",34,13)+txt("Hero film · 60 s",186,6.5,M,500);}
+  else if(k==="qa")body=`<rect x="16" y="40" width="84" height="44" rx="5" fill="${B}"/>`+`<text x="24" y="58" font-size="8.5" fill="${W}" font-family="Figtree,sans-serif" font-weight="600">Who is GAIN</text><text x="24" y="70" font-size="8.5" fill="${W}" font-family="Figtree,sans-serif" font-weight="600">for?</text>`+
+      `<rect x="16" y="92" width="96" height="30" rx="4" fill="${W}"/><rect x="22" y="100" width="70" height="3.5" rx="1.5" fill="#B7C3DA"/><rect x="22" y="108" width="56" height="3.5" rx="1.5" fill="#B7C3DA"/>`+
+      `<circle cx="128" cy="112" r="9" fill="#C98E6B"/><path d="M114 150q14-26 28 0z" fill="${T}"/><rect x="108" y="150" width="40" height="5" rx="2" fill="#E8EEF8"/>`+`<text x="16" y="28" font-size="6.5" fill="${M}" font-family="IBM Plex Mono,monospace" letter-spacing="1">GAIN 2026 Q&amp;A · 1/8</text>`;
+  else if(k==="case")body=cols([4,5,5,6,6,2],176).replace(/opacity="0.85"/g,'opacity=".35"')+`<rect x="26" y="36" width="108" height="92" rx="6" fill="${W}"/><circle cx="134" cy="36" r="9" fill="none" stroke="${T}" stroke-width="2.5"/>`+
+      `<text x="34" y="52" font-size="5.5" fill="${B}" font-family="IBM Plex Mono,monospace" letter-spacing="1">EGRISS CASE STUDY</text><text x="34" y="66" font-size="9.5" fill="${N}" font-family="Figtree,sans-serif" font-weight="700">DR Congo</text>`+
+      `<text x="34" y="77" font-size="6" fill="${N}" font-family="IBM Plex Sans,sans-serif">Displacement in the 2025 ECVM</text><rect x="34" y="84" width="18" height="7" rx="3.5" fill="${T}"/><text x="43" y="89.5" font-size="4.5" fill="${N}" text-anchor="middle" font-family="IBM Plex Mono,monospace">IRRS</text><rect x="55" y="84" width="16" height="7" rx="3.5" fill="${T}"/><text x="63" y="89.5" font-size="4.5" fill="${N}" text-anchor="middle" font-family="IBM Plex Mono,monospace">IRIS</text>`+
+      `<rect x="34" y="99" width="80" height="3" rx="1.5" fill="#D9E2EF"/><rect x="34" y="106" width="70" height="3" rx="1.5" fill="#D9E2EF"/><rect x="34" y="113" width="76" height="3" rx="1.5" fill="#D9E2EF"/>`;
+  return `<svg class="mock" viewBox="0 0 160 200" role="img" aria-label="Video mock-up" preserveAspectRatio="xMidYMid slice"><rect width="160" height="200" fill="${N}"/>${body}${k==="hero"?"":logo}</svg>`;
+}
+
+const el=(t,a={},...k)=>{const n=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x.startsWith("on"))n.addEventListener(x.slice(2),v);else n.setAttribute(x,v)}k.flat().forEach(c=>c!=null&&n.append(c));return n};
+const fmtDate=s=>{const d=new Date(s+"T12:00:00");return{d:d.getDate(),m:d.toLocaleString("en-GB",{month:"short"}),w:d.toLocaleString("en-GB",{weekday:"short"})}};
+const acctLabel={egriss:"EGRISS page",filip:"Filip"};
+let filter="all", view="timeline", openId=null, sel=null; const fmtSel={};
+try{filter=localStorage.getItem("gainFilter")||"all";view=localStorage.getItem("gainView")||"timeline";if(!["timeline","list","videos"].includes(view))view="timeline"}catch(e){}
+
+function mockInto(box,kind,tag){box.innerHTML=mockSVG(kind);if(box.classList.contains("w")){const s=box.querySelector("svg");if(s)s.setAttribute("preserveAspectRatio","xMidYMid meet")}box.append(el("span",{class:"mocktag",text:tag}))}
+function player(wid,size){
+  const box=el("div",{class:"vbox"+(size==="1920x1080"?" w":"")});
+  const v=el("video",{src:vidUrl(wid,size),controls:"",preload:"metadata",playsinline:"","aria-label":WORKS[wid].title+", "+size});
+  v.addEventListener("error",()=>mockInto(box,WORKS[wid].kind,"Mock-up · MP4 not added yet"));
+  box.append(v);return box}
+function links(wid,size){return el("div",{class:"vactions"},
+  el("a",{class:"dl",href:vidUrl(wid,size),download:WORKS[wid].slug+"-"+size+".mp4",text:"Download MP4"}),
+  el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"}))}
+function thumbFor(p){const w=el("span",{class:"thumb"}),wid=POST_WORK[p.id];
+  if(!wid){mockInto(w,KIND[p.id]||"teaser","Mock-up");return w}
+  const v=el("video",{src:vidUrl(wid,"1080x1350")+"#t=0.6",muted:"",preload:"metadata",playsinline:""});
+  v.addEventListener("error",()=>mockInto(w,WORKS[wid].kind,"Mock-up"));w.append(v);return w}
+
+async function copyText(text,btn){try{await navigator.clipboard.writeText(text);btn.textContent="Copied";setTimeout(()=>btn.textContent="Copy text",1500)}catch(e){const r=document.createRange();r.selectNodeContents(btn.closest(".copy").querySelector(".txt"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Text selected, press Ctrl+C"}}
+function copyBlock(p){
+  const blocks=[];
+  const mk=(label,paras)=>{const txt=el("div",{class:"txt"},paras.map(x=>el("p",{text:x})),el("p",{class:"tags",text:p.tags}));
+    const full=paras.join("\n\n")+"\n\n"+p.tags;
+    const b=el("button",{class:"btn",type:"button",text:"Copy text"});b.addEventListener("click",()=>copyText(full,b));
+    return [el("div",{class:"lbl"},el("span",{text:label}),b),txt]};
+  if(p.copy2){blocks.push(...mk("EGRISS page",p.copy),el("h4",{text:""}),...mk("Filip's account",p.copy2))}
+  else blocks.push(...mk("Post text",p.copy));
+  if(p.note)blocks.push(el("p",{class:"vnote",text:"Before posting: "+p.note}));
+  return el("div",{class:"copy"},blocks);
+}
+function sizeSwitch(cur,onPick){const s=el("div",{class:"seg",role:"group","aria-label":"Video size"});
+  SIZES.forEach(([v,l])=>{const b=el("button",{type:"button","aria-pressed":String(v===cur),title:l,text:v==="1080x1350"?"4:5":"16:9"});b.addEventListener("click",()=>onPick(v));s.append(b)});return s}
+function videoBlock(p){
+  const wid=POST_WORK[p.id];
+  if(!wid){const box=el("div",{class:"vbox"});mockInto(box,KIND[p.id]||"teaser","Mock-up · not produced yet");
+    return el("div",{class:"video"},el("div",{class:"lbl"},el("span",{text:"Video"})),box,el("p",{class:"vnote",text:p.fmt}))}
+  const size=fmtSel[wid]||WORKS[wid].main;
+  const wrap=el("div",{class:"video"},
+    el("div",{class:"lbl"},el("span",{text:"Video · "+size.replace("x","×")}),sizeSwitch(size,v=>{fmtSel[wid]=v;wrap.replaceWith(videoBlock(p))})),
+    player(wid,size),el("p",{class:"vnote",text:p.fmt}),links(wid,size));
+  return wrap;
+}
+function renderTimeline(list){
+  const vis=POSTS.filter(p=>filter==="all"||p.accts.includes(filter));
+  if(!vis.length){list.append(el("p",{class:"vnote",text:"No posts for this account."}));return}
+  if(!sel||!vis.find(p=>p.id===sel))sel=vis[0].id;
+  const tl=el("div",{class:"tl",role:"listbox","aria-label":"Posts in date order"});const tr=el("div",{class:"tltrack"});
+  const marks=[["2026-11-03","Opens","3 Nov"],["2026-11-22","Closes","22 Nov"]];
+  let lastWeek=null;
+  vis.forEach(p=>{
+    marks.forEach(m=>{if(m[0]<=p.date&&!m.done){if(m[0]<p.date||m[1]==="Opens"){tr.append(el("div",{class:"tlmark"},el("span",{text:m[1]}),el("b",{text:m[2]})));m.done=true}}});
+    if(p.week!==lastWeek){lastWeek=p.week;tr.append(el("div",{class:"tlsep"},el("span",{text:p.week}),el("i")))}
+    const d=fmtDate(p.date),cls=p.accts.length>1?"both":p.accts[0];
+    const b=el("button",{class:"tlitem "+cls,type:"button",role:"option","aria-current":String(p.id===sel),"aria-selected":String(p.id===sel),"data-id":p.id},
+      el("span",{class:"tldate"},el("span",{text:d.w+" "+d.d+" "+d.m})),
+      thumbFor(p),el("b",{text:p.title}),
+      el("span",{class:"fmt",text:p.accts.map(a=>acctLabel[a]).join(" + ")}));
+    b.addEventListener("click",()=>{sel=p.id;render()});tr.append(b)});
+  marks.forEach(m=>{if(!m.done)tr.append(el("div",{class:"tlmark"},el("span",{text:m[1]}),el("b",{text:m[2]})))});
+  tl.append(tr);list.append(tl);
+  const idx=vis.findIndex(p=>p.id===sel);
+  const prev=el("button",{class:"btn",type:"button",text:"Previous post"}),next=el("button",{class:"btn",type:"button",text:"Next post"});
+  prev.disabled=idx<=0;next.disabled=idx>=vis.length-1;
+  prev.addEventListener("click",()=>{sel=vis[idx-1].id;render()});next.addEventListener("click",()=>{sel=vis[idx+1].id;render()});
+  list.append(el("div",{class:"tlnav"},prev,next));
+  list.append(el("div",{class:"tldetail"},cardFor(vis[idx])));
+  requestAnimationFrame(()=>{const cur=tr.querySelector('[aria-current="true"]');if(cur){tl.scrollLeft=Math.max(0,cur.offsetLeft-tl.clientWidth/2+cur.offsetWidth/2)}});
+}
+function cardFor(p){const d=fmtDate(p.date);
+  return el("article",{class:"card",id:p.id},
+    el("div",{class:"date"},el("div",{class:"d",text:d.d}),el("div",{class:"m",text:d.m}),el("div",{class:"w",text:d.w})),
+    el("div",{},
+      el("div",{class:"top"},el("h3",{text:p.title})),
+      el("div",{class:"meta"},p.accts.map(a=>el("span",{class:"acct "+a,text:acctLabel[a]}))),
+      el("div",{class:"body"},copyBlock(p),videoBlock(p))))}
+function renderLibrary(list){
+  const lib=el("div",{class:"lib"});
+  Object.entries(WORKS).forEach(([wid,w])=>{
+    const used=POSTS.filter(p=>POST_WORK[p.id]===wid).map(p=>p.title);
+    lib.append(el("article",{class:"work",id:"v-"+wid},
+      el("div",{class:"top"},el("h3",{text:w.title}),el("span",{class:"fmt",text:"Video · "+w.dur})),
+      el("p",{class:"used",text:used.length?"Used in: "+used.join(" · "):"Not yet assigned to a post"}),
+      el("div",{class:"pair"},SIZES.map(([s,l])=>el("div",{class:"side"},el("div",{class:"fmt",text:l}),player(wid,s),links(wid,s))))));
+  });
+  list.append(lib);
+}
+function render(){
+  const list=document.getElementById("list");list.textContent="";
+  document.getElementById("chips").style.visibility=view==="videos"?"hidden":"visible";
+  if(view==="videos"){renderLibrary(list);return}
+  if(view==="timeline"){renderTimeline(list);return}
+  let curWeek=null,sec=null;
+  POSTS.forEach(p=>{if(filter!=="all"&&!p.accts.includes(filter))return;
+    if(p.week!==curWeek){curWeek=p.week;sec=el("section",{class:"week"},el("h2",{text:p.week}));list.append(sec)}
+    sec.append(cardFor(p))});
+}
+document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;filter=b.dataset.f;try{localStorage.setItem("gainFilter",filter)}catch(x){}
+  document.querySelectorAll("#chips .chip").forEach(c=>c.setAttribute("aria-pressed",c===b));render()});
+document.querySelectorAll("#chips .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===filter));
+document.getElementById("views").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;view=b.dataset.v;try{localStorage.setItem("gainView",view)}catch(x){}
+  document.querySelectorAll("#views .chip").forEach(c=>c.setAttribute("aria-pressed",c===b));render()});
+document.querySelectorAll("#views .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.v===view));
+render();
+</script>
+</body></html>

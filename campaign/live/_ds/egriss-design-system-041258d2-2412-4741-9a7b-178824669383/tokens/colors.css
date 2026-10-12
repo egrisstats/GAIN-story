@@ -1,0 +1,63 @@
+/* =====================================================================
+   EGRISS — Colour tokens
+   Official palette from "EGRISS Colours and Fonts" (Branding package),
+   plus practical neutrals and a data-visualisation scale derived from
+   the GAIN chart outputs (navy grounds, teal signal, blue ramp).
+   ===================================================================== */
+
+:root {
+  /* ---- Official brand palette ---- */
+  --egriss-navy:  #14234c;   /* primary dark — hero / section grounds */
+  --egriss-blue:  #3b71b9;   /* mid blue — secondary accent, links */
+  --egriss-deep:  #072d62;   /* deep blue — chart grounds, footers */
+  --egriss-teal:  #4cc3c9;   /* SIGNATURE accent — rules, key numbers */
+  --egriss-coral: #f06667;   /* emphasis only — tags, quote marks */
+
+  /* ---- Practical neutrals (UI) ---- */
+  --egriss-ink:    #1d2940;  /* body text on light */
+  --egriss-muted:  #5a6884;  /* secondary text / captions */
+  --egriss-line:   #d9e2ef;  /* hairline borders on light */
+  --egriss-tint:   #eef3fa;  /* pale blue surface */
+  --egriss-tint-2: #dde8f5;  /* slightly deeper pale surface */
+  --egriss-paper:  #f7fafd;  /* page background, off-white */
+  --egriss-white:  #ffffff;
+
+  /* ---- Data-visualisation ramp (from GAIN charts) ---- */
+  --gain-ground:   #14234c;  /* map / chart navy ground */
+  --gain-ground-2: #0e1b3d;  /* deeper panel ground */
+  --gain-blue-1:   #cfe0f4;  /* lightest country fill */
+  --gain-blue-2:   #8db8e3;
+  --gain-blue-3:   #3b71b9;
+  --gain-blue-4:   #1f4a8f;  /* deepest institution fill */
+  --gain-teal:     #4cc3c9;  /* "using recommendations" signal */
+  --gain-gold:     #e0a93b;  /* challenge bubbles, no-response */
+  --gain-sand:     #e3c3a0;  /* muted no-response */
+  --gain-na:       #d7dde6;  /* no data / NA grey */
+
+  /* ===== Semantic aliases — prefer these in product UI ===== */
+  --color-bg:            var(--egriss-paper);
+  --color-surface:       var(--egriss-white);
+  --color-surface-sunk:  var(--egriss-tint);
+  --color-surface-dark:  var(--egriss-navy);
+  --color-surface-deep:  var(--egriss-deep);
+
+  --text-strong:   var(--egriss-navy);
+  --text-body:     var(--egriss-ink);
+  --text-muted:    var(--egriss-muted);
+  --text-on-dark:  var(--egriss-white);
+  --text-link:     var(--egriss-blue);
+
+  --accent:        var(--egriss-teal);
+  --accent-strong: var(--egriss-blue);
+  --emphasis:      var(--egriss-coral);
+
+  --border:        var(--egriss-line);
+  --border-strong: #b9c7dc;
+
+  --focus-ring:    var(--egriss-blue);
+
+  /* status */
+  --ok:    #2e9e7b;
+  --warn:  var(--gain-gold);
+  --error: var(--egriss-coral);
+}

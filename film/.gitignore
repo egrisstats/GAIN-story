@@ -1,0 +1,5 @@
+node_modules/
+v_*.mp4
+mix*.wav
+vo/
+stills*/
