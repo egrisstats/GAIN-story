@@ -37,6 +37,7 @@ jobs:
           cp -r assets/recs _site/assets/
           cp assets/fonts/Obvia-SemiBold.otf _site/assets/fonts/
           touch _site/.nojekyll
+          cp -r campaign _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
