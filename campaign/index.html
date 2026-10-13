@@ -70,6 +70,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .video{display:flex;flex-direction:column;gap:8px}
 .vbox{aspect-ratio:4/5;max-height:330px;max-width:100%;border-radius:8px;background:var(--navy);display:grid;place-items:center;overflow:hidden;position:relative}
 .vbox video{width:100%;height:100%;object-fit:contain;background:#000}
+.spplay{position:absolute;inset:0;display:grid;place-items:center;text-decoration:none;background:rgba(10,18,40,.25)}
+.spplay span{font:600 14px var(--f-body);color:#fff;background:var(--navy);border:1px solid #4CC3C9;border-radius:999px;padding:8px 16px}
+.spplay:hover span{background:#4CC3C9;color:#0C1630}
 .vbox .empty{color:#C9D6EE;text-align:center;font-size:13px;padding:16px;display:grid;gap:8px;justify-items:center}
 .dots{display:grid;grid-template-columns:repeat(6,8px);gap:5px}
 .dots i{width:8px;height:8px;border-radius:50%;background:#4CC3C9;opacity:.35}
@@ -156,6 +159,18 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted)}
 .work .used{font-size:13px;color:var(--muted);margin:6px 0 0}
 @media (max-width:760px){.work .pair{grid-template-columns:1fr}}
 a{color:var(--blue)} a:hover{color:var(--fg)}
+.mocktag.miss{background:var(--coral);color:#fff}
+.missnote{font-size:12.5px;color:var(--coral);margin:0}
+.missnote code{font:500 11.5px var(--f-mono)}
+.tlflag{font:600 9.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--coral);border-radius:3px;padding:1px 5px;align-self:flex-start}
+.tlflag.part{background:var(--warn)}
+.todo{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--coral);border-radius:10px;padding:14px 18px}
+.todo h2{font:600 15px var(--f-display);margin:0 0 4px}
+.todo p{font-size:13px;color:var(--muted);margin:0 0 8px}
+.todo ol{margin:0;padding-left:20px;font-size:13px;display:grid;gap:4px}
+.todo code{font:500 12px var(--f-mono)}
+.todo .when{font:500 11.5px var(--f-mono);color:var(--muted)}
+.todo.ok{border-left-color:var(--ok)}
 </style>
 
 <div class="wrap">
@@ -163,7 +178,7 @@ a{color:var(--blue)} a:hover{color:var(--fg)}
     <div class="eyebrow">EGRISS · GAIN 2026 · LinkedIn</div>
     <h1>GAIN 2026 campaign calendar</h1>
     <div class="rule"></div>
-    <p class="lede">Ten posts from the teaser to the thank-you, with the final copy and the video for each. Watch a video in place in either size, download the MP4, or open the live version. The Videos view lists every film, including the UN Statistical Commission clip.</p>
+    <p class="lede">Ten posts from the teaser to the thank-you, with the final copy and the video for each. The videos live in SharePoint (EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign) and open there for anyone signed in to UNHCR with access; anything not there yet is marked in red. The Videos view lists every film, including the UN Statistical Commission clip.</p>
     <div class="keydates"><span>Opens <b>Tue 3 Nov</b></span><span>Deadline <b>Sun 22 Nov</b></span><span>Final push <b>Thu 19 and Fri 20 Nov</b></span><span>Landing page <b>How GAIN data is used</b></span></div>
   </header>
 
@@ -180,10 +195,11 @@ a{color:var(--blue)} a:hover{color:var(--fg)}
     </div>
   </div>
 
+  <section class="todo" id="todo" aria-label="Videos still to add"></section>
   <main id="list"></main>
   <div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-label="Post details"></div>
 
-  <footer>Videos are stored in the <code>campaign/videos</code> folder of the GAIN-story repository. Post copy follows EGRISS style: recommendations, never standards.</footer>
+  <footer>Videos are stored in SharePoint: EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos. Post copy follows EGRISS style: recommendations, never standards.</footer>
 </div>
 
 <script>
@@ -192,7 +208,7 @@ const POSTS = [
   copy:["Since 2021, national statistical offices and partners have reported how they include refugees, internally displaced and stateless people in official statistics, guided by the International Recommendations.","GAIN 2026 opens on 3 November. Every example counts."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
  {id:"post1", week:"Week of 26 October", date:"2026-10-29", accts:["filip"], title:"Post 1: why the global record matters", fmt:"Text post · reshare the teaser", dots:2,
   copy:["Every year we ask national statistical offices and international organisations one question: how are the International Recommendations on refugee, IDP and statelessness statistics being used in practice?","That is what GAIN, the Global Annual Inclusion survey, records. The 2026 round opens on 3 November. Most questionnaires arrive prefilled with the examples and pledges you reported before, so the task is updating rather than starting over, and the survey is available in English, French, Spanish, Arabic and Russian.","If you are a GAIN focal point, look out for the invitation from 3 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"launch", week:"Launch week", date:"2026-11-03", accts:["egriss"], title:"Launch: hero film and landing page", fmt:"Video · 60 s hero film · link to landing page", dots:3,
+ {id:"launch", week:"Launch week", date:"2026-11-03", accts:["egriss"], title:"Launch: hero film and landing page", fmt:"Video · 58 s hero film · link to landing page", dots:3,
   copy:["GAIN 2026 is open.","Collecting data on refugees, internally displaced and stateless people is hard work. GAIN is how that work is seen: it shows where countries stand in applying the International Recommendations, informs EGRISS methodological work and guidance, and brings national evidence to the forums where statistical policy is shaped.","Invitations are going out by email today, with previous examples already filled in. The deadline is 22 November.","Find out how GAIN data is used: [landing page link]"], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
  {id:"post2", week:"Launch week", date:"2026-11-03", accts:["filip"], title:"Post 2: what a response does", fmt:"Reshare of the hero film with a personal note", dots:3,
   copy:["GAIN 2026 is open, and this year I want to say clearly what a response does.","It makes your work visible: examples reported to GAIN enter the global record and can become EGRISS case studies. It shapes policy: GAIN evidence is presented at the UN Statistical Commission and regional forums. It improves the methods: the challenges you report show where guidance and support are most needed. And it feeds the reports and tools partners rely on.","Your invitation arrives by email from today, with your previous examples already filled in. Deadline 22 November. If it did not reach the right person in your institution, message me and I will make sure it does."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
@@ -215,7 +231,7 @@ const POSTS = [
 const KIND={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd|1|week left",three:"cd|3|days left",last:"cd||Last working day",thanks:"thanks"};
 const WORKS={
  teaser:{title:"Teaser: every example counts",dur:"6 s",main:"1080x1350",slug:"teaser",kind:"teaser"},
- hero:{title:"Hero film",dur:"63 s",main:"1920x1080",slug:"hero",kind:"hero"},
+ hero:{title:"Hero film",dur:"58 s",main:"1920x1080",slug:"hero",kind:"hero"},
  qa:{title:"Q&A: your questions answered",dur:"75 s",main:"1920x1080",slug:"qa",kind:"qa"},
  case:{title:"Case study: DR Congo",dur:"30 s",main:"1080x1350",slug:"case-study",kind:"case"},
  commission:{title:"UN Statistical Commission",dur:"15 s",main:"1080x1350",slug:"commission",kind:"hero"},
@@ -225,7 +241,29 @@ const WORKS={
 };
 const POST_WORK={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
 const SIZES=[["1080x1350","4:5 · 1080×1350"],["1920x1080","16:9 · 1920×1080"]];
-const vidUrl=(w,s)=>"videos/"+WORKS[w].slug+"-"+s+".mp4", liveUrl=(w,s)=>"live/"+WORKS[w].slug+"-"+s+".dc.html";
+// SharePoint home of the videos: EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos.
+// UNHCR SharePoint cannot be framed on other sites, so online the players link out to SharePoint;
+// they play there for anyone signed in to UNHCR with access to the folder.
+const SP_SITE="https://unhcr365.sharepoint.com/teams/GDS-EGRISSSecretariat";
+const SP_PATH="/teams/GDS-EGRISSSecretariat/Shared Documents/905 - Implementation of Recommendations/01_GAIN Survey/Integration & GAIN Survey/EGRISS GAIN Survey 2026/09 Dissemination/GAIN 2026 Campaign/videos";
+
+// Files currently in OneDrive › 09 Dissemination › GAIN 2026 Campaign › videos. Add a name here when you add the MP4.
+const HAVE=new Set([
+ "hero-1080x1350.mp4","hero-1920x1080.mp4",
+ "qa-1080x1350.mp4","qa-1920x1080.mp4",
+ "case-study-1080x1350.mp4","case-study-1920x1080.mp4",
+ "commission-1080x1350.mp4","commission-1920x1080.mp4",
+ "countdown-1-week-1080x1350.mp4",
+ "countdown-3-days-1080x1350.mp4","countdown-3-days-1920x1080.mp4",
+ "countdown-last-day-1080x1350.mp4","countdown-last-day-1920x1080.mp4"
+]);
+// The design each MP4 is exported from (Share → Export → Video).
+const SRC={teaser:"GAIN 2026 Teaser",hero:"GAIN Hero Film v3",qa:"GAIN 2026 QA",case:"GAIN 2026 Case Study",commission:"GAIN 2026 Commission",
+ cd1:"GAIN 2026 Countdown 1 - 1 week",cd3:"GAIN 2026 Countdown 2 - 3 days",cdl:"GAIN 2026 Countdown 3 - Last day"};
+const vidFile=(w,s)=>WORKS[w].slug+"-"+s+".mp4", has=(w,s)=>HAVE.has(vidFile(w,s));
+const spUrl=(w,s)=>SP_SITE+"/_layouts/15/stream.aspx?id="+encodeURIComponent(SP_PATH+"/"+vidFile(w,s));
+const isLocal=location.protocol==="file:";
+const vidUrl=(w,s)=>"videos/"+vidFile(w,s), liveUrl=(w,s)=>"live/"+WORKS[w].slug+"-"+s+".dc.html";
 function mockSVG(kind){
   const N="#14234C",T="#4CC3C9",W="#FFFFFF",M="#9FB0D0",B="#3B71B9";
   const yrs=["21","22","23","24","25","26"];
@@ -258,19 +296,46 @@ const acctLabel={egriss:"EGRISS page",filip:"Filip"};
 let filter="all", view="timeline", openId=null, sel=null; const fmtSel={};
 try{filter=localStorage.getItem("gainFilter")||"all";view=localStorage.getItem("gainView")||"timeline";if(!["timeline","list","videos"].includes(view))view="timeline"}catch(e){}
 
-function mockInto(box,kind,tag){box.innerHTML=mockSVG(kind);if(box.classList.contains("w")){const s=box.querySelector("svg");if(s)s.setAttribute("preserveAspectRatio","xMidYMid meet")}box.append(el("span",{class:"mocktag",text:tag}))}
+function mockInto(box,kind,tag,miss){box.innerHTML=mockSVG(kind);if(box.classList.contains("w")){const s=box.querySelector("svg");if(s)s.setAttribute("preserveAspectRatio","xMidYMid meet")}box.append(el("span",{class:"mocktag"+(miss?" miss":""),text:tag}))}
 function player(wid,size){
   const box=el("div",{class:"vbox"+(size==="1920x1080"?" w":"")});
+  if(!has(wid,size)){mockInto(box,WORKS[wid].kind,"Missing · not in SharePoint yet",true);return box}
+  // opened from the synced OneDrive folder: play the local file; online: poster that opens the SharePoint player
+  if(!isLocal){mockInto(box,WORKS[wid].kind,"In SharePoint");
+    box.append(el("a",{class:"spplay",href:spUrl(wid,size),target:"_blank",rel:"noopener"},el("span",{text:"▶ Watch in SharePoint"})));return box}
   const v=el("video",{src:vidUrl(wid,size),controls:"",preload:"metadata",playsinline:"","aria-label":WORKS[wid].title+", "+size});
-  v.addEventListener("error",()=>mockInto(box,WORKS[wid].kind,"Mock-up · MP4 not added yet"));
+  v.addEventListener("error",()=>mockInto(box,WORKS[wid].kind,"In SharePoint · open below"));
   box.append(v);return box}
-function links(wid,size){return el("div",{class:"vactions"},
-  el("a",{class:"dl",href:vidUrl(wid,size),download:WORKS[wid].slug+"-"+size+".mp4",text:"Download MP4"}),
+function links(wid,size){
+  if(!has(wid,size))return el("div",{class:"video"},
+    el("p",{class:"missnote"},"To add: export ",el("b",{text:SRC[wid]+" "+size}),", save in OneDrive › GAIN 2026 Campaign › videos as ",el("code",{text:vidFile(wid,size)})),
+    el("div",{class:"vactions"},el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"})));
+  return el("div",{class:"vactions"},
+  el("a",{class:"dl",href:spUrl(wid,size),target:"_blank",rel:"noopener",text:"Open in SharePoint"}),
+  isLocal&&el("a",{class:"dl",href:vidUrl(wid,size),download:vidFile(wid,size),text:"Download MP4"}),
   el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"}))}
+// "" = both sizes in SharePoint, "part" = main size there but not the other, "miss" = no video for this post yet
+function vidState(p){const wid=POST_WORK[p.id];if(!wid)return "miss";
+  const n=SIZES.filter(([s])=>has(wid,s)).length;return n===SIZES.length?"":has(wid,WORKS[wid].main)?"part":"miss"}
 function thumbFor(p){const w=el("span",{class:"thumb"}),wid=POST_WORK[p.id];
-  if(!wid){mockInto(w,KIND[p.id]||"teaser","Mock-up");return w}
+  if(!wid){mockInto(w,KIND[p.id]||"teaser","Missing",true);return w}
+  if(!has(wid,"1080x1350")){mockInto(w,WORKS[wid].kind,"Missing",true);return w}
+  if(!isLocal){mockInto(w,WORKS[wid].kind,"In SharePoint");return w}
   const v=el("video",{src:vidUrl(wid,"1080x1350")+"#t=0.6",muted:"",preload:"metadata",playsinline:""});
-  v.addEventListener("error",()=>mockInto(w,WORKS[wid].kind,"Mock-up"));w.append(v);return w}
+  v.addEventListener("error",()=>mockInto(w,WORKS[wid].kind,"In SharePoint"));w.append(v);return w}
+function renderTodo(){
+  const box=document.getElementById("todo");box.textContent="";const items=[],seen=new Set();
+  POSTS.forEach(p=>{const wid=POST_WORK[p.id],d=fmtDate(p.date),when=d.w+" "+d.d+" "+d.m;
+    if(!wid){items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:p.title}),": "+p.fmt.replace(/^Video · /,"")+" — not designed yet"));return}
+    if(seen.has(wid))return;seen.add(wid);
+    SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))})});
+  Object.keys(WORKS).filter(w=>!seen.has(w)).forEach(wid=>SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:"Not in a post · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))}));
+  if(!items.length){box.className="todo ok";box.append(el("h2",{text:"All videos are in SharePoint"}));return}
+  box.className="todo";
+  box.append(el("h2",{text:items.length+" videos still to add"}),
+    el("p",{text:"In date order of first use. Export each one and save it in OneDrive › EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos under the name shown."}),
+    el("ol",{},items));
+}
 
 async function copyText(text,btn){try{await navigator.clipboard.writeText(text);btn.textContent="Copied";setTimeout(()=>btn.textContent="Copy text",1500)}catch(e){const r=document.createRange();r.selectNodeContents(btn.closest(".copy").querySelector(".txt"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Text selected, press Ctrl+C"}}
 function copyBlock(p){
@@ -288,8 +353,9 @@ function sizeSwitch(cur,onPick){const s=el("div",{class:"seg",role:"group","aria
   SIZES.forEach(([v,l])=>{const b=el("button",{type:"button","aria-pressed":String(v===cur),title:l,text:v==="1080x1350"?"4:5":"16:9"});b.addEventListener("click",()=>onPick(v));s.append(b)});return s}
 function videoBlock(p){
   const wid=POST_WORK[p.id];
-  if(!wid){const box=el("div",{class:"vbox"});mockInto(box,KIND[p.id]||"teaser","Mock-up · not produced yet");
-    return el("div",{class:"video"},el("div",{class:"lbl"},el("span",{text:"Video"})),box,el("p",{class:"vnote",text:p.fmt}))}
+  if(!wid){const box=el("div",{class:"vbox"});mockInto(box,KIND[p.id]||"teaser","Missing · not designed yet",true);
+    return el("div",{class:"video"},el("div",{class:"lbl"},el("span",{text:"Video"})),box,el("p",{class:"vnote",text:p.fmt}),
+      el("p",{class:"missnote",text:"To add: this clip has no design yet. Make it, then save it in OneDrive › GAIN 2026 Campaign › videos."}))}
   const size=fmtSel[wid]||WORKS[wid].main;
   const wrap=el("div",{class:"video"},
     el("div",{class:"lbl"},el("span",{text:"Video · "+size.replace("x","×")}),sizeSwitch(size,v=>{fmtSel[wid]=v;wrap.replaceWith(videoBlock(p))})),
@@ -306,10 +372,12 @@ function renderTimeline(list){
   vis.forEach(p=>{
     marks.forEach(m=>{if(m[0]<=p.date&&!m.done){if(m[0]<p.date||m[1]==="Opens"){tr.append(el("div",{class:"tlmark"},el("span",{text:m[1]}),el("b",{text:m[2]})));m.done=true}}});
     if(p.week!==lastWeek){lastWeek=p.week;tr.append(el("div",{class:"tlsep"},el("span",{text:p.week}),el("i")))}
-    const d=fmtDate(p.date),cls=p.accts.length>1?"both":p.accts[0];
+    const d=fmtDate(p.date),cls=p.accts.length>1?"both":p.accts[0],st=vidState(p);
     const b=el("button",{class:"tlitem "+cls,type:"button",role:"option","aria-current":String(p.id===sel),"aria-selected":String(p.id===sel),"data-id":p.id},
       el("span",{class:"tldate"},el("span",{text:d.w+" "+d.d+" "+d.m})),
-      thumbFor(p),el("b",{text:p.title}),
+      thumbFor(p),
+      st&&el("span",{class:"tlflag "+st,text:st==="miss"?"Video missing":"16:9 missing"}),
+      el("b",{text:p.title}),
       el("span",{class:"fmt",text:p.accts.map(a=>acctLabel[a]).join(" + ")}));
     b.addEventListener("click",()=>{sel=p.id;render()});tr.append(b)});
   marks.forEach(m=>{if(!m.done)tr.append(el("div",{class:"tlmark"},el("span",{text:m[1]}),el("b",{text:m[2]})))});
@@ -341,7 +409,7 @@ function renderLibrary(list){
   list.append(lib);
 }
 function render(){
-  const list=document.getElementById("list");list.textContent="";
+  const list=document.getElementById("list");list.textContent="";renderTodo();
   document.getElementById("chips").style.visibility=view==="videos"?"hidden":"visible";
   if(view==="videos"){renderLibrary(list);return}
   if(view==="timeline"){renderTimeline(list);return}

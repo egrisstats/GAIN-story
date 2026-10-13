@@ -11,7 +11,8 @@ Once this folder is in the repository, it is published at https://mitrovif.githu
 
 ## Adding the videos
 
-Export each design as MP4 (Share → Export → Video) and save it in `videos/` under exactly this name:
+The videos live in OneDrive / SharePoint: EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos (not in this repository).
+Export each design as MP4 (Share → Export → Video), save it there under exactly this name, then add the name to `HAVE` in `index.html` so the calendar stops marking it missing. On the published page each video opens in SharePoint (UNHCR does not allow its videos to be embedded on outside sites), so it plays for anyone signed in to UNHCR with access to the folder.
 
 | File | Export from |
 |---|---|
