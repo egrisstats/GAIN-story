@@ -70,9 +70,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .video{display:flex;flex-direction:column;gap:8px}
 .vbox{aspect-ratio:4/5;max-height:330px;max-width:100%;border-radius:8px;background:var(--navy);display:grid;place-items:center;overflow:hidden;position:relative}
 .vbox video{width:100%;height:100%;object-fit:contain;background:#000}
-.spplay{position:absolute;inset:0;display:grid;place-items:center;text-decoration:none;background:rgba(10,18,40,.25)}
-.spplay span{font:600 14px var(--f-body);color:#fff;background:var(--navy);border:1px solid #4CC3C9;border-radius:999px;padding:8px 16px}
-.spplay:hover span{background:#4CC3C9;color:#0C1630}
 .vbox .empty{color:#C9D6EE;text-align:center;font-size:13px;padding:16px;display:grid;gap:8px;justify-items:center}
 .dots{display:grid;grid-template-columns:repeat(6,8px);gap:5px}
 .dots i{width:8px;height:8px;border-radius:50%;background:#4CC3C9;opacity:.35}
@@ -178,7 +175,7 @@ a{color:var(--blue)} a:hover{color:var(--fg)}
     <div class="eyebrow">EGRISS · GAIN 2026 · LinkedIn</div>
     <h1>GAIN 2026 campaign calendar</h1>
     <div class="rule"></div>
-    <p class="lede">Ten posts from the teaser to the thank-you, with the final copy and the video for each. The videos live in SharePoint (EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign) and open there for anyone signed in to UNHCR with access; anything not there yet is marked in red. The Videos view lists every film, including the UN Statistical Commission clip.</p>
+    <p class="lede">Ten posts from the teaser to the thank-you, with the final copy and the video for each. Play each video in place in either size, or download the MP4; anything not added yet is marked in red. The Videos view lists every film, including the UN Statistical Commission clip.</p>
     <div class="keydates"><span>Opens <b>Tue 3 Nov</b></span><span>Deadline <b>Sun 22 Nov</b></span><span>Final push <b>Thu 19 and Fri 20 Nov</b></span><span>Landing page <b>How GAIN data is used</b></span></div>
   </header>
 
@@ -199,7 +196,7 @@ a{color:var(--blue)} a:hover{color:var(--fg)}
   <main id="list"></main>
   <div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-label="Post details"></div>
 
-  <footer>Videos are stored in SharePoint: EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos. Post copy follows EGRISS style: recommendations, never standards.</footer>
+  <footer>Videos are stored in the <code>campaign/videos</code> folder of the GAIN-story repository. Post copy follows EGRISS style: recommendations, never standards.</footer>
 </div>
 
 <script>
@@ -241,13 +238,8 @@ const WORKS={
 };
 const POST_WORK={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
 const SIZES=[["1080x1350","4:5 · 1080×1350"],["1920x1080","16:9 · 1920×1080"]];
-// SharePoint home of the videos: EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos.
-// UNHCR SharePoint cannot be framed on other sites, so online the players link out to SharePoint;
-// they play there for anyone signed in to UNHCR with access to the folder.
-const SP_SITE="https://unhcr365.sharepoint.com/teams/GDS-EGRISSSecretariat";
-const SP_PATH="/teams/GDS-EGRISSSecretariat/Shared Documents/905 - Implementation of Recommendations/01_GAIN Survey/Integration & GAIN Survey/EGRISS GAIN Survey 2026/09 Dissemination/GAIN 2026 Campaign/videos";
 
-// Files in the videos folder. Add a name here when you add the MP4.
+// Files in campaign/videos. Add a name here when you add the MP4.
 const HAVE=new Set([
  "hero-1080x1350.mp4","hero-1920x1080.mp4",
  "qa-1080x1350.mp4","qa-1920x1080.mp4",
@@ -257,16 +249,10 @@ const HAVE=new Set([
  "countdown-3-days-1080x1350.mp4","countdown-3-days-1920x1080.mp4",
  "countdown-last-day-1080x1350.mp4","countdown-last-day-1920x1080.mp4"
 ]);
-// In the synced folder but not yet uploaded to SharePoint; remove a name once it shows up online.
-const PENDING=new Set([]);
 // The design each MP4 is exported from (Share → Export → Video).
 const SRC={teaser:"GAIN 2026 Teaser",hero:"GAIN Hero Film v3",qa:"GAIN 2026 QA",case:"GAIN 2026 Case Study",commission:"GAIN 2026 Commission",
  cd1:"GAIN 2026 Countdown 1 - 1 week",cd3:"GAIN 2026 Countdown 2 - 3 days",cdl:"GAIN 2026 Countdown 3 - Last day"};
 const vidFile=(w,s)=>WORKS[w].slug+"-"+s+".mp4", has=(w,s)=>HAVE.has(vidFile(w,s));
-// direct file address: opens in the browser's own video player once signed in
-const spUrl=(w,s)=>new URL(SP_SITE).origin+encodeURI(SP_PATH+"/"+vidFile(w,s)).replace(/&/g,"%26");
-const pending=(w,s)=>PENDING.has(vidFile(w,s));
-const isLocal=location.protocol==="file:";
 const vidUrl=(w,s)=>"videos/"+vidFile(w,s), liveUrl=(w,s)=>"live/"+WORKS[w].slug+"-"+s+".dc.html";
 function mockSVG(kind){
   const N="#14234C",T="#4CC3C9",W="#FFFFFF",M="#9FB0D0",B="#3B71B9";
@@ -303,31 +289,25 @@ try{filter=localStorage.getItem("gainFilter")||"all";view=localStorage.getItem("
 function mockInto(box,kind,tag,miss){box.innerHTML=mockSVG(kind);if(box.classList.contains("w")){const s=box.querySelector("svg");if(s)s.setAttribute("preserveAspectRatio","xMidYMid meet")}box.append(el("span",{class:"mocktag"+(miss?" miss":""),text:tag}))}
 function player(wid,size){
   const box=el("div",{class:"vbox"+(size==="1920x1080"?" w":"")});
-  if(!has(wid,size)){mockInto(box,WORKS[wid].kind,"Missing · not in SharePoint yet",true);return box}
-  // opened from the synced OneDrive folder: play the local file; online: poster that opens the SharePoint player
-  if(!isLocal&&pending(wid,size)){mockInto(box,WORKS[wid].kind,"Uploading to SharePoint · check back soon");return box}
-  if(!isLocal){mockInto(box,WORKS[wid].kind,"In SharePoint");
-    box.append(el("a",{class:"spplay",href:spUrl(wid,size),target:"_blank",rel:"noopener"},el("span",{text:"▶ Watch in SharePoint"})));return box}
+  if(!has(wid,size)){mockInto(box,WORKS[wid].kind,"Missing · not added yet",true);return box}
   const v=el("video",{src:vidUrl(wid,size),controls:"",preload:"metadata",playsinline:"","aria-label":WORKS[wid].title+", "+size});
-  v.addEventListener("error",()=>mockInto(box,WORKS[wid].kind,"In SharePoint · open below"));
+  v.addEventListener("error",()=>mockInto(box,WORKS[wid].kind,"Video could not load"));
   box.append(v);return box}
 function links(wid,size){
   if(!has(wid,size))return el("div",{class:"video"},
-    el("p",{class:"missnote"},"To add: export ",el("b",{text:SRC[wid]+" "+size}),", save in OneDrive › GAIN 2026 Campaign › videos as ",el("code",{text:vidFile(wid,size)})),
+    el("p",{class:"missnote"},"To add: export ",el("b",{text:SRC[wid]+" "+size}),", save in campaign/videos as ",el("code",{text:vidFile(wid,size)})),
     el("div",{class:"vactions"},el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"})));
   return el("div",{class:"vactions"},
-  !(pending(wid,size)&&!isLocal)&&el("a",{class:"dl",href:spUrl(wid,size),target:"_blank",rel:"noopener",text:"Open in SharePoint"}),
-  isLocal&&el("a",{class:"dl",href:vidUrl(wid,size),download:vidFile(wid,size),text:"Download MP4"}),
+  el("a",{class:"dl",href:vidUrl(wid,size),download:vidFile(wid,size),text:"Download MP4"}),
   el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"}))}
-// "" = both sizes in SharePoint, "part" = main size there but not the other, "miss" = no video for this post yet
+// "" = both sizes added, "part" = main size there but not the other, "miss" = no video for this post yet
 function vidState(p){const wid=POST_WORK[p.id];if(!wid)return "miss";
   const n=SIZES.filter(([s])=>has(wid,s)).length;return n===SIZES.length?"":has(wid,WORKS[wid].main)?"part":"miss"}
 function thumbFor(p){const w=el("span",{class:"thumb"}),wid=POST_WORK[p.id];
   if(!wid){mockInto(w,KIND[p.id]||"teaser","Missing",true);return w}
   if(!has(wid,"1080x1350")){mockInto(w,WORKS[wid].kind,"Missing",true);return w}
-  if(!isLocal){mockInto(w,WORKS[wid].kind,"In SharePoint");return w}
   const v=el("video",{src:vidUrl(wid,"1080x1350")+"#t=0.6",muted:"",preload:"metadata",playsinline:""});
-  v.addEventListener("error",()=>mockInto(w,WORKS[wid].kind,"In SharePoint"));w.append(v);return w}
+  v.addEventListener("error",()=>mockInto(w,WORKS[wid].kind,"Mock-up"));w.append(v);return w}
 function renderTodo(){
   const box=document.getElementById("todo");box.textContent="";const items=[],seen=new Set();
   POSTS.forEach(p=>{const wid=POST_WORK[p.id],d=fmtDate(p.date),when=d.w+" "+d.d+" "+d.m;
@@ -335,10 +315,10 @@ function renderTodo(){
     if(seen.has(wid))return;seen.add(wid);
     SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))})});
   Object.keys(WORKS).filter(w=>!seen.has(w)).forEach(wid=>SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:"Not in a post · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))}));
-  if(!items.length){box.className="todo ok";box.append(el("h2",{text:"All videos are in SharePoint"}));return}
+  if(!items.length){box.className="todo ok";box.append(el("h2",{text:"All videos are added"}));return}
   box.className="todo";
   box.append(el("h2",{text:items.length+" videos still to add"}),
-    el("p",{text:"In date order of first use. Export each one and save it in OneDrive › EGRISS Secretariat › 09 Dissemination › GAIN 2026 Campaign › videos under the name shown."}),
+    el("p",{text:"In date order of first use. Export each one and save it in campaign/videos under the name shown."}),
     el("ol",{},items));
 }
 
@@ -360,7 +340,7 @@ function videoBlock(p){
   const wid=POST_WORK[p.id];
   if(!wid){const box=el("div",{class:"vbox"});mockInto(box,KIND[p.id]||"teaser","Missing · not designed yet",true);
     return el("div",{class:"video"},el("div",{class:"lbl"},el("span",{text:"Video"})),box,el("p",{class:"vnote",text:p.fmt}),
-      el("p",{class:"missnote",text:"To add: this clip has no design yet. Make it, then save it in OneDrive › GAIN 2026 Campaign › videos."}))}
+      el("p",{class:"missnote",text:"To add: this clip has no design yet. Make it, then save it in campaign/videos."}))}
   const size=fmtSel[wid]||WORKS[wid].main;
   const wrap=el("div",{class:"video"},
     el("div",{class:"lbl"},el("span",{text:"Video · "+size.replace("x","×")}),sizeSwitch(size,v=>{fmtSel[wid]=v;wrap.replaceWith(videoBlock(p))})),
