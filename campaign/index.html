@@ -247,7 +247,7 @@ const SIZES=[["1080x1350","4:5 · 1080×1350"],["1920x1080","16:9 · 1920×1080"
 const SP_SITE="https://unhcr365.sharepoint.com/teams/GDS-EGRISSSecretariat";
 const SP_PATH="/teams/GDS-EGRISSSecretariat/Shared Documents/905 - Implementation of Recommendations/01_GAIN Survey/Integration & GAIN Survey/EGRISS GAIN Survey 2026/09 Dissemination/GAIN 2026 Campaign/videos";
 
-// Files currently in OneDrive › 09 Dissemination › GAIN 2026 Campaign › videos. Add a name here when you add the MP4.
+// Files in the videos folder. Add a name here when you add the MP4.
 const HAVE=new Set([
  "hero-1080x1350.mp4","hero-1920x1080.mp4",
  "qa-1080x1350.mp4","qa-1920x1080.mp4",
@@ -257,11 +257,15 @@ const HAVE=new Set([
  "countdown-3-days-1080x1350.mp4","countdown-3-days-1920x1080.mp4",
  "countdown-last-day-1080x1350.mp4","countdown-last-day-1920x1080.mp4"
 ]);
+// In the synced folder but not yet uploaded to SharePoint; remove a name once it shows up online.
+const PENDING=new Set(["hero-1080x1350.mp4","hero-1920x1080.mp4","qa-1080x1350.mp4","qa-1920x1080.mp4","case-study-1080x1350.mp4","case-study-1920x1080.mp4"]);
 // The design each MP4 is exported from (Share → Export → Video).
 const SRC={teaser:"GAIN 2026 Teaser",hero:"GAIN Hero Film v3",qa:"GAIN 2026 QA",case:"GAIN 2026 Case Study",commission:"GAIN 2026 Commission",
  cd1:"GAIN 2026 Countdown 1 - 1 week",cd3:"GAIN 2026 Countdown 2 - 3 days",cdl:"GAIN 2026 Countdown 3 - Last day"};
 const vidFile=(w,s)=>WORKS[w].slug+"-"+s+".mp4", has=(w,s)=>HAVE.has(vidFile(w,s));
-const spUrl=(w,s)=>SP_SITE+"/_layouts/15/stream.aspx?id="+encodeURIComponent(SP_PATH+"/"+vidFile(w,s));
+// direct file address: opens in the browser's own video player once signed in
+const spUrl=(w,s)=>new URL(SP_SITE).origin+encodeURI(SP_PATH+"/"+vidFile(w,s)).replace(/&/g,"%26");
+const pending=(w,s)=>PENDING.has(vidFile(w,s));
 const isLocal=location.protocol==="file:";
 const vidUrl=(w,s)=>"videos/"+vidFile(w,s), liveUrl=(w,s)=>"live/"+WORKS[w].slug+"-"+s+".dc.html";
 function mockSVG(kind){
@@ -301,6 +305,7 @@ function player(wid,size){
   const box=el("div",{class:"vbox"+(size==="1920x1080"?" w":"")});
   if(!has(wid,size)){mockInto(box,WORKS[wid].kind,"Missing · not in SharePoint yet",true);return box}
   // opened from the synced OneDrive folder: play the local file; online: poster that opens the SharePoint player
+  if(!isLocal&&pending(wid,size)){mockInto(box,WORKS[wid].kind,"Uploading to SharePoint · check back soon");return box}
   if(!isLocal){mockInto(box,WORKS[wid].kind,"In SharePoint");
     box.append(el("a",{class:"spplay",href:spUrl(wid,size),target:"_blank",rel:"noopener"},el("span",{text:"▶ Watch in SharePoint"})));return box}
   const v=el("video",{src:vidUrl(wid,size),controls:"",preload:"metadata",playsinline:"","aria-label":WORKS[wid].title+", "+size});
@@ -311,7 +316,7 @@ function links(wid,size){
     el("p",{class:"missnote"},"To add: export ",el("b",{text:SRC[wid]+" "+size}),", save in OneDrive › GAIN 2026 Campaign › videos as ",el("code",{text:vidFile(wid,size)})),
     el("div",{class:"vactions"},el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"})));
   return el("div",{class:"vactions"},
-  el("a",{class:"dl",href:spUrl(wid,size),target:"_blank",rel:"noopener",text:"Open in SharePoint"}),
+  !(pending(wid,size)&&!isLocal)&&el("a",{class:"dl",href:spUrl(wid,size),target:"_blank",rel:"noopener",text:"Open in SharePoint"}),
   isLocal&&el("a",{class:"dl",href:vidUrl(wid,size),download:vidFile(wid,size),text:"Download MP4"}),
   el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"}))}
 // "" = both sizes in SharePoint, "part" = main size there but not the other, "miss" = no video for this post yet
