@@ -205,7 +205,7 @@ const POSTS = [
   copy:["Since 2021, national statistical offices and partners have reported how they include refugees, internally displaced and stateless people in official statistics, guided by the International Recommendations.","GAIN 2026 opens on 3 November. Every example counts."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
  {id:"post1", week:"Week of 26 October", date:"2026-10-29", accts:["filip"], title:"Post 1: why the global record matters", fmt:"Text post · reshare the teaser", dots:2,
   copy:["Every year we ask national statistical offices and international organisations one question: how are the International Recommendations on refugee, IDP and statelessness statistics being used in practice?","That is what GAIN, the Global Annual Inclusion survey, records. The 2026 round opens on 3 November. Most questionnaires arrive prefilled with the examples and pledges you reported before, so the task is updating rather than starting over, and the survey is available in English, French, Spanish, Arabic and Russian.","If you are a GAIN focal point, look out for the invitation from 3 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"launch", week:"Launch week", date:"2026-11-03", accts:["egriss"], title:"Launch: hero film and landing page", fmt:"Video · 58 s hero film · link to landing page", dots:3,
+ {id:"launch", week:"Launch week", date:"2026-11-03", accts:["egriss"], title:"Launch: hero film and landing page", fmt:"Video · 59 s hero film · link to landing page", dots:3,
   copy:["GAIN 2026 is open.","Collecting data on refugees, internally displaced and stateless people is hard work. GAIN is how that work is seen: it shows where countries stand in applying the International Recommendations, informs EGRISS methodological work and guidance, and brings national evidence to the forums where statistical policy is shaped.","Invitations are going out by email today, with previous examples already filled in. The deadline is 22 November.","Find out how GAIN data is used: [landing page link]"], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
  {id:"post2", week:"Launch week", date:"2026-11-03", accts:["filip"], title:"Post 2: what a response does", fmt:"Reshare of the hero film with a personal note", dots:3,
   copy:["GAIN 2026 is open, and this year I want to say clearly what a response does.","It makes your work visible: examples reported to GAIN enter the global record and can become EGRISS case studies. It shapes policy: GAIN evidence is presented at the UN Statistical Commission and regional forums. It improves the methods: the challenges you report show where guidance and support are most needed. And it feeds the reports and tools partners rely on.","Your invitation arrives by email from today, with your previous examples already filled in. Deadline 22 November. If it did not reach the right person in your institution, message me and I will make sure it does."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
@@ -225,10 +225,11 @@ const POSTS = [
   copy:["GAIN 2026 is now closed. Thank you to every national statistical office and partner organisation that responded.","Your examples will feed the GAIN Tables, EGRISS case studies and the methodological work of the year ahead. Results will be published in the GAIN Tables in [month]."],
   copy2:["GAIN 2026 closed on Sunday. Thank you to every focal point who took the time to respond.","Over the coming months the examples you reported will be cleaned, analysed and published in the GAIN Tables. Some will become case studies, and the challenges you described will shape the guidance and support EGRISS develops next. I will share the first results here."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"}
 ];
-const KIND={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd|1|week left",three:"cd|3|days left",last:"cd||Last working day",thanks:"thanks"};
+const KIND={teaser:"teaser",post1:"teaser",launch:"heroV02",post2:"heroV02",qa:"qa",mid:"qa",post3:"case",week:"cd|1|week left",three:"cd|3|days left",last:"cd||Last working day",thanks:"thanks"};
 const WORKS={
  teaser:{title:"Teaser: every example counts",dur:"6 s",main:"1080x1350",slug:"teaser",kind:"teaser"},
- hero:{title:"Hero film",dur:"58 s",main:"1920x1080",slug:"hero",kind:"hero"},
+ heroV02:{title:"Hero film v02 (main pick)",dur:"59 s",main:"1920x1080",slug:"hero-v02",kind:"hero"},
+ hero:{title:"Hero film (earlier version)",dur:"58 s",main:"1920x1080",slug:"hero",kind:"hero"},
  qa:{title:"Q&A: your questions answered",dur:"75 s",main:"1920x1080",slug:"qa",kind:"qa"},
  case:{title:"Case study: DR Congo",dur:"30 s",main:"1080x1350",slug:"case-study",kind:"case"},
  commission:{title:"UN Statistical Commission",dur:"15 s",main:"1080x1350",slug:"commission",kind:"hero"},
@@ -236,11 +237,13 @@ const WORKS={
  cd3:{title:"Countdown: 3 days left",dur:"6 s",main:"1080x1350",slug:"countdown-3-days",kind:"cd|3|days left"},
  cdl:{title:"Countdown: last working day",dur:"6 s",main:"1080x1350",slug:"countdown-last-day",kind:"cd||Last working day"}
 };
-const POST_WORK={teaser:"teaser",post1:"teaser",launch:"hero",post2:"hero",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
+const POST_WORK={teaser:"teaser",post1:"teaser",launch:"heroV02",post2:"heroV02",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
 const SIZES=[["1080x1350","4:5 · 1080×1350"],["1920x1080","16:9 · 1920×1080"]];
 
 // Files in campaign/videos. Add a name here when you add the MP4.
 const HAVE=new Set([
+ "teaser-1080x1350.mp4","teaser-1920x1080.mp4",
+ "hero-v02-1080x1350.mp4","hero-v02-1920x1080.mp4",
  "hero-1080x1350.mp4","hero-1920x1080.mp4",
  "qa-1080x1350.mp4","qa-1920x1080.mp4",
  "case-study-1080x1350.mp4","case-study-1920x1080.mp4",
@@ -250,7 +253,7 @@ const HAVE=new Set([
  "countdown-last-day-1080x1350.mp4","countdown-last-day-1920x1080.mp4"
 ]);
 // The design each MP4 is exported from (Share → Export → Video).
-const SRC={teaser:"GAIN 2026 Teaser",hero:"GAIN Hero Film v3",qa:"GAIN 2026 QA",case:"GAIN 2026 Case Study",commission:"GAIN 2026 Commission",
+const SRC={teaser:"GAIN 2026 Teaser",heroV02:"Hero v02",hero:"GAIN Hero Film v3",qa:"GAIN 2026 QA",case:"GAIN 2026 Case Study",commission:"GAIN 2026 Commission",
  cd1:"GAIN 2026 Countdown 1 - 1 week",cd3:"GAIN 2026 Countdown 2 - 3 days",cdl:"GAIN 2026 Countdown 3 - Last day"};
 const vidFile=(w,s)=>WORKS[w].slug+"-"+s+".mp4", has=(w,s)=>HAVE.has(vidFile(w,s));
 const vidUrl=(w,s)=>"videos/"+vidFile(w,s), liveUrl=(w,s)=>"live/"+WORKS[w].slug+"-"+s+".dc.html";
