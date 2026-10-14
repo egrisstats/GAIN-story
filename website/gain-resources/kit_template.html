@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAIN Resources page update</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+:root {
+  --navy: #14234c; --teal: #4cc3c9; --blue: #3b71b9; --ink: #4a5f70; --line: #cde3f7; --bg: #ffffff; --soft: #eff7ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 'IBM Plex Sans', system-ui, sans-serif; }
+header { background: var(--navy); color: #fff; padding: 28px 16px; }
+header .wrap, main { max-width: 960px; margin: 0 auto; }
+header small { color: var(--teal); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 11px; }
+h1 { margin: 6px 0 4px; font-size: 26px; line-height: 1.2; }
+header p { margin: 0; color: #cfe0f2; }
+main { padding: 24px 16px 64px; }
+h2 { color: var(--navy); font-size: 19px; margin: 32px 0 10px; }
+ol { padding-left: 22px; }
+li { margin-bottom: 8px; }
+code { background: var(--soft); border-radius: 4px; padding: 1px 5px; font-size: 14px; color: var(--navy); word-break: break-all; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--navy); }
+.table-scroll { overflow-x: auto; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+button { font: 600 15px 'IBM Plex Sans', sans-serif; border-radius: 100px; padding: 10px 20px; cursor: pointer; border: 1px solid var(--navy); }
+.primary { background: var(--navy); color: #fff; }
+.secondary { background: #fff; color: var(--navy); }
+.status { align-self: center; color: var(--blue); font-weight: 600; font-size: 14px; }
+.note { background: var(--soft); border-left: 3px solid var(--teal); padding: 12px 14px; border-radius: 6px; font-size: 15px; }
+iframe { width: 100%; height: 720px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+textarea { width: 100%; height: 160px; font: 12px/1.4 ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 8px; padding: 10px; color: var(--navy); }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <small>EGRISS · GAIN Survey</small>
+  <h1>GAIN Resources page update</h1>
+  <p>Glossary and FAQ in English, French, Spanish, Russian and Arabic. Built __BUILT__.</p>
+</div></header>
+<main>
+
+<p>This file holds everything needed to update the
+<a href="https://egrisstats.org/implementation/gain-survey/resources/">GAIN Resources page</a> on egrisstats.org.
+It adds a language switch to the Glossary and FAQ sections. English stays the default.</p>
+
+<h2>1. Upload the FAQ PDFs</h2>
+<p>In WordPress, go to <strong>Media › Add New</strong> and upload the four translated FAQ PDFs with exactly these file names:</p>
+<div class="table-scroll"><table>
+  <tr><th>Language</th><th>File name</th></tr>
+__PDF_ROWS__
+</table></div>
+<p class="note">Question 15 of the translated PDFs contains the shared login for viewing submissions. Remove it first if it should not be public.</p>
+
+<h2>2. Replace the page code</h2>
+<ol>
+  <li>Copy the code with the button below, or download it as a file.</li>
+  <li>Open the page in WordPress and choose <strong>Edit with the Divi builder</strong>.</li>
+  <li>Open the full-width <strong>Code</strong> module that holds the questionnaires, glossary and FAQ (the only code module on the page).</li>
+  <li>Select all of its content, delete it, and paste the new code.</li>
+  <li>Save the module, then <strong>Save</strong> the page.</li>
+  <li>Open the links in step 3 to check each language.</li>
+</ol>
+<div class="actions">
+  <button class="primary" id="copy">Copy code</button>
+  <button class="secondary" id="download">Download code (.html)</button>
+  <button class="secondary" id="download-old">Download current live code (backup)</button>
+  <span class="status" id="status" role="status"></span>
+</div>
+<textarea id="code" readonly aria-label="Page code"></textarea>
+
+<h2>3. Links for emails</h2>
+<p>Each link opens the page at that section, in that language.</p>
+<div class="table-scroll"><table>
+  <tr><th>Language</th><th>FAQ</th><th>Glossary</th></tr>
+__LINK_ROWS__
+</table></div>
+
+<h2>Preview</h2>
+<p>How the sections will look. Use the language buttons in the Glossary or FAQ.</p>
+<iframe id="preview" title="Preview of the updated sections"></iframe>
+
+<h2>To undo</h2>
+<p>Paste the backup code (button above) back into the same module and save.</p>
+
+</main>
+<script>
+var MODULE = __MODULE_JSON__;
+var LIVE = __LIVE_JSON__;
+var PREVIEW = __PREVIEW_JSON__;
+document.getElementById('code').value = MODULE;
+document.getElementById('preview').srcdoc = PREVIEW;
+var status = document.getElementById('status');
+function say(t) { status.textContent = t; setTimeout(function () { status.textContent = ''; }, 3000); }
+function save(text, name) {
+  var url = URL.createObjectURL(new Blob([text], { type: 'text/html' }));
+  var a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+document.getElementById('copy').addEventListener('click', function () {
+  var ta = document.getElementById('code');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(MODULE).then(function () { say('Copied'); }, fallback);
+  } else { fallback(); }
+  function fallback() { ta.focus(); ta.select(); try { document.execCommand('copy'); say('Copied'); } catch (e) { say('Select the text below and copy it'); } }
+});
+document.getElementById('download').addEventListener('click', function () { save(MODULE, 'gain-resources-module.html'); });
+document.getElementById('download-old').addEventListener('click', function () { save(LIVE, 'gain-resources-module-backup.html'); });
+</script>
+</body>
+</html>

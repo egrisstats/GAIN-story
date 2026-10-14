@@ -1,0 +1,1595 @@
+<style>
+.cr-root, .cr-root * { box-sizing: border-box; margin: 0; padding: 0; }
+.cr-root { font-family: 'IBM Plex Sans', sans-serif; }
+.cr-root img { display: block; border: none; vertical-align: bottom; }
+
+.cr-nav {
+  position: sticky;
+  top: 105px;
+  z-index: 999;
+  background: #fff;
+  border-bottom: 0.75px solid rgba(205,227,247,.8);
+  box-shadow: 0 1px 5px rgba(20,35,76,.04);
+}
+.cr-nav-inner {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 5%;
+}
+.cr-nav-inner::-webkit-scrollbar { display: none; }
+
+.cr-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 22px;
+  min-height: 64px;
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #6b7f8f;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.cr-nav-link:hover {
+  color: #14234c;
+  border-color: #4cc3c9;
+  background: rgba(76,195,201,.06);
+  text-decoration: none;
+}
+.cr-nav-link.active {
+  color: #14234c;
+  border-color: #4cc3c9;
+  background: rgba(76,195,201,.06);
+}
+
+.cr-section {
+  padding: 64px 5% 60px;
+  border-bottom: 0.75px solid rgba(205,227,247,.6);
+  background: #fff;
+  transition: background .25s ease;
+}
+.cr-section:last-child { border-bottom: none; }
+.cr-section.is-active { background: #EFF7FF; }
+
+.cr-section-label {
+  display: block;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #4cc3c9;
+  margin-bottom: 10px;
+}
+.cr-section-h2 {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+.cr-section-desc {
+  font-size: 18px;
+  color: #4a5f70;
+  line-height: 1.72;
+  max-width: 720px;
+  margin-bottom: 36px;
+}
+.cr-section-desc a { color: #3b71b9; }
+.cr-section-desc a:hover { text-decoration: underline; }
+
+.cr-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.cr-lang-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 22px 14px 22px;
+  background: #ffffff;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #14234c;
+  box-shadow: 0 1px 6px rgba(20,35,76,.06);
+  text-align: center;
+  transition: box-shadow .2s, transform .18s;
+}
+.cr-lang-card:hover {
+  box-shadow: 0 6px 22px rgba(20,35,76,.11);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.cr-lang-script {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.2;
+}
+.cr-lang-script[lang="ar"] { font-size: 26px; }
+.cr-lang-script[lang="ru"] { font-size: 19px; }
+.cr-lang-mockup {
+  width: 60%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(20,35,76,.12);
+  border: 1px solid rgba(205,227,247,.8);
+  display: block;
+  margin: 8px 0;
+}
+.cr-lang-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #6b7f8f;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.cr-lang-dl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3b71b9;
+}
+.cr-lang-dl svg { width: 13px; height: 13px; }
+
+.cr-search-wrap {
+  position: relative;
+  max-width: 460px;
+  margin-bottom: 6px;
+}
+.cr-search-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: #a0b4cc;
+  pointer-events: none;
+  width: 16px; height: 16px;
+}
+#cr-search {
+  width: 100%;
+  padding: 13px 16px 13px 44px;
+  border: 1px solid #cde3f7;
+  border-radius: 10px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 16px;
+  color: #14234c;
+  background: #ffffff;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+#cr-search:focus {
+  border-color: #3b71b9;
+  box-shadow: 0 0 0 3px rgba(59,113,185,.1);
+}
+#cr-search::placeholder { color: #a0b4cc; }
+.cr-search-meta {
+  font-size: 13px;
+  color: #a0b4cc;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+.cr-search-meta strong { color: #4cc3c9; font-weight: 700; }
+.cr-no-results {
+  font-size: 16px;
+  color: #a0b4cc;
+  padding: 28px 0;
+  text-align: center;
+  display: none;
+}
+.cr-no-results.visible { display: block; }
+mark {
+  background: rgba(76,195,201,.2);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.cr-acc-list {
+  list-style: none;
+  padding: 0;
+  border-top: 0.75px solid rgba(205,227,247,.8);
+}
+.cr-acc-item {
+  border-bottom: 0.75px solid rgba(205,227,247,.8);
+}
+.cr-acc-item.hidden { display: none; }
+
+.cr-acc-trigger {
+  width: 100%;
+  background: #EFF7FF;
+  border: none;
+  padding: 20px 60px 20px 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  transition: background .15s;
+  min-height: 68px;
+}
+.cr-acc-trigger:hover { background: #e4f1fb; }
+.cr-acc-item.open > .cr-acc-trigger { background: #ffffff; }
+
+.cr-chevron {
+  position: absolute;
+  right: 20px; top: 50%;
+  transform: translateY(-50%);
+  color: #4cc3c9;
+  flex-shrink: 0;
+  transition: transform .25s ease;
+  width: 18px; height: 18px;
+}
+.cr-acc-item.open > .cr-acc-trigger .cr-chevron {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.cr-acc-body {
+  display: none;
+  padding: 24px 60px 28px 24px;
+  font-size: 17px;
+  color: #4a5f70;
+  line-height: 1.78;
+  border-top: 0.75px solid rgba(205,227,247,.6);
+  background: #ffffff;
+}
+.cr-acc-item.open > .cr-acc-body { display: block; }
+.cr-acc-body p { margin-bottom: 14px; }
+.cr-acc-body p:last-child { margin-bottom: 0; }
+.cr-acc-body strong { color: #14234c; font-weight: 600; }
+.cr-acc-body a { color: #3b71b9; }
+
+.cr-term-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cr-term-text {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.35;
+}
+.cr-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: #4cc3c9;
+  background: rgba(76,195,201,.1);
+  border: 0.75px solid rgba(76,195,201,.4);
+  border-radius: 100px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.cr-faq-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.cr-faq-num {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #4cc3c9;
+  background: rgba(76,195,201,.1);
+  border: 0.75px solid rgba(76,195,201,.4);
+  border-radius: 100px;
+  padding: 3px 10px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.cr-faq-q {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .cr-lang-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .cr-lang-grid { grid-template-columns: repeat(2, 1fr); }
+  .cr-section-h2 { font-size: 24px; }
+  .cr-section-desc { font-size: 16px; }
+  .cr-acc-trigger { padding: 18px 52px 18px 18px; }
+  .cr-acc-body { padding: 18px 18px 22px; font-size: 15px; }
+  .cr-nav-link { padding: 10px 14px; font-size: 11px; }
+  .cr-section { padding: 48px 5% 44px; }
+}
+
+/* The theme's list styles otherwise add bullets and an indent to the accordion lists. */
+.cr-root ul.cr-acc-list { list-style: none !important; padding-left: 0 !important; margin-left: 0 !important; }
+.cr-root ul.cr-acc-list > li { list-style: none !important; }
+
+/* ── Language switch (Glossary and FAQ) ── */
+.cr-lang-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -12px 0 28px;
+}
+.cr-lang-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3b71b9;
+  background: #ffffff;
+  border: 1px solid #cde3f7;
+  border-radius: 100px;
+  padding: 7px 16px;
+  cursor: pointer;
+  line-height: 1.3;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.cr-lang-btn:hover { border-color: #3b71b9; }
+.cr-lang-btn[aria-selected="true"] {
+  color: #ffffff;
+  background: #14234c;
+  border-color: #14234c;
+}
+.cr-lang-btn[lang="ar"] { font-size: 16px; }
+.cr-lang-pane[hidden] { display: none; }
+.cr-faq-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #3b71b9;
+  text-decoration: none;
+}
+.cr-faq-pdf:hover { text-decoration: underline; }
+.cr-faq-pdf svg { width: 16px; height: 16px; flex-shrink: 0; }
+.cr-lang-pane[dir="rtl"] .cr-acc-trigger { text-align: right; padding: 20px 24px 20px 60px; }
+.cr-lang-pane[dir="rtl"] .cr-chevron { right: auto; left: 20px; }
+.cr-lang-pane[dir="rtl"] .cr-acc-body { padding: 24px 24px 28px 60px; }
+.cr-lang-pane[dir="rtl"] .cr-faq-q,
+.cr-lang-pane[dir="rtl"] .cr-term-text,
+.cr-lang-pane[dir="rtl"] .cr-acc-body,
+.cr-switch-head[dir="rtl"] .cr-section-h2,
+.cr-switch-head[dir="rtl"] .cr-section-desc { font-family: 'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif; }
+.cr-lang-pane[dir="rtl"] .cr-faq-q,
+.cr-lang-pane[dir="rtl"] .cr-term-text { font-size: 17px; }
+.cr-search-wrap[dir="rtl"] .cr-search-icon { left: auto; right: 14px; }
+.cr-search-wrap[dir="rtl"] #cr-search { padding: 13px 44px 13px 16px; font-family: 'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif; }
+@media (max-width: 600px) {
+  .cr-lang-pane[dir="rtl"] .cr-acc-trigger { padding: 18px 18px 18px 52px; }
+  .cr-lang-pane[dir="rtl"] .cr-acc-body { padding: 18px 18px 22px; }
+}
+</style>
+
+<div class="cr-root" id="cr-root">
+
+  <nav class="cr-nav" id="cr-nav">
+    <div class="cr-nav-inner">
+      <a class="cr-nav-link active" href="#questionnaires">Latest Questionnaires</a>
+      <a class="cr-nav-link" href="#glossary">Glossary</a>
+      <a class="cr-nav-link" href="#faq">FAQs</a>
+    </div>
+  </nav>
+
+  <!-- 1. QUESTIONNAIRES -->
+  <section class="cr-section" id="questionnaires">
+    <span class="cr-section-label">Download</span>
+    <h2 class="cr-section-h2">Survey Questionnaires</h2>
+    <p class="cr-section-desc">Download the latest GAIN Survey questionnaire, available as a paper version in five languages.</p> 
+    <div class="cr-lang-grid">
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_English_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script">English</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/ENGLISH-File.jpeg" alt="English questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Paper questionnaire</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_French_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script">Français</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/FRENCH-File.jpeg" alt="French questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Questionnaire papier</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_Spanish_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script">Español</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/SPANISH-File.jpeg" alt="Spanish questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Cuestionario en papel</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_Russian_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script" lang="ru">Русский</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/RUSSIAN-File.jpeg" alt="Russian questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Бумажный опросник</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_Arabic_2025.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script" lang="ar">العربية</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/ARABIC-File.jpeg" alt="Arabic questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">استبيان ورقي</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- 2. GLOSSARY -->
+  <section class="cr-section" id="glossary">
+    <div class="cr-switch-head">
+    <span class="cr-section-label">Reference</span>
+    <h2 class="cr-section-h2">Glossary</h2>
+    <p class="cr-section-desc">Key terms used in the GAIN Survey. Definitions are consistent across all survey rounds.</p>
+    </div> 
+
+        <div class="cr-lang-switch" role="tablist" aria-label="Glossary language">
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="en" lang="en" aria-selected="true">English</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="fr" lang="fr" aria-selected="false">Français</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="es" lang="es" aria-selected="false">Español</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="ru" lang="ru" aria-selected="false">Русский</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="ar" lang="ar" aria-selected="false">العربية</button>
+    </div>
+
+    <div class="cr-search-wrap">
+      <svg class="cr-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="search" id="cr-search" placeholder="Search terms and definitions…" autocomplete="off" aria-label="Search glossary">
+    </div>
+    <p class="cr-search-meta"><strong id="cr-count">6</strong> <span id="cr-terms-word">terms</span></p> 
+    <p class="cr-no-results" id="cr-no-results">No terms match your search.</p> 
+
+        <div class="cr-lang-pane" data-lang="en" lang="en">
+    <ul class="cr-acc-list" id="cr-glossary-list">
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="example statistical country institution cso national organised initiative survey census database training workshop">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Example</span>
+            <span class="cr-tag">PRO01 / PRO01A</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>An organised initiative taking place in the survey year that includes or solely focuses on improving/producing national statistics on refugees, IDPs and/or stateless people. These examples encompass a wide range — they might involve working on a data source like implementation of a survey, administration of a database, work on a census, a data integration project between different data sources, or work on a non-traditional data source. Examples could also be tools like developing strategies, guidance documents, or the organisation of training sessions and workshops. Examples can occur at different levels, whether on a national, regional, or global scale, and they may be at various stages of progress, including planning or implementation phases. Additionally, examples can entail collaboration with partners.</p> 
+          <p>Example leads can be countries, institutions or CSOs (or other). <strong>Country-led examples</strong> include activities led by National Statistical Offices or another Government entity conducted in their national context, usually as part of the national statistical system. <strong>Institution-led examples</strong> are led by international organisations without explicit country leadership. <strong>CSO-led examples</strong> are led by civil society organisations or other entities.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="current example ongoing investments budgeting training enumeration listing">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row"><span class="cr-term-text">Current Example</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>An example that is ongoing at the time of the GAIN Survey, meaning that some time / capacity / staffing / financial investments have been made, for example, survey design / budgeting / training / enumeration / listing or other example-related activities have started.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="future example planned anticipated forward fpr upcoming year planning">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Future Example</span>
+            <span class="cr-tag">FPR</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>An example for which no significant investments have yet been made in terms of design, budgeting, training, listing, or enumeration. The Future Examples (FPR) section enables respondents to provide details on anticipated examples planned for an upcoming survey year. Responses provided support forward-looking planning and help identify emerging trends, align efforts across stakeholders, and enhance collaboration between national, regional, and international actors to advance statistical inclusion efforts.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="partnership collaboration partner international academic national">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row"><span class="cr-term-text">Partnership</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The involvement of a national, international, or academic partner in the implementation of an example. Respondents may list multiple partners for a single example.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="data sources tools survey database census register humanitarian social media strategic documents guidelines training workshops">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Data Sources & Tools</span>
+            <span class="cr-tag">PRO08</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Data sources and tools used to provide information on the example can be: (A) statistical surveys, (B) government records and databases, (C) general population censuses, (D) combining data from many places, (E) non-standard sources like humanitarian groups or social media data, (F) developing strategic documents, (G) following guidelines or toolkits, (H) giving training or workshops to get data, and any other source not listed where data comes from.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="challenges difficulties problems resource constraints technical political security data quality skills guidance coverage errors confidentiality">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Challenges</span>
+            <span class="cr-tag">PRO19–20</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Significant difficulties encountered during an example. Categories include: incomplete response coverage, data collection errors, difficulties identifying specific groups (refugees, stateless), data confidentiality concerns, resource constraints, political or security issues, data quality delays, lack of technical skills or tools, and insufficient guidance.</p> 
+        </div>
+      </li>
+
+    </ul>
+    </div>
+    <div class="cr-lang-pane" id="glossary-fr" data-lang="fr" lang="fr" dir="ltr" data-label="Référence" data-title="Glossaire" data-desc="Termes clés utilisés dans l’enquête GAIN. Les définitions sont les mêmes pour tous les cycles de l’enquête." data-search="Rechercher des termes et définitions…" data-terms="termes" data-none="Aucun terme ne correspond à votre recherche." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="glossary-fr"
+          data-term="exemple">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Exemple</span>
+            <span class="cr-tag">PRO01 / PRO01A</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Un Exemple (dans PRO01 et PRO01A) dans cette enquête est une initiative organisée se déroulant en 2025 qui inclut ou se concentre uniquement sur l'amélioration/la production de statistiques nationales sur les réfugiés, les PDI et/ou les apatrides. Ces exemples englobent un large éventail ou ils peuvent impliquer le travail sur une source de données comme la mise en œuvre d'une enquête, l'administration d'une base de données, le travail sur un recensement, un projet d'intégration de données entre différentes sources de données, ou le travail sur une source de données non traditionnelle. Les exemples peuvent également être des outils comme le développement de stratégies, de documents d'orientation, ou l'organisation de sessions de formation et d'ateliers. Les exemples peuvent se produire à différents niveaux, que ce soit à l'échelle nationale, régionale ou mondiale, et ils peuvent être à différents stades de progression en 2025, y compris les phases de planification ou de mise en œuvre. De plus, les exemples peuvent impliquer une collaboration avec des partenaires.</p>
+          <p>Les responsables d'exemples peuvent être des pays, des institutions ou des OSC (ou autres). Les exemples menés par les pays incluent les activités dirigées par les Instituts Nationaux de Statistique ou une autre entité gouvernementale menées dans leur contexte national, généralement dans le cadre du système statistique national. Les exemples dirigés par des organisations internationales sans direction explicite d'un pays sont comptés comme des exemples menés par des institutions, tandis que les exemples dirigés par des organisations de la société civile ou d'autres entités sont des exemples menés par des OSC.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-fr"
+          data-term="exemple actuel">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Exemple actuel</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Les exemples actuels sont des exemples en cours au moment de l'enquête GAIN, ce qui signifie que certains investissements en temps/capacité/personnel/finances ont été faits, par exemple, la conception de l'enquête/budgétisation/formation/énumération/listing ou d'autres activités liées à l'exemple ont commencé.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-fr"
+          data-term="exemple futur">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Exemple futur</span>
+            <span class="cr-tag">FPR</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Les exemples futurs sont des exemples pour lesquels aucun investissement significatif n'a encore été fait en termes de conception/budgétisation/formation/listing/énumération, etc.</p>
+          <p>La section Exemples Futurs (FPR) permet aux répondants de fournir des détails sur les exemples anticipés qui pourraient débuter en 2026. Les réponses fournies soutiennent la planification prospective et aident à identifier les tendances émergentes, à harmoniser les efforts entre les parties prenantes et à améliorer la collaboration entre les acteurs nationaux, régionaux et internationaux pour faire progresser les efforts d'inclusion statistique.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-fr"
+          data-term="partenariat">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Partenariat</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Un Partenariat inclut l'implication d'un partenaire national, international ou académique dans la mise en œuvre de l'exemple. Les répondants peuvent lister plusieurs partenaires.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-fr"
+          data-term="sources de données et outils">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Sources de données et outils</span>
+            <span class="cr-tag">PRO08</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Les sources de données et outils (PRO08) utilisés pour fournir des informations sur l'exemple peuvent être : (A) enquêtes statistiques, (B) registres et bases de données gouvernementales, (C) recensements de la population générale, (D) combinaison de données provenant de nombreux endroits, (E) sources non standard comme les groupes humanitaires ou les données des médias sociaux, (F) développement de documents stratégiques, (G) suivi de directives ou de boîtes à outils, (H) formation ou ateliers pour obtenir des données, et toute autre source non listée d'où proviennent les données.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-fr"
+          data-term="défis">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Défis</span>
+            <span class="cr-tag">PRO19–20</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Les défis (dans PRO19 et PRO20) dans cette enquête font référence aux difficultés significatives rencontrées pendant l'exemple telles que (A) difficulté à obtenir des données de tout le monde, erreurs dans la collecte de données (C) difficultés à identifier des groupes spécifiques comme les réfugiés ou les apatrides, (D) préoccupations concernant la confidentialité et la vie privée des données, (E) contraintes de ressources (comme le manque d'argent ou de personnel), (G) problèmes liés à la politique ou à la sécurité, (H) retards ou problèmes de qualité des données, (I) ne pas avoir les bonnes compétences ou outils pour le projet, (J) manque d'instructions claires, ou tout autre problème unique rencontré pendant l'exemple.</p>
+        </div>
+      </li>
+
+      </ul>
+    </div>
+    <div class="cr-lang-pane" id="glossary-es" data-lang="es" lang="es" dir="ltr" data-label="Referencia" data-title="Glosario" data-desc="Términos clave utilizados en la encuesta GAIN. Las definiciones son las mismas en todas las rondas de la encuesta." data-search="Buscar términos y definiciones…" data-terms="términos" data-none="Ningún término coincide con su búsqueda." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="glossary-es"
+          data-term="ejemplo">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Ejemplo</span>
+            <span class="cr-tag">PRO01 / PRO01A</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Un Ejemplo (en PRO01 y PRO01A) en esta encuesta es una iniciativa organizada que tiene lugar en 2025 que incluye o se centra únicamente en mejorar/producir estadísticas nacionales sobre refugiados, PDI y/o apátridas. Estos ejemplos abarcan una amplia gama o pueden involucrar trabajar en una fuente de datos como la implementación de una encuesta, la administración de una base de datos, el trabajo en un censo, un proyecto de integración de datos entre diferentes fuentes de datos, o el trabajo en una fuente de datos no tradicional. Los ejemplos también pueden ser herramientas como el desarrollo de estrategias, documentos de orientación, o la organización de sesiones de capacitación y talleres. Los ejemplos pueden ocurrir a diferentes niveles, ya sea a escala nacional, regional o global, y pueden estar en varias etapas de progreso en 2025, incluyendo fases de planificación o implementación. Además, los ejemplos pueden implicar colaboración con socios.</p>
+          <p>Los líderes de ejemplos pueden ser países, instituciones u OSC (u otros). Los ejemplos liderados por países incluyen actividades dirigidas por Oficinas Nacionales de Estadística u otra entidad gubernamental realizadas en su contexto nacional, generalmente como parte del sistema estadístico nacional. Los ejemplos dirigidos por organizaciones internacionales sin liderazgo explícito del país se cuentan como ejemplos liderados por instituciones, mientras que los ejemplos dirigidos por organizaciones de la sociedad civil u otras entidades son ejemplos liderados por OSC.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-es"
+          data-term="ejemplo actual">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Ejemplo actual</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Los ejemplos actuales son ejemplos que están en curso en el momento de la encuesta GAIN, lo que significa que se han hecho algunas inversiones de tiempo/capacidad/personal/financieras, por ejemplo, el diseño de la encuesta/presupuestación/capacitación/enumeración/listado u otras actividades relacionadas con el ejemplo han comenzado.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-es"
+          data-term="ejemplo futuro">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Ejemplo futuro</span>
+            <span class="cr-tag">FPR</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Los ejemplos futuros son ejemplos para los cuales aún no se han realizado inversiones significativas en términos de diseño/presupuestación/capacitación/listado/enumeración, etc.</p>
+          <p>La sección de Ejemplos Futuros (FPR) permite a los encuestados proporcionar detalles sobre ejemplos anticipados que pueden comenzar en 2026. Las respuestas proporcionadas apoyan la planificación prospectiva y ayudan a identificar tendencias emergentes, alinear esfuerzos entre las partes interesadas y mejorar la colaboración entre actores nacionales, regionales e internacionales para avanzar en los esfuerzos de inclusión estadística.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-es"
+          data-term="asociación">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Asociación</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Una Asociación incluye la participación de un socio nacional, internacional o académico en la implementación del ejemplo. Los encuestados pueden enumerar múltiples socios.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-es"
+          data-term="fuentes de datos y herramientas">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Fuentes de datos y herramientas</span>
+            <span class="cr-tag">PRO08</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Las fuentes de datos y herramientas (PRO08) utilizadas para proporcionar información sobre el ejemplo pueden ser: (A) encuestas estadísticas, (B) registros y bases de datos gubernamentales, (C) censos de población general, (D) combinación de datos de muchos lugares, (E) fuentes no estándar como grupos humanitarios o datos de redes sociales, (F) desarrollo de documentos estratégicos, (G) seguimiento de directrices o kits de herramientas, (H) capacitación o talleres para obtener datos, y cualquier otra fuente no listada de donde provienen los datos.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-es"
+          data-term="desafíos">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Desafíos</span>
+            <span class="cr-tag">PRO19–20</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Los Desafíos (en PRO19 y PRO20) en esta encuesta se refieren a dificultades significativas encontradas durante el ejemplo tales como (A) problemas para obtener datos de todos, errores en la recopilación de datos (C) dificultades para identificar grupos específicos como refugiados o apátridas, (D) preocupaciones sobre la confidencialidad y privacidad de los datos, (E) restricciones de recursos (como no tener suficiente dinero o personal), (G) problemas relacionados con la política o seguridad, (H) retrasos o problemas con la calidad de los datos, (I) no tener las habilidades o herramientas adecuadas para el proyecto, (J) falta de instrucciones claras, o cualquier otro problema único enfrentado durante el ejemplo.</p>
+        </div>
+      </li>
+
+      </ul>
+    </div>
+    <div class="cr-lang-pane" id="glossary-ru" data-lang="ru" lang="ru" dir="ltr" data-label="Справка" data-title="Глоссарий" data-desc="Ключевые термины, используемые в опросе GAIN. Определения одинаковы для всех раундов опроса." data-search="Поиск терминов и определений…" data-terms="терминов" data-none="Нет терминов, соответствующих запросу." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="glossary-ru"
+          data-term="пример">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Пример</span>
+            <span class="cr-tag">PRO01 / PRO01A</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Пример (в PRO01 и PRO01A) в этом опросе — это организованная инициатива, проходящая в 2025 году, которая включает или исключительно сосредоточена на улучшении/производстве национальной статистики по беженцам, ВПЛ и/или лицам без гражданства. Эти примеры охватывают широкий диапазон или могут включать работу с источником данных, таким как проведение обследования, администрирование базы данных, работа над переписью, проект интеграции данных между различными источниками данных или работа с нетрадиционным источником данных. Примеры также могут быть инструментами, такими как разработка стратегий, руководящих документов или организация учебных занятий и семинаров. Примеры могут происходить на различных уровнях, будь то национальном, региональном или глобальном масштабе, и они могут находиться на различных стадиях прогресса в 2025 году, включая фазы планирования или реализации. Кроме того, примеры могут включать сотрудничество с партнерами.</p>
+          <p>Руководителями примеров могут быть страны, учреждения или ОГО (или другие). Примеры под руководством стран включают мероприятия, возглавляемые национальными статистическими управлениями или другим государственным органом, проводимые в их национальном контексте, обычно в рамках национальной статистической системы. Примеры, возглавляемые международными организациями без явного руководства страны, считаются примерами под руководством учреждений, в то время как примеры, возглавляемые организациями гражданского общества или другими субъектами, являются примерами под руководством ОГО.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ru"
+          data-term="текущий пример">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Текущий пример</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Текущие примеры — это примеры, которые продолжаются на момент проведения опроса GAIN, что означает, что были сделаны некоторые инвестиции времени/потенциала/персонала/финансов, например, начались проектирование обследования/составление бюджета/обучение/перечисление/составление списков или другие связанные с примером мероприятия.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ru"
+          data-term="будущий пример">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Будущий пример</span>
+            <span class="cr-tag">FPR</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Будущие примеры — это примеры, для которых еще не было сделано значительных инвестиций с точки зрения проектирования/составления бюджета/обучения/составления списков/перечисления и т. д.</p>
+          <p>Раздел Будущих Примеров (FPR) позволяет респондентам предоставить подробную информацию об ожидаемых примерах, которые могут начаться в 2026 году. Предоставленные ответы поддерживают перспективное планирование и помогают выявить появляющиеся тенденции, согласовать усилия между заинтересованными сторонами и улучшить сотрудничество между национальными, региональными и международными субъектами для продвижения усилий по статистическому включению.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ru"
+          data-term="партнерство">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Партнерство</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Партнерство включает участие национального, международного или академического партнера в реализации примера. Респонденты могут перечислить нескольких партнеров.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ru"
+          data-term="источники данных и инструменты">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Источники данных и инструменты</span>
+            <span class="cr-tag">PRO08</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Источники данных и инструменты (PRO08), используемые для предоставления информации о примере, могут быть: (A) статистические обследования, (B) правительственные записи и базы данных, (C) переписи населения, (D) объединение данных из многих мест, (E) нестандартные источники, такие как гуманитарные группы или данные социальных сетей, (F) разработка стратегических документов, (G) следование руководствам или наборам инструментов, (H) проведение обучения или семинаров для получения данных и любой другой неперечисленный источник, откуда поступают данные.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ru"
+          data-term="проблемы">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Проблемы</span>
+            <span class="cr-tag">PRO19–20</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Проблемы (в PRO19 и PRO20) в этом опросе относятся к значительным трудностям, возникшим во время примера, таким как (A) проблемы с получением данных от всех, ошибки в сборе данных (C) трудности в идентификации конкретных групп, таких как беженцы или лица без гражданства, (D) опасения относительно конфиденциальности и неприкосновенности частной жизни данных, (E) ресурсные ограничения (например, недостаток денег или людей), (G) проблемы, связанные с политикой или безопасностью, (H) задержки или проблемы с качеством данных, (I) отсутствие необходимых навыков или инструментов для проекта, (J) отсутствие четких инструкций или любые другие уникальные проблемы, с которыми столкнулись во время примера.</p>
+        </div>
+      </li>
+
+      </ul>
+    </div>
+    <div class="cr-lang-pane" id="glossary-ar" data-lang="ar" lang="ar" dir="rtl" data-label="مرجع" data-title="المسرد" data-desc="المصطلحات الرئيسية المستخدمة في استطلاع GAIN. التعريفات ثابتة في جميع جولات الاستطلاع." data-search="ابحث في المصطلحات والتعريفات…" data-terms="مصطلحات" data-none="لا توجد مصطلحات تطابق بحثك." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="glossary-ar"
+          data-term="المثال">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">المثال</span>
+            <span class="cr-tag">PRO01 / PRO01A</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>المثال (في PRO01 و PRO01A) في هذا الاستطلاع هو مبادرة منظمة تجري في عام 2025 تتضمن أو تركز فقط على تحسين/إنتاج إحصاءات وطنية عن اللاجئين أو النازحين داخلياً و/أو عديمي الجنسية. تشمل هذه الأمثلة مجموعة واسعة أو قد تتضمن العمل على مصدر بيانات مثل تنفيذ مسح أو إدارة قاعدة بيانات أو العمل على تعداد أو مشروع تكامل بيانات بين مصادر بيانات مختلفة أو العمل على مصدر بيانات غير تقليدي. يمكن أن تكون الأمثلة أيضاً أدوات مثل تطوير استراتيجيات أو وثائق توجيهية أو تنظيم دورات تدريبية وورش عمل. يمكن أن تحدث الأمثلة على مستويات مختلفة، سواء على المستوى الوطني أو الإقليمي أو العالمي، وقد تكون في مراحل مختلفة من التقدم في عام 2025، بما في ذلك مراحل التخطيط أو التنفيذ. بالإضافة إلى ذلك، يمكن أن تستلزم الأمثلة التعاون مع الشركاء.</p>
+          <p>يمكن أن يكون قادة الأمثلة دولاً أو مؤسسات أو منظمات مجتمع مدني (أو غيرها). تشمل الأمثلة التي تقودها الدول الأنشطة التي تقودها المكاتب الإحصائية الوطنية أو كيان حكومي آخر يتم تنفيذه في سياقهم الوطني، عادةً كجزء من النظام الإحصائي الوطني. تُحتسب الأمثلة التي تقودها المنظمات الدولية دون قيادة صريحة من الدولة كأمثلة تقودها المؤسسات، بينما الأمثلة التي تقودها منظمات المجتمع المدني أو الكيانات الأخرى هي أمثلة تقودها منظمات المجتمع المدني.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ar"
+          data-term="المثال الحالي">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">المثال الحالي</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>الأمثلة الحالية هي أمثلة جارية في وقت استطلاع GAIN، مما يعني أنه تم إجراء بعض الاستثمارات الزمنية/القدرات/التوظيف/المالية، على سبيل المثال، بدأ تصميم المسح/الميزانية/التدريب/التعداد/الإدراج أو أنشطة أخرى متعلقة بالمثال.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ar"
+          data-term="المثال المستقبلي">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">المثال المستقبلي</span>
+            <span class="cr-tag">FPR</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>الأمثلة المستقبلية هي أمثلة لم يتم إجراء استثمارات كبيرة لها بعد من حيث التصميم/الميزانية/التدريب/الإدراج/التعداد وما إلى ذلك.</p>
+          <p>يتيح قسم الأمثلة المستقبلية (FPR) للمستجيبين تقديم تفاصيل حول الأمثلة المتوقعة التي قد تبدأ في عام 2026. تدعم الردود المقدمة التخطيط التطلعي وتساعد على تحديد الاتجاهات الناشئة ومواءمة الجهود بين أصحاب المصلحة وتعزيز التعاون بين الجهات الفاعلة الوطنية والإقليمية والدولية للنهوض بجهود الإدماج الإحصائي.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ar"
+          data-term="الشراكة">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">الشراكة</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>تتضمن الشراكة مشاركة شريك وطني أو دولي أو أكاديمي في تنفيذ المثال. يمكن للمستجيبين إدراج شركاء متعددين.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ar"
+          data-term="مصادر البيانات والأدوات">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">مصادر البيانات والأدوات</span>
+            <span class="cr-tag">PRO08</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>يمكن أن تكون مصادر البيانات والأدوات (PRO08) المستخدمة لتقديم معلومات حول المثال: (أ) المسوح الإحصائية، (ب) السجلات وقواعد البيانات الحكومية، (ج) التعدادات السكانية العامة، (د) دمج البيانات من أماكن كثيرة، (هـ) مصادر غير قياسية مثل المجموعات الإنسانية أو بيانات وسائل التواصل الاجتماعي، (و) تطوير وثائق استراتيجية، (ز) اتباع إرشادات أو مجموعات أدوات، (ح) إعطاء تدريب أو ورش عمل للحصول على البيانات، وأي مصدر آخر غير مدرج تأتي منه البيانات.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary-ar"
+          data-term="التحديات">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">التحديات</span>
+            <span class="cr-tag">PRO19–20</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>تشير التحديات (في PRO19 و PRO20) في هذا الاستطلاع إلى الصعوبات الكبيرة التي واجهت خلال المثال مثل (أ) مشكلة في الحصول على بيانات من الجميع، أخطاء في جمع البيانات (ج) صعوبات في تحديد مجموعات محددة مثل اللاجئين أو عديمي الجنسية، (د) مخاوف بشأن سرية البيانات والخصوصية، (هـ) قيود الموارد (مثل عدم وجود ما يكفي من المال أو الناس)، (ز) قضايا تتعلق بالسياسة أو الأمن، (ح) تأخيرات أو مشاكل في جودة البيانات، (ط) عدم وجود المهارات أو الأدوات المناسبة للمشروع، (ي) عدم وجود تعليمات واضحة، أو أي مشاكل فريدة أخرى واجهت خلال المثال.</p>
+        </div>
+      </li>
+
+      </ul>
+    </div>
+  </section>
+
+  <!-- 3. FAQs -->
+  <section class="cr-section" id="faq">
+    <div class="cr-switch-head">
+    <span class="cr-section-label">Help</span>
+    <h2 class="cr-section-h2">Frequently Asked Questions</h2>
+    <p class="cr-section-desc">Process and practical questions about completing the GAIN Survey. For terminology, see the <a href="#glossary">Glossary</a> above.</p>
+    </div> 
+
+        <div class="cr-lang-switch" role="tablist" aria-label="Faq language">
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="en" lang="en" aria-selected="true">English</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="fr" lang="fr" aria-selected="false">Français</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="es" lang="es" aria-selected="false">Español</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="ru" lang="ru" aria-selected="false">Русский</button>
+        <button type="button" class="cr-lang-btn" role="tab" data-lang="ar" lang="ar" aria-selected="false">العربية</button>
+    </div>
+
+    <div class="cr-lang-pane" data-lang="en" lang="en">
+    <ul class="cr-acc-list" id="cr-faq-list">
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">01</span><span class="cr-faq-q">Who is the GAIN Survey aimed at, and what is its purpose?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The GAIN Survey is designed for countries (NSOs or other responsible agencies) and national, regional, and international organisations working to enhance official statistics related to refugees, individuals in need of international protection, IDPs, or stateless persons. The purpose is to collect information on planned, ongoing, or completed statistical examples involving forcibly displaced and stateless populations, and to support decision-making in EGRISS's work.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">02</span><span class="cr-faq-q">Who should fill in the questionnaire as the respondent for the organisation?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The questionnaire should be completed by the focal point or the most knowledgeable person in your organisation regarding the related statistical example. You can include contact information for several colleagues if necessary, who were contributing to the provided information.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">03</span><span class="cr-faq-q">How long does it take to complete the survey?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The time required typically ranges from 10 to 20 minutes, depending on the number of examples you have to report. Most questions are designed for quick, concise responses, with only three open-ended questions requiring brief descriptive answers.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">04</span><span class="cr-faq-q">How does participation contribute to our understanding of refugee, IDP, and stateless populations?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Participating in the GAIN Survey allows EGRISS to gather comprehensive and accurate information, enabling better addressing of the unique challenges faced by practitioners making efforts to include these populations in official statistics. Your input is instrumental in shaping policies and strategies in this regard.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">05</span><span class="cr-faq-q">What examples should be reported?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>EGRISS encourages you to report all examples and provide as much information as possible for each one. This applies to both country-led and institution-led examples; please also report examples that you are supporting as a partner institution, as well as examples implementing novel or exploratory methodologies.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">06</span><span class="cr-faq-q">What if we have more than one example to report?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>You can include multiple examples in a single questionnaire. When completing the survey, you will be able to add additional examples (question PRO02) and provide relevant information for each one.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">07</span><span class="cr-faq-q">What if we have planned or initiated but not yet completed an example — is it still relevant to include?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Yes, please include information about examples that are either in the design/planning or implementation phases, or have been completed during the survey year. These should be reported in the PRO section of the questionnaire.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">08</span><span class="cr-faq-q">What if our organisation does not have any examples to report?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Yes, even without examples to report, your input is still valuable. The GAIN Survey includes questions about planned future examples (FPR section) and the use of EGRISS outputs or recommendations. Sharing information on upcoming initiatives or explaining why no examples are available provides essential context for EGRISS, helping identify gaps and prioritise support where it is needed most.</p> 
+        </div>
+      </li>
+
+    </ul>
+    </div>
+
+    <div class="cr-lang-pane" id="faq-fr" data-lang="fr" lang="fr" dir="ltr" data-label="Aide" data-title="Questions fréquentes" data-desc="Questions pratiques sur le remplissage de l’enquête GAIN. Pour la terminologie, consultez le &lt;a href=&quot;#glossary-fr&quot;&gt;glossaire&lt;/a&gt; ci-dessus." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">01</span><span class="cr-faq-q">À qui s'adresse l'enquête GAIN et quel est son objectif ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>L'enquête GAIN est conçue pour les pays (INS ou autres agences responsables) et les organisations nationales, régionales et internationales travaillant à améliorer les statistiques officielles relatives aux réfugiés, aux personnes ayant besoin de protection internationale, aux PDI ou aux apatrides. L'objectif de cette enquête est de recueillir des informations sur des exemples statistiques planifiés, en cours ou achevés impliquant des populations déplacées de force et apatrides. L'enquête vise également à sensibiliser et à soutenir la prise de décision dans le travail de l'EGRISS.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">02</span><span class="cr-faq-q">Qui doit remplir le questionnaire en tant que répondant pour l'organisation ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Le questionnaire doit être complété par le point focal ou la personne la plus informée de votre organisation concernant l'exemple statistique en question. Vous pouvez inclure les coordonnées de plusieurs collègues si nécessaire, qui ont contribué aux informations fournies.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">03</span><span class="cr-faq-q">Combien de temps faut-il pour compléter l'enquête ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Le temps nécessaire pour compléter le questionnaire varie généralement de 10 à 20 minutes, selon le nombre d'exemples que vous devez signaler. La plupart des questions sont conçues pour des réponses rapides et concises, avec seulement trois questions ouvertes nécessitant de brèves réponses descriptives.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">04</span><span class="cr-faq-q">Comment la participation à l'enquête GAIN contribue-t-elle à notre compréhension des populations réfugiées, PDI et apatrides ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Participer à l'enquête GAIN permet à l'EGRISS de recueillir des informations complètes et précises, permettant de mieux relever les défis uniques auxquels sont confrontés les praticiens qui s'efforcent d'inclure ces populations dans les statistiques officielles. Votre contribution est essentielle pour façonner les politiques et les stratégies à cet égard.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">05</span><span class="cr-faq-q">Quels exemples doivent être signalés ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Le Secrétariat de l'EGRISS vous encourage à signaler tous les exemples (se référer au glossaire pour la définition d'exemple) et à fournir autant d'informations que possible pour chaque exemple. Ceci s'applique tant aux exemples menés par les pays qu'aux exemples menés par les institutions, donc veuillez également signaler les exemples que vous soutenez en tant qu'institution partenaire. Veuillez également signaler les exemples mettant en œuvre des méthodologies nouvelles/exploratoires.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">06</span><span class="cr-faq-q">Que faire si nous avons plus d'un exemple à signaler ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Vous pouvez inclure plusieurs exemples dans un seul questionnaire. Lors du remplissage de l'enquête, vous pourrez ajouter des exemples supplémentaires (question PRO02), en cliquant sur le bouton "plus (+)" dans cette section du formulaire et en fournissant les informations pertinentes pour chaque exemple.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">07</span><span class="cr-faq-q">Que faire si nous avons planifié ou initié mais pas achevé un exemple en 2025, est-il toujours pertinent de l'inclure dans l'enquête ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Oui, veuillez inclure des informations sur les exemples qui sont soit en phase de conception/planification, soit en phase de mise en œuvre, ou qui ont été achevés en 2025 dans l'enquête (dans la section PRO du questionnaire).</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-fr">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">08</span><span class="cr-faq-q">Que faire si notre organisation n'a aucun exemple à signaler pour 2025 ? Devons-nous quand même compléter l'enquête ?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Oui, même si votre organisation n'a aucun exemple à signaler pour 2025, votre contribution est toujours précieuse et nous vous encourageons à compléter l'enquête. L'enquête GAIN comprend des questions sur les exemples futurs planifiés (section FPR) et l'utilisation d'autres productions ou recommandations de l'EGRISS. Partager des informations sur les initiatives à venir ou expliquer pourquoi aucun exemple n'est disponible fournit un contexte essentiel pour l'EGRISS, aidant à identifier les lacunes et à prioriser le soutien là où il est le plus nécessaire.</p>
+        </div>
+      </li>
+
+      </ul>
+      <a class="cr-faq-pdf" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_FAQs_French_2025.pdf" target="_blank" rel="noopener"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>FAQ complète, y compris l’aide pour le formulaire en ligne (PDF)</a>
+    </div>
+
+    <div class="cr-lang-pane" id="faq-es" data-lang="es" lang="es" dir="ltr" data-label="Ayuda" data-title="Preguntas frecuentes" data-desc="Preguntas prácticas sobre cómo completar la encuesta GAIN. Para la terminología, consulte el &lt;a href=&quot;#glossary-es&quot;&gt;glosario&lt;/a&gt; más arriba." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">01</span><span class="cr-faq-q">¿A quién está dirigida la encuesta GAIN y cuál es su propósito?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>La encuesta GAIN está diseñada para países (ONEs u otras agencias responsables) y organizaciones nacionales, regionales e internacionales que trabajan para mejorar las estadísticas oficiales relacionadas con refugiados, personas que necesitan protección internacional, PDI o apátridas. El propósito de esta encuesta es recopilar información sobre ejemplos estadísticos planificados, en curso o completados que involucran a poblaciones desplazadas por la fuerza y apátridas. La encuesta también tiene como objetivo crear conciencia y apoyar la toma de decisiones en el trabajo del EGRISS.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">02</span><span class="cr-faq-q">¿Quién debe completar el cuestionario como encuestado de la organización?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>El cuestionario debe ser completado por el punto focal o la persona más conocedora de su organización con respecto al ejemplo estadístico relacionado. Puede incluir información de contacto de varios colegas si es necesario, que hayan contribuido a la información proporcionada.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">03</span><span class="cr-faq-q">¿Cuánto tiempo lleva completar la encuesta?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>El tiempo requerido para completar el cuestionario generalmente oscila entre 10 y 20 minutos, dependiendo del número de ejemplos que tenga que reportar. La mayoría de las preguntas están diseñadas para respuestas rápidas y concisas, con solo tres preguntas abiertas que requieren breves respuestas descriptivas.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">04</span><span class="cr-faq-q">¿Cómo contribuye la participación en la Encuesta GAIN a nuestra comprensión de las poblaciones de refugiados, PDI y apátridas?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Participar en la Encuesta GAIN permite al EGRISS recopilar información completa y precisa, permitiendo abordar mejor los desafíos únicos que enfrentan los profesionales que hacen esfuerzos para incluir a estas poblaciones en las estadísticas oficiales. Su aporte es fundamental para dar forma a políticas y estrategias en este sentido.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">05</span><span class="cr-faq-q">¿Qué ejemplos deben ser reportados?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>La Secretaría del EGRISS le alienta a reportar todos los ejemplos (consulte el glosario para la definición de ejemplo) y proporcionar tanta información como sea posible para cada ejemplo. Este es el caso tanto para ejemplos liderados por países como para ejemplos liderados por instituciones, por lo tanto, por favor también reporte ejemplos que esté apoyando como institución asociada. Por favor también reporte ejemplos que implementen metodologías novedosas/exploratorias.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">06</span><span class="cr-faq-q">¿Qué pasa si tenemos más de un ejemplo para reportar?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Puede incluir múltiples ejemplos en un solo cuestionario. Al completar la encuesta, podrá agregar ejemplos adicionales (pregunta PRO02), haciendo clic en el botón "más (+)" en esta sección del formulario y proporcionar información relevante para cada ejemplo.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">07</span><span class="cr-faq-q">¿Qué pasa si hemos planificado o iniciado pero no completado un ejemplo en 2025, sigue siendo relevante incluirlo en la encuesta?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Sí, por favor incluya información sobre ejemplos que estén en las fases de diseño/planificación o implementación, o que se hayan completado en 2025 en la encuesta (en la sección PRO del cuestionario).</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-es">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">08</span><span class="cr-faq-q">¿Qué pasa si nuestra organización no tiene ejemplos para reportar para 2025? ¿Deberíamos aún así completar la encuesta?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Sí, incluso si su organización no tiene ejemplos para reportar para 2025, su aporte sigue siendo valioso y le alentamos a completar la encuesta. La Encuesta GAIN incluye preguntas sobre ejemplos futuros planificados (sección FPR) y el uso de otros productos o recomendaciones del EGRISS. Compartir información sobre iniciativas próximas o explicar por qué no hay ejemplos disponibles proporciona un contexto esencial para el EGRISS, ayudando a identificar brechas y priorizar el apoyo donde más se necesita.</p>
+        </div>
+      </li>
+
+      </ul>
+      <a class="cr-faq-pdf" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_FAQs_Spanish_2025.pdf" target="_blank" rel="noopener"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Preguntas frecuentes completas, incluida la ayuda con el formulario en línea (PDF)</a>
+    </div>
+
+    <div class="cr-lang-pane" id="faq-ru" data-lang="ru" lang="ru" dir="ltr" data-label="Помощь" data-title="Часто задаваемые вопросы" data-desc="Практические вопросы о заполнении опроса GAIN. Определения терминов см. в &lt;a href=&quot;#glossary-ru&quot;&gt;глоссарии&lt;/a&gt; выше." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">01</span><span class="cr-faq-q">На кого ориентирован опрос GAIN и какова его цель?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Опрос GAIN предназначен для стран (НСУ или других ответственных агентств) и национальных, региональных и международных организаций, работающих над улучшением официальной статистики, касающейся беженцев, лиц, нуждающихся в международной защите, ВПЛ или лиц без гражданства. Цель этого опроса состоит в сборе информации о запланированных, текущих или завершенных статистических примерах, касающихся насильственно перемещенных лиц и лиц без гражданства. Опрос также направлен на повышение осведомленности и поддержку принятия решений в работе EGRISS.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">02</span><span class="cr-faq-q">Кто должен заполнять анкету в качестве респондента от организации?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Анкета должна быть заполнена координатором или наиболее осведомленным лицом в вашей организации относительно соответствующего статистического примера. При необходимости вы можете указать контактную информацию нескольких коллег, которые внесли вклад в предоставленную информацию.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">03</span><span class="cr-faq-q">Сколько времени занимает заполнение опроса?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Время, необходимое для заполнения анкеты, обычно составляет от 10 до 20 минут, в зависимости от количества примеров, о которых вам необходимо сообщить. Большинство вопросов предназначены для быстрых, кратких ответов, и только три открытых вопроса требуют кратких описательных ответов.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">04</span><span class="cr-faq-q">Как участие в опросе GAIN способствует нашему пониманию беженцев, ВПЛ и лиц без гражданства?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Участие в опросе GAIN позволяет EGRISS собирать всестороннюю и точную информацию, что позволяет лучше решать уникальные задачи, с которыми сталкиваются специалисты, прилагающие усилия для включения этих групп населения в официальную статистику. Ваш вклад имеет важное значение для формирования политики и стратегий в этом отношении.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">05</span><span class="cr-faq-q">О каких примерах следует сообщать?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Секретариат EGRISS призывает вас сообщать обо всех примерах (см. определение примера в глоссарии) и предоставлять как можно больше информации для каждого примера. Это относится как к примерам под руководством стран, так и к примерам под руководством учреждений, поэтому, пожалуйста, также сообщайте о примерах, которые вы поддерживаете в качестве партнерского учреждения. Пожалуйста, также сообщайте о примерах, внедряющих новые/исследовательские методологии.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">06</span><span class="cr-faq-q">Что делать, если у нас есть более одного примера для отчета?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Вы можете включить несколько примеров в одну анкету. При заполнении опроса вы сможете добавить дополнительные примеры (вопрос PRO02), нажав кнопку "плюс (+)" в этом разделе формы и предоставив соответствующую информацию для каждого примера.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">07</span><span class="cr-faq-q">Что делать, если мы запланировали или начали, но не завершили пример в 2025 году, все ли еще актуально включать его в опрос?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Да, пожалуйста, включите информацию о примерах, которые находятся либо на стадии проектирования/планирования, либо на стадии реализации, или были завершены в 2025 году в опросе (в разделе PRO анкеты).</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ru">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">08</span><span class="cr-faq-q">Что делать, если у нашей организации нет примеров для отчета за 2025 год? Должны ли мы все равно заполнить опрос?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Да, даже если у вашей организации нет примеров для отчета за 2025 год, ваш вклад по-прежнему ценен, и мы призываем вас заполнить опрос. Опрос GAIN включает вопросы о запланированных будущих примерах (раздел FPR) и использовании других результатов или рекомендаций EGRISS. Обмен информацией о предстоящих инициативах или объяснение того, почему примеры недоступны, предоставляет важный контекст для EGRISS, помогая выявить пробелы и определить приоритеты поддержки там, где она наиболее необходима.</p>
+        </div>
+      </li>
+
+      </ul>
+      <a class="cr-faq-pdf" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_FAQs_Russian_2025.pdf" target="_blank" rel="noopener"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Полная версия вопросов и ответов, включая помощь с онлайн-формой (PDF)</a>
+    </div>
+
+    <div class="cr-lang-pane" id="faq-ar" data-lang="ar" lang="ar" dir="rtl" data-label="مساعدة" data-title="الأسئلة الشائعة" data-desc="أسئلة عملية حول إكمال استطلاع GAIN. للاطلاع على المصطلحات، راجع &lt;a href=&quot;#glossary-ar&quot;&gt;المسرد&lt;/a&gt; أعلاه." hidden>
+      <ul class="cr-acc-list">
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">01</span><span class="cr-faq-q">لمن يستهدف استطلاع GAIN وما هو الغرض منه؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>تم تصميم استطلاع GAIN للبلدان (المكاتب الإحصائية الوطنية أو الوكالات المسؤولة الأخرى) والمنظمات الوطنية والإقليمية والدولية التي تعمل على تحسين الإحصاءات الرسمية المتعلقة باللاجئين أو الأشخاص الذين يحتاجون إلى حماية دولية أو النازحين داخلياً أو عديمي الجنسية. الغرض من هذا الاستطلاع هو جمع معلومات عن الأمثلة الإحصائية المخطط لها أو الجارية أو المكتملة التي تشمل السكان النازحين قسراً وعديمي الجنسية. يهدف الاستطلاع أيضاً إلى رفع الوعي ودعم اتخاذ القرارات في عمل EGRISS.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">02</span><span class="cr-faq-q">من يجب أن يملأ الاستبيان كمستجيب عن المنظمة؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>يجب أن يُستكمل الاستبيان من قبل جهة الاتصال المحورية أو الشخص الأكثر معرفة في منظمتك فيما يتعلق بالمثال الإحصائي ذي الصلة. يمكنك تضمين معلومات الاتصال لعدة زملاء إذا لزم الأمر، والذين ساهموا في المعلومات المقدمة.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">03</span><span class="cr-faq-q">كم من الوقت يستغرق إكمال الاستطلاع؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>يتراوح الوقت المطلوب لإكمال الاستبيان عادةً من 10 إلى 20 دقيقة، اعتماداً على عدد الأمثلة التي يتعين عليك الإبلاغ عنها. معظم الأسئلة مصممة للحصول على إجابات سريعة وموجزة، مع ثلاثة أسئلة مفتوحة فقط تتطلب إجابات وصفية مختصرة.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">04</span><span class="cr-faq-q">كيف تساهم المشاركة في استطلاع GAIN في فهمنا لسكان اللاجئين والنازحين داخلياً وعديمي الجنسية؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>تتيح المشاركة في استطلاع GAIN لـ EGRISS جمع معلومات شاملة ودقيقة، مما يتيح معالجة أفضل للتحديات الفريدة التي يواجهها الممارسون الذين يبذلون جهوداً لإدراج هؤلاء السكان في الإحصاءات الرسمية. مساهمتك أساسية في تشكيل السياسات والاستراتيجيات في هذا الصدد.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">05</span><span class="cr-faq-q">ما هي الأمثلة التي يجب الإبلاغ عنها؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>تشجع أمانة EGRISS على الإبلاغ عن جميع الأمثلة (راجع المسرد لتعريف المثال) وتقديم أكبر قدر ممكن من المعلومات لكل مثال. هذا هو الحال بالنسبة للأمثلة التي تقودها الدول والأمثلة التي تقودها المؤسسات، لذلك يرجى أيضاً الإبلاغ عن الأمثلة التي تدعمها كمؤسسة شريكة. يرجى أيضاً الإبلاغ عن الأمثلة التي تنفذ منهجيات جديدة/استكشافية.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">06</span><span class="cr-faq-q">ماذا لو كان لدينا أكثر من مثال واحد للإبلاغ عنه؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>يمكنك تضمين أمثلة متعددة في استبيان واحد. عند إكمال الاستطلاع، ستتمكن من إضافة أمثلة إضافية (السؤال PRO02)، عن طريق النقر على زر "زائد (+)" في هذا القسم من النموذج وتقديم المعلومات ذات الصلة لكل مثال.</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">07</span><span class="cr-faq-q">ماذا لو كنا قد خططنا أو بدأنا ولكن لم نكمل مثالاً في عام 2025، هل لا يزال من المناسب تضمينه في الاستطلاع؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>نعم، يرجى تضمين معلومات حول الأمثلة التي تكون إما في مراحل التصميم/التخطيط أو التنفيذ، أو التي تم إكمالها في عام 2025 في الاستطلاع (في قسم PRO من الاستبيان).</p>
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq-ar">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">08</span><span class="cr-faq-q">ماذا لو لم يكن لدى منظمتنا أي أمثلة للإبلاغ عنها لعام 2025؟ هل يجب علينا إكمال الاستطلاع على أي حال؟</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>نعم، حتى إذا لم يكن لدى منظمتك أي أمثلة للإبلاغ عنها لعام 2025، فإن مساهمتك لا تزال قيمة ونشجعك على إكمال الاستطلاع. يتضمن استطلاع GAIN أسئلة حول الأمثلة المستقبلية المخطط لها (قسم FPR) واستخدام مخرجات أو توصيات EGRISS الأخرى. إن مشاركة المعلومات حول المبادرات القادمة أو شرح سبب عدم توفر الأمثلة توفر سياقاً أساسياً لـ EGRISS، مما يساعد على تحديد الثغرات وتحديد أولويات الدعم حيث تكون هناك حاجة ماسة إليه.</p>
+        </div>
+      </li>
+
+      </ul>
+      <a class="cr-faq-pdf" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_FAQs_Arabic_2025.pdf" target="_blank" rel="noopener"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>الأسئلة الشائعة كاملة، بما في ذلك المساعدة في النموذج عبر الإنترنت (PDF)</a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+
+  var HEADER_HEIGHT = 105;
+  var nav      = document.getElementById('cr-nav');
+  var links    = document.querySelectorAll('.cr-nav-link');
+  var sections = document.querySelectorAll('.cr-section');
+  var map      = [];
+
+  links.forEach(function (link) {
+    var id = link.getAttribute('href').replace('#', '');
+    var el = document.getElementById(id);
+    if (el) map.push({ link: link, el: el });
+  });
+
+  function getOffset() { return HEADER_HEIGHT + nav.offsetHeight; }
+
+  function setActive(id) {
+    links.forEach(function (link) {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + id) link.classList.add('active');
+    });
+    sections.forEach(function (section) {
+      section.classList.remove('is-active');
+      if (section.id === id) section.classList.add('is-active');
+    });
+  }
+
+  function goToSection(id) {
+    var target = document.getElementById(id);
+    if (!target) return;
+    setActive(id);
+    var y = target.getBoundingClientRect().top + window.pageYOffset - getOffset();
+    document.documentElement.scrollTop = y;
+    document.body.scrollTop = y;
+  }
+
+  links.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      goToSection(this.getAttribute('href').replace('#', ''));
+    });
+  });
+
+  function spy() {
+    var current = null;
+    var trigger = HEADER_HEIGHT + nav.offsetHeight + 40;
+    map.forEach(function (item) {
+      if (item.el.getBoundingClientRect().top <= trigger) current = item;
+    });
+    if (current) setActive(current.el.id);
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  window.addEventListener('resize', spy, { passive: true });
+  spy();
+
+  /* ── Accordion ── */
+  document.querySelectorAll('.cr-acc-trigger').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var item    = btn.closest('.cr-acc-item');
+      var isOpen  = item.classList.contains('open');
+      var section = item.getAttribute('data-section');
+      document.querySelectorAll('.cr-acc-item[data-section="' + section + '"].open').forEach(function (el) {
+        el.classList.remove('open');
+        el.querySelector('.cr-acc-trigger').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ── Glossary search ── */
+  var searchEl = document.getElementById('cr-search');
+  var countEl  = document.getElementById('cr-count');
+  var noResEl  = document.getElementById('cr-no-results');
+  var allItems = Array.from(document.querySelectorAll('.cr-acc-item[data-section^="glossary"]'));
+  function visibleItems() {
+    return allItems.filter(function (item) { var p = item.closest('.cr-lang-pane'); return !p || !p.hidden; });
+  }
+  var items    = visibleItems();
+
+  countEl.textContent = items.length;
+
+  allItems.forEach(function (item) {
+    var termEl = item.querySelector('.cr-term-text');
+    item.setAttribute('data-orig-term', termEl ? termEl.innerHTML : '');
+    item.setAttribute('data-orig-body', item.querySelector('.cr-acc-body').innerHTML);
+  });
+
+  function escRe(s)   { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function escHtml(s) { return s.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>'); }
+
+  searchEl.addEventListener('input', function () {
+    items    = visibleItems();
+    var q    = this.value.trim();
+    var qLow = q.toLowerCase();
+
+    items.forEach(function (item) {
+      item.classList.remove('open', 'hidden');
+      item.querySelector('.cr-acc-trigger').setAttribute('aria-expanded', 'false');
+      var termEl = item.querySelector('.cr-term-text');
+      if (termEl) termEl.innerHTML = item.getAttribute('data-orig-term');
+      item.querySelector('.cr-acc-body').innerHTML = item.getAttribute('data-orig-body');
+    });
+
+    if (!q) {
+      countEl.textContent = items.length;
+      noResEl.classList.remove('visible');
+      return;
+    }
+
+    var re      = new RegExp('(' + escRe(q) + ')', 'gi');
+    var visible = 0;
+
+    items.forEach(function (item) {
+      var kw        = (item.getAttribute('data-term') || '').toLowerCase();
+      var origTerm  = item.getAttribute('data-orig-term');
+      var origBody  = item.getAttribute('data-orig-body');
+      var termPlain = origTerm.replace(/<[^>]+>/g, '').toLowerCase();
+      var bodyPlain = origBody.replace(/<[^>]+>/g, '').toLowerCase();
+
+      var hit = kw.includes(qLow) || termPlain.includes(qLow) || bodyPlain.includes(qLow);
+
+      if (!hit) { item.classList.add('hidden'); return; }
+
+      visible++;
+
+      var termEl = item.querySelector('.cr-term-text');
+      if (termEl && termPlain.includes(qLow)) {
+        re.lastIndex = 0;
+        termEl.innerHTML = origTerm.replace(re, function (m) { return '<mark>' + escHtml(m) + '</mark>'; });
+      }
+
+      re.lastIndex = 0;
+      item.querySelector('.cr-acc-body').innerHTML =
+        origBody.replace(re, function (m) { return '<mark>' + escHtml(m) + '</mark>'; });
+      re.lastIndex = 0;
+
+      if (bodyPlain.includes(qLow)) {
+        item.classList.add('open');
+        item.querySelector('.cr-acc-trigger').setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    countEl.textContent = visible;
+    noResEl.classList.toggle('visible', visible === 0);
+  });
+
+
+  /* ── Language switch (Glossary and FAQ) ──
+     English is the default. One choice switches both sections. Links such as
+     #faq-fr or #glossary-ar open the page in that language (e.g. from the invitation emails). */
+  var LANG_CODES = ['en', 'fr', 'es', 'ru', 'ar'];
+  var switchSections = ['glossary', 'faq'].map(function (id) {
+    var section = document.getElementById(id);
+    var head = section.querySelector('.cr-switch-head');
+    return {
+      id: id,
+      section: section,
+      head: head,
+      en: { label: head.children[0].innerHTML, title: head.children[1].innerHTML, desc: head.children[2].innerHTML },
+      buttons: Array.from(section.querySelectorAll('.cr-lang-btn')),
+      panes: Array.from(section.querySelectorAll('.cr-lang-pane'))
+    };
+  });
+  var glossaryEn = {
+    search: searchEl.getAttribute('placeholder'),
+    terms: document.getElementById('cr-terms-word').textContent,
+    none: noResEl.textContent
+  };
+
+  function setLang(code) {
+    switchSections.forEach(function (s) {
+      var pane = s.section.querySelector('.cr-lang-pane[data-lang="' + code + '"]');
+      ['label', 'title', 'desc'].forEach(function (k, i) {
+        s.head.children[i].innerHTML = code === 'en' ? s.en[k] : pane.getAttribute('data-' + k);
+      });
+      s.head.setAttribute('lang', code);
+      s.head.setAttribute('dir', pane.getAttribute('dir') || 'ltr');
+      s.buttons.forEach(function (b) {
+        b.setAttribute('aria-selected', b.getAttribute('data-lang') === code ? 'true' : 'false');
+      });
+      s.panes.forEach(function (p) { p.hidden = p !== pane; });
+      if (s.id === 'glossary') {
+        var t = function (k) { return code === 'en' ? glossaryEn[k] : pane.getAttribute('data-' + k); };
+        searchEl.setAttribute('placeholder', t('search'));
+        searchEl.closest('.cr-search-wrap').setAttribute('dir', pane.getAttribute('dir') || 'ltr');
+        document.getElementById('cr-terms-word').textContent = t('terms');
+        noResEl.textContent = t('none');
+        searchEl.value = '';
+        searchEl.dispatchEvent(new Event('input'));
+      }
+    });
+  }
+
+  switchSections.forEach(function (s) {
+    s.buttons.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var code = b.getAttribute('data-lang');
+        setLang(code);
+        if (window.history && history.replaceState) {
+          history.replaceState(null, '', code === 'en' ? '#' + s.id : '#' + s.id + '-' + code);
+        }
+      });
+    });
+  });
+
+  function langFromHash() {
+    var m = /^#(faq|glossary)(?:-([a-z]{2}))?$/.exec(window.location.hash);
+    if (!m) return;
+    if (m[2] && LANG_CODES.indexOf(m[2]) !== -1) setLang(m[2]);
+    goToSection(m[1]);
+  }
+  window.addEventListener('hashchange', langFromHash);
+  /* Run after the theme has finished laying out the page, so the scroll lands on the section. */
+  if (document.readyState === 'complete') langFromHash();
+  else window.addEventListener('load', function () { setTimeout(langFromHash, 50); });
+
+}());
+</script>

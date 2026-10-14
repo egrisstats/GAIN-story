@@ -1,0 +1,370 @@
+[
+ {
+  "id": 0,
+  "fr": "Veuillez indiquer si vous souhaitez commencer l'enquête."
+ },
+ {
+  "id": 1,
+  "fr": "Veuillez sélectionner le type d'organisation pour laquelle vous répondez."
+ },
+ {
+  "id": 2,
+  "fr": "Commencez à taper pour filtrer la liste."
+ },
+ {
+  "id": 3,
+  "fr": "Une seule adresse."
+ },
+ {
+  "id": 4,
+  "fr": "Veuillez saisir une adresse e-mail afin que nous puissions assurer le suivi."
+ },
+ {
+  "id": 5,
+  "fr": "À votre connaissance, les résultats de ${_project} ont-ils été utilisés, ou est-il prévu de les utiliser, pour l'une des finalités suivantes ?"
+ },
+ {
+  "id": 6,
+  "fr": "Sélectionnez toutes les réponses qui s'appliquent."
+ },
+ {
+  "id": 7,
+  "fr": "« Non utilisé » et « Ne sait pas » ne peuvent pas être combinés avec une autre réponse."
+ },
+ {
+  "id": 8,
+  "fr": "Veuillez préciser l'autre finalité officielle."
+ },
+ {
+  "id": 9,
+  "fr": "<span style='color:#4E5D70; font-weight:bold; font-size:0.9em;'>Ce que ${organization} a déclaré à GAIN depuis 2021</span>\n<span style='color:#4E5D70; font-size:0.8em;'>À titre indicatif uniquement. La question suivante porte sur les nouveaux exemples en ${survey_year}.</span>"
+ },
+ {
+  "id": 10,
+  "fr": "<span style='color:#4E5D70; font-size:13px;'>Un exemple est une initiative organisée, menée en ${survey_year}, qui comprend l'amélioration ou la production de statistiques nationales sur les réfugiés, les PDI et/ou les apatrides, ou qui y est exclusivement consacrée. Il peut s'agir d'une source de données, comme un recensement, une enquête, une base de données administrative ou l'intégration de plusieurs sources, ou d'un outil, comme un atelier, une formation, un document stratégique, des orientations ou une boîte à outils. Un exemple en cours est un exemple qui se poursuit au moment de la présente enquête, c'est-à-dire pour lequel un certain investissement en temps, en capacités, en personnel ou en ressources financières a été consenti. Il n'est pas nécessaire qu'il soit achevé.</span>"
+ },
+ {
+  "id": 11,
+  "fr": "De janvier à décembre ${survey_year}. N'incluez pas ce qui a été déclaré lors d'une édition précédente."
+ },
+ {
+  "id": 12,
+  "fr": "Veuillez répondre afin que nous sachions quelle section vous présenter ensuite."
+ },
+ {
+  "id": 13,
+  "fr": "Veuillez saisir un nom court pour cet exemple, ou utilisez le bouton moins pour supprimer cette case si vous l'avez ajoutée par erreur."
+ },
+ {
+  "id": 14,
+  "fr": "Veuillez donner un nom court à cet exemple, d'au moins deux caractères, afin que les questions suivantes puissent vous indiquer à quel exemple elles se rapportent."
+ },
+ {
+  "id": 15,
+  "fr": "<span style='font-weight:bold;'>Vous avez indiqué ${count_PRO02A} exemple(s).</span><span> La section suivante pose les mêmes questions pour chacun d'eux à tour de rôle, en commençant par le premier. Pour en ajouter ou en supprimer un, remontez à la question PRO02A.</span>"
+ },
+ {
+  "id": 16,
+  "fr": "<span style='color:#8A5A00; font-weight:bold;'>C'est plus d'exemples que la plupart des organisations n'en déclarent.</span><span style='color:#8A5A00;'> Environ 96 % en indiquent quatre ou moins. Chaque exemple ajoute environ 40 questions ; veuillez donc vérifier que chaque case contient un exemple distinct et supprimer celles que vous n'aviez pas l'intention d'ajouter.</span>"
+ },
+ {
+  "id": 17,
+  "fr": "<span style='color:#B3261E; font-weight:bold;'>Le formulaire sera très long.</span><span style='color:#B3261E;'> Dix exemples ou plus représentent plusieurs centaines de questions, et moins de 1 % des organisations en déclarent autant. Vous n'êtes pas tenu(e) de tout indiquer ici : déclarez les exemples les plus importants et écrivez à egrisstats@unhcr.org au sujet des autres afin que nous puissions les recueillir d'une autre manière.</span>"
+ },
+ {
+  "id": 18,
+  "fr": "<span style='color:#4E5D70; font-size:13px;'>Exemple ${_pro_idx} sur ${count_PRO02A}</span>"
+ },
+ {
+  "id": 19,
+  "fr": "<span style='color:#B3261E; font-weight:bold;'>Cet exemple n'a pas de nom.</span><span style='color:#B3261E;'> Remontez à la question PRO02A et saisissez un nom dans la case vide, ou supprimez cette case. D'ici là, les questions ci-dessous ne pourront pas indiquer à quel exemple elles se rapportent.</span>"
+ },
+ {
+  "id": 20,
+  "fr": "Quatre chiffres, par exemple 2024."
+ },
+ {
+  "id": 21,
+  "fr": "L'année de début ne peut pas être postérieure à ${survey_year}. Veuillez vérifier l'année."
+ },
+ {
+  "id": 22,
+  "fr": "Veuillez sélectionner la phase dans laquelle se trouve actuellement cet exemple."
+ },
+ {
+  "id": 23,
+  "fr": "Veuillez sélectionner au moins un groupe de population."
+ },
+ {
+  "id": 24,
+  "fr": "<span style='color:#4E5D70; font-size:13px;'>Une source désigne l'endroit où les données sont initialement recueillies ; un outil désigne ce qui soutient ou améliore le processus. Enquête : une enquête statistique par sondage. Données administratives : registres ou bases de données gouvernementaux tenus dans le cadre des activités courantes. Recensement : un recensement général de la population. Intégration de données : combinaison de données provenant d'au moins deux sources existantes. Non traditionnelles : sources allant au-delà des opérations statistiques standard, telles que l'imagerie satellite, les données de téléphonie mobile ou les données issues des réseaux sociaux. Stratégie : un document stratégique ou de planification. Guide/boîte à outils : des orientations méthodologiques, un manuel ou une boîte à outils. Atelier/formation : une activité de renforcement des capacités.</span>"
+ },
+ {
+  "id": 25,
+  "fr": "Veuillez sélectionner la principale source de données ou le principal outil."
+ },
+ {
+  "id": 26,
+  "fr": "Une source désigne l'endroit où les données sont initialement recueillies ; un outil désigne ce qui soutient ou améliore le processus. Enquête : une enquête statistique par sondage. Données administratives : registres ou bases de données gouvernementaux tenus dans le cadre des activités courantes. Recensement : un recensement général de la population. Intégration de données : combinaison de données provenant d'au moins deux sources existantes. Non traditionnelles : sources allant au-delà des opérations statistiques standard, telles que l'imagerie satellite, les données de téléphonie mobile ou les données issues des réseaux sociaux. Stratégie : un document stratégique ou de planification. Guide/boîte à outils : des orientations méthodologiques, un manuel ou une boîte à outils. Atelier/formation : une activité de renforcement des capacités."
+ },
+ {
+  "id": 27,
+  "fr": "<span style='color:#4E5D70; font-size:13px;'>IRRS désigne les Recommandations internationales sur les statistiques des réfugiés, qui couvrent les réfugiés et les autres personnes ayant besoin d'une protection internationale. IRIS désigne les Recommandations internationales sur les statistiques des personnes déplacées à l'intérieur de leur propre pays, qui couvrent les personnes déplacées à l'intérieur de leur propre pays. IROSS désigne les Recommandations internationales sur les statistiques de l'apatridie, qui couvrent les apatrides et les personnes de nationalité indéterminée. Cela compte, que les recommandations soient ou non citées nommément dans votre documentation : l'utilisation de leurs définitions et catégories de population, de leurs orientations sur les sources de données ou de leurs orientations en matière de coordination suffit.</span>"
+ },
+ {
+  "id": 28,
+  "fr": "Oui si une partie quelconque des recommandations a orienté la conception, la mise en œuvre ou la coordination de cet exemple."
+ },
+ {
+  "id": 29,
+  "fr": "<span style='color:#1F5FA9; font-weight:bold;'>IRRS</span><span style='color:#1F5FA9;'> — Recommandations internationales sur les statistiques des réfugiés</span>  [ouvrir](https://egrisstats.org/recommendations/international-recommendations-on-refugee-statistics-irrs/)\n<span style='color:#652B86; font-weight:bold;'>IRIS</span><span style='color:#652B86;'> — Recommandations internationales sur les statistiques des personnes déplacées à l'intérieur de leur propre pays</span>  [ouvrir](https://egrisstats.org/recommendations/international-recommendations-on-idp-statistics-iris/)\n<span style='color:#9A4E12; font-weight:bold;'>IROSS</span><span style='color:#9A4E12;'> — Recommandations internationales sur les statistiques de l'apatridie</span>  [ouvrir](https://egrisstats.org/recommendations/international-recommendations-on-statelessness-statistics-iross/)"
+ },
+ {
+  "id": 30,
+  "fr": "Veuillez sélectionner toutes les réponses qui s'appliquent. « Ne sait pas » ne peut pas être combiné avec une autre réponse."
+ },
+ {
+  "id": 31,
+  "fr": "IRRS désigne les Recommandations internationales sur les statistiques des réfugiés, qui couvrent les réfugiés et les autres personnes ayant besoin d'une protection internationale. IRIS désigne les Recommandations internationales sur les statistiques des personnes déplacées à l'intérieur de leur propre pays, qui couvrent les personnes déplacées à l'intérieur de leur propre pays. IROSS désigne les Recommandations internationales sur les statistiques de l'apatridie, qui couvrent les apatrides et les personnes de nationalité indéterminée."
+ },
+ {
+  "id": 32,
+  "fr": "<span style='color:#9A4E12;'>████████████████████████████████████████████</span>\n<span style='color:#9A4E12; font-weight:bold; font-size:23px;'>IROSS</span><span style='color:#9A4E12; font-size:19px;'>  ·  Recommandations internationales sur les statistiques de l'apatridie</span>\n<span style='color:#9A4E12;'>Couvrent les apatrides et les personnes de nationalité indéterminée.</span>\n<span style='color:#9A4E12;'>████████████████████████████████████████████</span>"
+ },
+ {
+  "id": 33,
+  "fr": "<span style='color:#652B86;'>████████████████████████████████████████████</span>\n<span style='color:#652B86; font-weight:bold; font-size:23px;'>IRIS</span><span style='color:#652B86; font-size:19px;'>  ·  Recommandations internationales sur les statistiques des personnes déplacées à l'intérieur de leur propre pays</span>\n<span style='color:#652B86;'>Couvrent les personnes déplacées à l'intérieur de leur propre pays.</span>\n<span style='color:#652B86;'>████████████████████████████████████████████</span>"
+ },
+ {
+  "id": 34,
+  "fr": "<span style='color:#1F5FA9;'>████████████████████████████████████████████</span>\n<span style='color:#1F5FA9; font-weight:bold; font-size:23px;'>IRRS</span><span style='color:#1F5FA9; font-size:19px;'>  ·  Recommandations internationales sur les statistiques des réfugiés</span>\n<span style='color:#1F5FA9;'>Couvrent les réfugiés et les autres personnes ayant besoin d'une protection internationale.</span>\n<span style='color:#1F5FA9;'>████████████████████████████████████████████</span>"
+ },
+ {
+  "id": 35,
+  "fr": "À quelles fins les recommandations ont été utilisées. Cette question est posée une fois pour chaque recommandation que vous avez sélectionnée, car chacune peut avoir été utilisée différemment. L'inclusion dans un recensement de la population signifie que les groupes ont été dénombrés ou identifiés dans le cadre d'un recensement. L'inclusion dans une enquête par sondage signifie soit l'ajout à une enquête auprès de la population nationale, soit la couverture par une enquête spécifique. Les données administratives du gouvernement désignent les registres ou dossiers tenus par une autorité publique. Les données opérationnelles d'organisations humanitaires désignent les données générées dans le cadre des opérations humanitaires. Les sources de données non traditionnelles désignent l'imagerie satellite, les données de téléphonie mobile, les réseaux sociaux et autres sources similaires. La coordination et la planification désignent les modalités de travail, les mandats, les stratégies ou la planification entre institutions."
+ },
+ {
+  "id": 36,
+  "fr": "Quelles parties des recommandations ont effectivement été utilisées. Le cadre statistique ou groupe de population désigne les définitions et les catégories de population. Les recommandations concernant les sources de données désignent les orientations sur les sources à utiliser et la manière de les utiliser. La coordination désigne les arrangements entre institutions. Le partage de données désigne les protocoles ou accords d'échange de données. L'analyse désigne les approches analytiques et les comparaisons. La sélection des indicateurs désigne le choix des indicateurs à produire. L'intégration des données désigne la combinaison de sources. La diffusion désigne la manière dont les résultats sont publiés et communiqués. La stratégie institutionnelle ou sectorielle désigne leur intégration dans une stratégie ou un plan."
+ },
+ {
+  "id": 37,
+  "fr": "Quelques phrases suffisent. Saisissez NA s'il n'y a rien à ajouter."
+ },
+ {
+  "id": 38,
+  "fr": "Les questions d'identification sont les questions posées dans une enquête ou un recensement pour déterminer si une personne est réfugiée, déplacée à l'intérieur de son propre pays ou apatride. Il s'agit des questions figurant dans l'instrument lui-même, et non de la classification appliquée ultérieurement lors du traitement."
+ },
+ {
+  "id": 39,
+  "fr": "Veuillez sélectionner toutes les réponses qui s'appliquent."
+ },
+ {
+  "id": 40,
+  "fr": "Forcé de fuir : demande si la personne a quitté son domicile habituel en raison d'un conflit, de violences, de persécutions, de violations des droits de l'homme ou d'une catastrophe. Résidence habituelle : demande où la personne vivait habituellement auparavant ; elle sert à établir le déplacement à l'intérieur du pays. Traverser une frontière : demande si la personne a franchi une frontière internationale. Citoyenneté : demande le pays de citoyenneté, ou si la personne en possède une. Protection internationale : demande si la personne bénéficie du statut de réfugié ou d'une autre forme de protection internationale."
+ },
+ {
+  "id": 41,
+  "fr": "Collez l'adresse complète, commençant par https://"
+ },
+ {
+  "id": 42,
+  "fr": "<span style='color:#4E5D70; font-weight:bold;'>Facultatif.</span> À utiliser uniquement si les résultats ne sont pas publiés en ligne."
+ },
+ {
+  "id": 43,
+  "fr": "À votre connaissance, les résultats du ${_PRO02A_short} ont-ils été utilisés, ou est-il prévu de les utiliser, pour l'une des finalités suivantes ?"
+ },
+ {
+  "id": 44,
+  "fr": "<span style='color:#4E5D70; font-weight:bold;'>Facultatif.</span> Un rapport, une note méthodologique ou une description du jeu de données, si vous en disposez."
+ },
+ {
+  "id": 45,
+  "fr": "<span style='color:#4E5D70; font-weight:bold;'>Facultatif.</span> À utiliser uniquement si le questionnaire n'est pas publié en ligne."
+ },
+ {
+  "id": 46,
+  "fr": "Un partenariat désigne l'implication d'un partenaire national, international ou académique dans la mise en œuvre d'un exemple."
+ },
+ {
+  "id": 47,
+  "fr": "<span style='font-weight:bold;'>PRO18.</span> Veuillez ajouter une ligne pour chaque partenaire impliqué dans le ${_PRO02A_short} et indiquer le soutien qu'il a apporté."
+ },
+ {
+  "id": 48,
+  "fr": "Partenaire"
+ },
+ {
+  "id": 49,
+  "fr": "Nom du partenaire"
+ },
+ {
+  "id": 50,
+  "fr": "Un partenaire par ligne. Utilisez le bouton + pour en ajouter un autre."
+ },
+ {
+  "id": 51,
+  "fr": "Quel soutien ${PRO18_name} a-t-il apporté ?"
+ },
+ {
+  "id": 52,
+  "fr": "Cochez toutes les réponses qui s'appliquent. Laissez vide si aucun des deux."
+ },
+ {
+  "id": 53,
+  "fr": "<span style='color:#0E6E6E;'>████████████████████████████████████████████</span>\n<span style='color:#0E6E6E; font-weight:bold; font-size:17px;'>Défis liés à l'exemple lui-même</span>\n<span style='color:#0E6E6E;'>Les questions suivantes portent sur les difficultés rencontrées dans la réalisation de cet exemple, quelle qu'en soit la cause.</span>"
+ },
+ {
+  "id": 54,
+  "fr": "Les défis sont les difficultés importantes rencontrées au cours d'un exemple : lacunes de couverture, erreurs de collecte, difficultés à identifier les populations, préoccupations en matière de confidentialité, contraintes de ressources et manque de compétences techniques. Cette question porte sur l'exemple dans son ensemble. La question PRO21, plus loin, porte séparément sur les difficultés rencontrées dans l'application des recommandations d'EGRISS."
+ },
+ {
+  "id": 55,
+  "fr": "<span style='color:#A81E5B;'>████████████████████████████████████████████</span>\n<span style='color:#A81E5B; font-weight:bold; font-size:17px;'>Défis liés à l'utilisation des recommandations</span>\n<span style='color:#A81E5B;'>Ces questions ne portent pas sur l'exemple. Elles visent à savoir si les recommandations d'EGRISS elles-mêmes ont été difficiles à appliquer.</span>"
+ },
+ {
+  "id": 56,
+  "fr": "C'est ce qui indique à EGRISS où les recommandations sont difficiles à utiliser en pratique, et cela alimente les orientations et les formations élaborées l'année prochaine. Veuillez être aussi franc(he) que possible."
+ },
+ {
+  "id": 57,
+  "fr": "Un exemple futur est un exemple pour lequel aucun investissement significatif n'a encore été fait en termes de conception, de budgétisation, de formation, de listage ou de dénombrement. Les projets comptent même si leur financement n'est pas confirmé. Cette section sert à anticiper les besoins de soutien, et non à vous engager."
+ },
+ {
+  "id": 58,
+  "fr": "<span style='color:#4E5D70; font-size:13px;'>Exemple ${_fpr_idx} sur ${count_FPR02}</span>"
+ },
+ {
+  "id": 59,
+  "fr": "Quelques phrases suffisent."
+ },
+ {
+  "id": 60,
+  "fr": "<span style='color:#4E5D70; font-weight:bold;'>Facultatif.</span> Tout élément permettant d'expliquer le statut ci-dessus."
+ },
+ {
+  "id": 61,
+  "fr": "IRRS désigne les Recommandations internationales sur les statistiques des réfugiés, qui couvrent les réfugiés et les autres personnes ayant besoin d'une protection internationale. IRIS désigne les Recommandations internationales sur les statistiques des personnes déplacées à l'intérieur de leur propre pays, qui couvrent les personnes déplacées à l'intérieur de leur propre pays. IROSS désigne les Recommandations internationales sur les statistiques de l'apatridie, qui couvrent les apatrides et les personnes de nationalité indéterminée. Le rapport annuel est le rapport annuel d'EGRISS sur l'état d'avancement de la mise en œuvre. Le Manuel du compilateur est le guide pratique qui accompagne les recommandations, destiné aux personnes qui produisent les statistiques. Les documents méthodologiques sont des documents techniques plus courts portant sur des problèmes spécifiques. Les liens vers tous ces documents figurent au-dessus de la question."
+ },
+ {
+  "id": 62,
+  "fr": "Considérez les impacts tels que les améliorations dans la conception des questionnaires, le traitement des données, la formulation des politiques, les approches de formation, ou toute amélioration engagée grâce aux enseignements tirés de ces publications. Vous avez sélectionné : ${_ACT04_list}."
+ },
+ {
+  "id": 63,
+  "fr": "<span style='color:#4E5D70; font-weight:bold;'>Facultatif.</span> Lu par l'équipe qui révise l'enquête chaque année."
+ },
+ {
+  "id": 64,
+  "fr": "Tableaux GAIN"
+ },
+ {
+  "id": 65,
+  "fr": "Uniquement les populations ciblées"
+ },
+ {
+  "id": 66,
+  "fr": "Également la population nationale"
+ },
+ {
+  "id": 67,
+  "fr": "Soutien technique"
+ },
+ {
+  "id": 68,
+  "fr": "Soutien financier"
+ },
+ {
+  "id": 69,
+  "fr": "Stratégie, plan ou politique national(e) ou infranational(e)"
+ },
+ {
+  "id": 70,
+  "fr": "Loi ou réglementation"
+ },
+ {
+  "id": 71,
+  "fr": "Décisions budgétaires ou de financement"
+ },
+ {
+  "id": 72,
+  "fr": "Rapports à des organismes internationaux, par exemple rapports sur les ODD ou sur le Pacte mondial sur les réfugiés"
+ },
+ {
+  "id": 73,
+  "fr": "Plan ou programme de réponse humanitaire ou de développement"
+ },
+ {
+  "id": 74,
+  "fr": "Autre finalité officielle"
+ },
+ {
+  "id": 75,
+  "fr": "Non utilisé à des fins officielles, à ma connaissance"
+ },
+ {
+  "id": 76,
+  "fr": "Ne sait pas"
+ },
+ {
+  "id": 77,
+  "fr": "<span style='font-weight:400; '>À votre connaissance, les résultats de ${_project} ont-ils été utilisés, ou est-il prévu de les utiliser, pour l'une des finalités suivantes ?</span>"
+ },
+ {
+  "id": 78,
+  "fr": "<span style='font-weight:400; '>Veuillez préciser l'autre finalité officielle.</span>"
+ },
+ {
+  "id": 79,
+  "fr": "<span style='color:#4E5D70; font-weight:bold; font-size:0.9em;'>Ce que ${organization} a déclaré à GAIN depuis 2021</span>\n<span style='color:#4E5D70; '>À titre indicatif uniquement. La question suivante porte sur les nouveaux exemples en ${survey_year}.</span>"
+ },
+ {
+  "id": 80,
+  "fr": "« Aucune de ces recommandations » et « Ne sait pas » ne peuvent pas être combinés avec une autre réponse."
+ },
+ {
+  "id": 81,
+  "fr": "<span style='font-weight:400; '>À votre connaissance, les résultats du ${_PRO02A_short} ont-ils été utilisés, ou est-il prévu de les utiliser, pour l'une des finalités suivantes ?</span>"
+ },
+ {
+  "id": 82,
+  "fr": "PRO18A. Ces partenaires ont-ils apporté un soutien technique ou financier au <span style='font-weight: bold;'>${_PRO02A_short}</span> ?"
+ },
+ {
+  "id": 83,
+  "fr": "Cochez toutes les réponses qui s'appliquent. Laissez une ligne vide si le partenaire n'a apporté ni l'un ni l'autre."
+ },
+ {
+  "id": 84,
+  "fr": "<span style='font-weight:400; '>Partenaire</span>"
+ },
+ {
+  "id": 85,
+  "fr": "<span style='font-weight:400; '>Rétrospectivement, y a-t-il un autre exemple de ${survey_year} que vous n'avez pas indiqué ?</span>"
+ },
+ {
+  "id": 86,
+  "fr": "Il est fréquent de se souvenir d'un exemple supplémentaire à ce stade."
+ },
+ {
+  "id": 87,
+  "fr": "<span style='font-weight:400; '>Veuillez l'indiquer ici. Nous vous recontacterons si nous avons besoin de plus de détails.</span>"
+ },
+ {
+  "id": 88,
+  "fr": "Aucune de ces recommandations n'a été utilisée dans cet exemple"
+ },
+ {
+  "id": 89,
+  "fr": "PUBLICATIONS EXTERNES PRÉSENTANT LES RECOMMANDATIONS"
+ },
+ {
+  "id": 90,
+  "fr": "DOCUMENT MÉTHODOLOGIQUE"
+ },
+ {
+  "id": 91,
+  "fr": "INSTITUTIONNEL"
+ }
+]

@@ -1,0 +1,1272 @@
+[
+ {
+  "en": "Please choose whether you want to start the survey.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::INT02:required_message",
+   "arm2:survey::INT02:required_message"
+  ],
+  "id": 0
+ },
+ {
+  "en": "Please select the type of organization you are reporting for.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::LOC01:required_message",
+   "arm2:survey::LOC01:required_message"
+  ],
+  "id": 1
+ },
+ {
+  "en": "Start typing to filter the list.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::Country:hint",
+   "arm2:survey::Country:hint"
+  ],
+  "id": 2
+ },
+ {
+  "en": "One address only.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::FOC03A:hint",
+   "arm2:survey::FOC03A:hint"
+  ],
+  "id": 3
+ },
+ {
+  "en": "Please enter an email address so we can follow up.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::FOC03A:required_message",
+   "arm2:survey::FOC03A:required_message"
+  ],
+  "id": 4
+ },
+ {
+  "en": "As far as you know, have the results of ${_project} been used, or are they planned to be used, for any of the following?",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::UPD04:label"
+  ],
+  "id": 5
+ },
+ {
+  "en": "Select all that apply.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO14B:hint",
+   "arm1:survey::UPD04:hint",
+   "arm2:survey::PRO14B:hint",
+   "arm2:survey::UPD04:hint"
+  ],
+  "id": 6
+ },
+ {
+  "en": "\"Not used\" and \"Don't know\" cannot be combined with another answer.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO14B:constraint_message",
+   "arm1:survey::UPD04:constraint_message",
+   "arm2:survey::PRO14B:constraint_message",
+   "arm2:survey::UPD04:constraint_message"
+  ],
+  "id": 7
+ },
+ {
+  "en": "Please specify the other official purpose.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO14B_other:label",
+   "arm1:survey::UPD04_other:label"
+  ],
+  "id": 8
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold; font-size:0.9em;'>What ${organization} has reported to GAIN since 2021</span>\n<span style='color:#4E5D70; font-size:0.8em;'>For reference only. The next question asks about new examples in ${survey_year}.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_proj_history_list:label"
+  ],
+  "id": 9
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-size:13px;'>An example is an organised initiative taking place in ${survey_year} that includes, or solely focuses on, improving or producing national statistics on refugees, IDPs and/or stateless people. It can be a data source such as a census, a survey, an administrative database or an integration of several sources, or a tool such as a workshop, a training, a strategic document, guidance or a toolkit. A current example is one that is ongoing at the time of this survey, meaning some time, capacity, staffing or financial investment has been made. It does not have to be finished.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_g_pro01:label",
+   "arm2:survey::_g_pro01:label"
+  ],
+  "id": 10
+ },
+ {
+  "en": "January to December ${survey_year}. Leave out anything reported in an earlier round.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO01:hint",
+   "arm2:survey::PRO01:hint"
+  ],
+  "id": 11
+ },
+ {
+  "en": "Please answer so we know which section to show you next.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO01:required_message",
+   "arm2:survey::PRO01:required_message"
+  ],
+  "id": 12
+ },
+ {
+  "en": "Please type a short name for this example, or use the minus button to remove this box if you added it by mistake.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO02A:required_message",
+   "arm2:survey::PRO02A:required_message"
+  ],
+  "id": 13
+ },
+ {
+  "en": "Please give this example a short name, at least two characters, so the questions that follow can show you which example they are about.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO02A:constraint_message",
+   "arm2:survey::PRO02A:constraint_message"
+  ],
+  "id": 14
+ },
+ {
+  "en": "<span style='font-weight:bold;'>You have listed ${count_PRO02A} example(s).</span><span> The next section asks the same questions about each one in turn, starting with the first. To add or remove one, go back up to PRO02A.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_pro02a_confirm:label",
+   "arm2:survey::_pro02a_confirm:label"
+  ],
+  "id": 15
+ },
+ {
+  "en": "<span style='color:#8A5A00; font-weight:bold;'>That is more examples than most organisations report.</span><span style='color:#8A5A00;'> Around 96% list four or fewer. Every example adds about 40 questions, so please check that each box holds a separate example and remove any you did not mean to add.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_pro02a_many:label",
+   "arm2:survey::_pro02a_many:label"
+  ],
+  "id": 16
+ },
+ {
+  "en": "<span style='color:#B3261E; font-weight:bold;'>This will be a very long form.</span><span style='color:#B3261E;'> Ten or more examples means several hundred questions, and fewer than 1% of organisations report this many. You do not have to list everything here: report the most significant examples, and write to egrisstats@unhcr.org about the rest so we can take them another way.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_pro02a_lots:label",
+   "arm2:survey::_pro02a_lots:label"
+  ],
+  "id": 17
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-size:13px;'>Example ${_pro_idx} of ${count_PRO02A}</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_pro_counter:label",
+   "arm2:survey::_pro_counter:label"
+  ],
+  "id": 18
+ },
+ {
+  "en": "<span style='color:#B3261E; font-weight:bold;'>This example has no name.</span><span style='color:#B3261E;'> Go back up to PRO02A and either type a name into the empty box, or remove that box. Until then the questions below cannot say which example they are about.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_pro02a_blank:label",
+   "arm2:survey::_pro02a_blank:label"
+  ],
+  "id": 19
+ },
+ {
+  "en": "Four digits, for example 2024.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO04:hint",
+   "arm2:survey::PRO04:hint"
+  ],
+  "id": 20
+ },
+ {
+  "en": "The start year cannot be later than ${survey_year}. Please check the year.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO04:constraint_message",
+   "arm2:survey::PRO04:constraint_message"
+  ],
+  "id": 21
+ },
+ {
+  "en": "Please select the phase this example is currently in.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO06:required_message",
+   "arm2:survey::PRO06:required_message"
+  ],
+  "id": 22
+ },
+ {
+  "en": "Please select at least one population group.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO07:required_message",
+   "arm2:survey::PRO07:required_message"
+  ],
+  "id": 23
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-size:13px;'>A source is where the data is first gathered; a tool is what supports or improves the process. Survey: a statistical sample survey. Administrative data: government records or databases held as part of regular operations. Census: a general population census. Data integration: combining data from two or more existing sources. Non-traditional: sources beyond standard statistical operations, such as satellite imagery, mobile phone data or social media data. Strategy: a strategic or planning document. Guidance or toolkit: methodological guidance, a manual or a toolkit. Workshop or training: a capacity building activity.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_g_pro08:label",
+   "arm2:survey::_g_pro08:label"
+  ],
+  "id": 24
+ },
+ {
+  "en": "Please select the main data source or tool.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO08:required_message",
+   "arm2:survey::PRO08:required_message"
+  ],
+  "id": 25
+ },
+ {
+  "en": "A source is where the data is first gathered; a tool is what supports or improves the process. Survey: a statistical sample survey. Administrative data: government records or databases held as part of regular operations. Census: a general population census. Data integration: combining data from two or more existing sources. Non-traditional: sources beyond standard statistical operations, such as satellite imagery, mobile phone data or social media data. Strategy: a strategic or planning document. Guidance or toolkit: methodological guidance, a manual or a toolkit. Workshop or training: a capacity building activity.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO08B:guidance_hint",
+   "arm2:survey::PRO08B:guidance_hint"
+  ],
+  "id": 26
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-size:13px;'>IRRS is the International Recommendations on Refugee Statistics, covering refugees and others in need of international protection. IRIS is the International Recommendations on Internally Displaced Persons Statistics, covering people displaced within their own country. IROSS is the International Recommendations on Statelessness Statistics, covering stateless persons and people of undetermined nationality. This counts whether or not the recommendations are cited by name in your documentation: using their definitions and population categories, their guidance on data sources, or their coordination guidance all qualify.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_g_pro09:label",
+   "arm2:survey::_g_pro09:label"
+  ],
+  "id": 27
+ },
+ {
+  "en": "Yes if any part of the recommendations shaped the design, implementation or coordination of this example.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO09:hint"
+  ],
+  "id": 28
+ },
+ {
+  "en": "<span style='color:#1F5FA9; font-weight:bold;'>IRRS</span><span style='color:#1F5FA9;'> — International Recommendations on Refugee Statistics</span>  [open](https://egrisstats.org/recommendations/international-recommendations-on-refugee-statistics-irrs/)\n<span style='color:#652B86; font-weight:bold;'>IRIS</span><span style='color:#652B86;'> — International Recommendations on Internally Displaced Persons Statistics</span>  [open](https://egrisstats.org/recommendations/international-recommendations-on-idp-statistics-iris/)\n<span style='color:#9A4E12; font-weight:bold;'>IROSS</span><span style='color:#9A4E12;'> — International Recommendations on Statelessness Statistics</span>  [open](https://egrisstats.org/recommendations/international-recommendations-on-statelessness-statistics-iross/)",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_rec_legend:label",
+   "arm2:survey::_rec_legend:label"
+  ],
+  "id": 29
+ },
+ {
+  "en": "Please select all that apply. \"Don't know\" cannot be combined with any other answer.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO10:hint",
+   "arm1:survey::PRO11:hint",
+   "arm2:survey::PRO10:hint",
+   "arm2:survey::PRO11:hint"
+  ],
+  "id": 30
+ },
+ {
+  "en": "IRRS is the International Recommendations on Refugee Statistics, covering refugees and others in need of international protection. IRIS is the International Recommendations on Internally Displaced Persons Statistics, covering people displaced within their own country. IROSS is the International Recommendations on Statelessness Statistics, covering stateless persons and people of undetermined nationality.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO10:guidance_hint",
+   "arm2:survey::PRO10:guidance_hint"
+  ],
+  "id": 31
+ },
+ {
+  "en": "<span style='color:#9A4E12;'>████████████████████████████████████████████</span>\n<span style='color:#9A4E12; font-weight:bold; font-size:23px;'>IROSS</span><span style='color:#9A4E12; font-size:19px;'>  ·  International Recommendations on Statelessness Statistics</span>\n<span style='color:#9A4E12;'>Covers stateless persons and people of undetermined nationality.</span>\n<span style='color:#9A4E12;'>████████████████████████████████████████████</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_rec_iross:label",
+   "arm2:survey::_rec_iross:label"
+  ],
+  "id": 32
+ },
+ {
+  "en": "<span style='color:#652B86;'>████████████████████████████████████████████</span>\n<span style='color:#652B86; font-weight:bold; font-size:23px;'>IRIS</span><span style='color:#652B86; font-size:19px;'>  ·  International Recommendations on Internally Displaced Persons Statistics</span>\n<span style='color:#652B86;'>Covers people displaced within their own country.</span>\n<span style='color:#652B86;'>████████████████████████████████████████████</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_rec_iris:label",
+   "arm2:survey::_rec_iris:label"
+  ],
+  "id": 33
+ },
+ {
+  "en": "<span style='color:#1F5FA9;'>████████████████████████████████████████████</span>\n<span style='color:#1F5FA9; font-weight:bold; font-size:23px;'>IRRS</span><span style='color:#1F5FA9; font-size:19px;'>  ·  International Recommendations on Refugee Statistics</span>\n<span style='color:#1F5FA9;'>Covers refugees and others in need of international protection.</span>\n<span style='color:#1F5FA9;'>████████████████████████████████████████████</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_rec_irrs:label",
+   "arm2:survey::_rec_irrs:label"
+  ],
+  "id": 34
+ },
+ {
+  "en": "What the recommendations were used for. This question is asked once per recommendation you selected, because each one may have been used differently. Including in a population census means the groups were counted or identified within a census. Including in a sample survey means either added to a survey of the national population, or covered by a stand-alone survey. Government administrative data means registers or records held by a public authority. Operational data from humanitarian organisations means data generated through humanitarian operations. Non-traditional data sources means satellite imagery, mobile phone data, social media and similar. Coordinating and planning means working arrangements, mandates, strategies or planning across institutions.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO11:guidance_hint",
+   "arm2:survey::PRO11:guidance_hint"
+  ],
+  "id": 35
+ },
+ {
+  "en": "Which parts of the recommendations were actually used. Statistical framework or population group means the definitions and population categories. Recommendations on data sources means guidance on which sources to use and how. Coordination means arrangements between institutions. Data sharing means protocols or agreements for exchanging data. Analysis means analytical approaches and comparisons. Indicator selection means choosing which indicators to produce. Data integration means combining sources. Dissemination means how results are published and communicated. Institutional or sectoral strategy means embedding them in a strategy or plan.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO12:guidance_hint",
+   "arm2:survey::PRO12:guidance_hint"
+  ],
+  "id": 36
+ },
+ {
+  "en": "A few sentences is enough. Type NA if there is nothing to add.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO13:hint",
+   "arm2:survey::PRO13:hint"
+  ],
+  "id": 37
+ },
+ {
+  "en": "Identification questions are the questions asked in a survey or census to establish whether a person is a refugee, an internally displaced person, or stateless. They are the questions in the instrument itself, not the classification applied afterwards in processing.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO13B:guidance_hint",
+   "arm2:survey::PRO13B:guidance_hint"
+  ],
+  "id": 38
+ },
+ {
+  "en": "Please select all that apply.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::FPR04:hint",
+   "arm1:survey::PRO13C:hint",
+   "arm1:survey::PRO22:hint",
+   "arm2:survey::FPR04:hint",
+   "arm2:survey::PRO13C:hint",
+   "arm2:survey::PRO22:hint"
+  ],
+  "id": 39
+ },
+ {
+  "en": "Forced to flee asks whether the person left their usual home because of conflict, violence, persecution, human rights violations or disaster. Habitual residency asks where the person usually lived before, and is used to establish displacement within the country. Crossing a border asks whether the person crossed an international border. Citizenship asks the country of citizenship, or whether the person holds any. International protection asks whether the person holds refugee status or another form of international protection.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO13C:guidance_hint",
+   "arm2:survey::PRO13C:guidance_hint"
+  ],
+  "id": 40
+ },
+ {
+  "en": "Paste the full address, starting with https://",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO14A:hint",
+   "arm1:survey::PRO16:hint",
+   "arm2:survey::PRO14A:hint",
+   "arm2:survey::PRO16:hint"
+  ],
+  "id": 41
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold;'>Optional.</span> Use this only if the results are not published online.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO14_upload:hint",
+   "arm2:survey::PRO14_upload:hint"
+  ],
+  "id": 42
+ },
+ {
+  "en": "As far as you know, have the results of the ${_PRO02A_short} been used, or are they planned to be used, for any of the following?",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO14B:label"
+  ],
+  "id": 43
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold;'>Optional.</span> A report, methodology note or dataset description, if you have one.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO13_upload:hint",
+   "arm2:survey::PRO13_upload:hint"
+  ],
+  "id": 44
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold;'>Optional.</span> Use this only if the questionnaire is not published online.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO16_upload:hint",
+   "arm2:survey::PRO16_upload:hint"
+  ],
+  "id": 45
+ },
+ {
+  "en": "A partnership is the involvement of a national, international or academic partner in the implementation of an example.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO17:guidance_hint",
+   "arm2:survey::PRO17:guidance_hint"
+  ],
+  "id": 46
+ },
+ {
+  "en": "<span style='font-weight:bold;'>PRO18.</span> Please add one row for each partner involved in the ${_PRO02A_short}, and mark the support they provided.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_PRO18_intro:label"
+  ],
+  "id": 47
+ },
+ {
+  "en": "Partner",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO18_roster:label"
+  ],
+  "id": 48
+ },
+ {
+  "en": "Partner name",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO18_name:label"
+  ],
+  "id": 49
+ },
+ {
+  "en": "One partner per row. Use the + button to add another.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO18_name:hint"
+  ],
+  "id": 50
+ },
+ {
+  "en": "What support did ${PRO18_name} provide?",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO18_sup:label"
+  ],
+  "id": 51
+ },
+ {
+  "en": "Tick all that apply. Leave blank if neither.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO18_sup:hint"
+  ],
+  "id": 52
+ },
+ {
+  "en": "<span style='color:#0E6E6E;'>████████████████████████████████████████████</span>\n<span style='color:#0E6E6E; font-weight:bold; font-size:17px;'>Challenges with the example itself</span>\n<span style='color:#0E6E6E;'>The next questions ask about difficulties in carrying out this example, whatever their cause.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_chal_example:label",
+   "arm2:survey::_chal_example:label"
+  ],
+  "id": 53
+ },
+ {
+  "en": "Challenges are significant difficulties encountered during an example: coverage gaps, collection errors, difficulty identifying the populations, confidentiality concerns, resource constraints and technical skill gaps. This question is about the example as a whole. PRO21, further down, asks separately about difficulties in applying the EGRISS recommendations.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO19:guidance_hint",
+   "arm2:survey::PRO19:guidance_hint"
+  ],
+  "id": 54
+ },
+ {
+  "en": "<span style='color:#A81E5B;'>████████████████████████████████████████████</span>\n<span style='color:#A81E5B; font-weight:bold; font-size:17px;'>Challenges in using the recommendations</span>\n<span style='color:#A81E5B;'>These questions are not about the example. They ask whether the EGRISS recommendations themselves were difficult to apply.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_pro21_note:label",
+   "arm2:survey::_pro21_note:label"
+  ],
+  "id": 55
+ },
+ {
+  "en": "This is what tells EGRISS where the recommendations are hard to use in practice, and it feeds the guidance and training produced next year. Please be as candid as you can.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::PRO22:guidance_hint",
+   "arm2:survey::PRO22:guidance_hint"
+  ],
+  "id": 56
+ },
+ {
+  "en": "A future example is one for which no significant investment has yet been made in design, budgeting, training, listing or enumeration. Plans count even if funding is not confirmed. This section is used to anticipate where support may be needed, not to hold you to a commitment.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::FPR01:guidance_hint",
+   "arm2:survey::FPR01:guidance_hint"
+  ],
+  "id": 57
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-size:13px;'>Example ${_fpr_idx} of ${count_FPR02}</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::_fpr_counter:label",
+   "arm2:survey::_fpr_counter:label"
+  ],
+  "id": 58
+ },
+ {
+  "en": "A few sentences is enough.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::FPR06:hint",
+   "arm2:survey::FPR06:hint"
+  ],
+  "id": 59
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold;'>Optional.</span> Anything that helps explain the status above.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::GRF05:hint",
+   "arm2:survey::GRF05:hint"
+  ],
+  "id": 60
+ },
+ {
+  "en": "IRRS is the International Recommendations on Refugee Statistics, covering refugees and others in need of international protection. IRIS is the International Recommendations on Internally Displaced Persons Statistics, covering people displaced within their own country. IROSS is the International Recommendations on Statelessness Statistics, covering stateless persons and people of undetermined nationality. The annual report is EGRISS's yearly report on implementation progress. The Compilers Manual is the practical companion to the recommendations, for the people producing the statistics. Methodological papers are the shorter technical papers on specific problems. Links to all of them are above the question.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::ACT04:guidance_hint",
+   "arm2:survey::ACT04:guidance_hint"
+  ],
+  "id": 61
+ },
+ {
+  "en": "Consider impacts such as enhancements in questionnaire design, data handling, policy formulation, training approaches, or any improvements initiated because of the insights gained from these publications. You selected: ${_ACT04_list}.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::ACT05:hint",
+   "arm2:survey::ACT05:hint"
+  ],
+  "id": 62
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold;'>Optional.</span> Read by the team that redesigns the survey each year.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:survey::FOL04:hint",
+   "arm2:survey::FOL04:hint"
+  ],
+  "id": 63
+ },
+ {
+  "en": "GAIN tables",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:ACT_publications:I:label",
+   "arm2:choices:ACT_publications:I:label"
+  ],
+  "id": 64
+ },
+ {
+  "en": "Only the populations it focuses on",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO_pop_scope:01:label",
+   "arm2:choices:PRO_pop_scope:01:label"
+  ],
+  "id": 65
+ },
+ {
+  "en": "The national population as well",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO_pop_scope:02:label",
+   "arm2:choices:PRO_pop_scope:02:label"
+  ],
+  "id": 66
+ },
+ {
+  "en": "Technical support",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:pro18_support:A:label",
+   "arm2:choices:pro18_support:A:label"
+  ],
+  "id": 67
+ },
+ {
+  "en": "Financial support",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:pro18_support:B:label",
+   "arm2:choices:pro18_support:B:label"
+  ],
+  "id": 68
+ },
+ {
+  "en": "National or sub-national strategy, plan or policy",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:A:label",
+   "arm2:choices:PRO14B_use:A:label"
+  ],
+  "id": 69
+ },
+ {
+  "en": "Law or regulation",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:B:label",
+   "arm2:choices:PRO14B_use:B:label"
+  ],
+  "id": 70
+ },
+ {
+  "en": "Decisions on budget or funding",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:C:label",
+   "arm2:choices:PRO14B_use:C:label"
+  ],
+  "id": 71
+ },
+ {
+  "en": "Reporting to international bodies, for example SDG or Global Compact on Refugees reporting",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:D:label",
+   "arm2:choices:PRO14B_use:D:label"
+  ],
+  "id": 72
+ },
+ {
+  "en": "Humanitarian or development response plan or programme",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:E:label",
+   "arm2:choices:PRO14B_use:E:label"
+  ],
+  "id": 73
+ },
+ {
+  "en": "Other official purpose",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:X:label",
+   "arm2:choices:PRO14B_use:X:label"
+  ],
+  "id": 74
+ },
+ {
+  "en": "Not used for any official purpose, as far as I know",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:Y:label",
+   "arm2:choices:PRO14B_use:Y:label"
+  ],
+  "id": 75
+ },
+ {
+  "en": "Don't know",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm1:choices:PRO14B_use:Z:label",
+   "arm2:choices:PRO14B_use:Z:label"
+  ],
+  "id": 76
+ },
+ {
+  "en": "<span style='font-weight:400; '>As far as you know, have the results of ${_project} been used, or are they planned to be used, for any of the following?</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::UPD04:label"
+  ],
+  "id": 77
+ },
+ {
+  "en": "<span style='font-weight:400; '>Please specify the other official purpose.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO14B_other:label",
+   "arm2:survey::UPD04_other:label"
+  ],
+  "id": 78
+ },
+ {
+  "en": "<span style='color:#4E5D70; font-weight:bold; font-size:0.9em;'>What ${organization} has reported to GAIN since 2021</span>\n<span style='color:#4E5D70; '>For reference only. The next question asks about new examples in ${survey_year}.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::_proj_history_list:label"
+  ],
+  "id": 79
+ },
+ {
+  "en": "\"None of these\" and \"Don't know\" cannot be combined with another answer.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO10:constraint_message"
+  ],
+  "id": 80
+ },
+ {
+  "en": "<span style='font-weight:400; '>As far as you know, have the results of the ${_PRO02A_short} been used, or are they planned to be used, for any of the following?</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO14B:label"
+  ],
+  "id": 81
+ },
+ {
+  "en": "PRO18A. Did these partners provide technical or financial support to the <span style='font-weight: bold;'>${_PRO02A_short}</span>?",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO18_support_q:label"
+  ],
+  "id": 82
+ },
+ {
+  "en": "Tick all that apply. Leave a row empty if the partner provided neither.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO18_support_q:hint"
+  ],
+  "id": 83
+ },
+ {
+  "en": "<span style='font-weight:400; '>Partner</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO18_support_hdr:label"
+  ],
+  "id": 84
+ },
+ {
+  "en": "<span style='font-weight:400; '>Looking back, is there any other example from ${survey_year} that you have not listed?</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO02C:label"
+  ],
+  "id": 85
+ },
+ {
+  "en": "It is common to remember one more at this point.",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO02C:hint"
+  ],
+  "id": 86
+ },
+ {
+  "en": "<span style='font-weight:400; '>Please name it here. We will follow up if we need more detail.</span>",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:survey::PRO02C_list:label"
+  ],
+  "id": 87
+ },
+ {
+  "en": "None of these were used in this example",
+  "langs": [
+   "ar",
+   "es",
+   "fr",
+   "ru"
+  ],
+  "where": [
+   "arm2:choices:PRO_egriss_recs:N:label"
+  ],
+  "id": 88
+ },
+ {
+  "en": "External publications showcasing recommendations",
+  "langs": [
+   "es",
+   "fr"
+  ],
+  "where": [
+   "choices"
+  ],
+  "id": 89
+ },
+ {
+  "en": "Methodological paper",
+  "langs": [
+   "es",
+   "fr"
+  ],
+  "where": [
+   "choices"
+  ],
+  "id": 90
+ },
+ {
+  "en": "Institutional",
+  "langs": [
+   "es",
+   "fr"
+  ],
+  "where": [
+   "choices"
+  ],
+  "id": 91
+ }
+]

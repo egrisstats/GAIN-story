@@ -4,8 +4,33 @@
     {
       "name": "gain-story",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8123", "--directory", "/Users/filipmitrovic/Documents/GitHub/GAIN-story"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8123",
+        "--directory",
+        "/Users/filipmitrovic/Documents/GitHub/GAIN-story"
+      ],
       "port": 8123
+    },
+    {
+      "name": "gain-resources",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /private/tmp/claude-501/-Users-filipmitrovic-Documents-GitHub-GAIN-story/5ab7e52c-37d5-487b-8b3f-06b3001fccf6/scratchpad/serve && exec python3 -m http.server 8124"
+      ],
+      "port": 8124
+    },
+    {
+      "name": "gain-cors",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /tmp && exec python3 -c \"$0\"",
+        "import http.server,os;os.chdir('/private/tmp/claude-501/-Users-filipmitrovic-Documents-GitHub-GAIN-story/5ab7e52c-37d5-487b-8b3f-06b3001fccf6/scratchpad/serve')\nclass H(http.server.SimpleHTTPRequestHandler):\n  def end_headers(self):\n    self.send_header('Access-Control-Allow-Origin','*');self.send_header('Access-Control-Allow-Private-Network','true');self.send_header('Access-Control-Allow-Headers','*');super().end_headers()\n  def do_OPTIONS(self):\n    self.send_response(204);self.end_headers()\nhttp.server.ThreadingHTTPServer(('127.0.0.1',8130),H).serve_forever()"
+      ],
+      "port": 8130
     }
   ]
 }

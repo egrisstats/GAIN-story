@@ -1,0 +1,731 @@
+<style>
+.cr-root, .cr-root * { box-sizing: border-box; margin: 0; padding: 0; }
+.cr-root { font-family: 'IBM Plex Sans', sans-serif; }
+.cr-root img { display: block; border: none; vertical-align: bottom; }
+
+.cr-nav {
+  position: sticky;
+  top: 105px;
+  z-index: 999;
+  background: #fff;
+  border-bottom: 0.75px solid rgba(205,227,247,.8);
+  box-shadow: 0 1px 5px rgba(20,35,76,.04);
+}
+.cr-nav-inner {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 5%;
+}
+.cr-nav-inner::-webkit-scrollbar { display: none; }
+
+.cr-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 22px;
+  min-height: 64px;
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #6b7f8f;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.cr-nav-link:hover {
+  color: #14234c;
+  border-color: #4cc3c9;
+  background: rgba(76,195,201,.06);
+  text-decoration: none;
+}
+.cr-nav-link.active {
+  color: #14234c;
+  border-color: #4cc3c9;
+  background: rgba(76,195,201,.06);
+}
+
+.cr-section {
+  padding: 64px 5% 60px;
+  border-bottom: 0.75px solid rgba(205,227,247,.6);
+  background: #fff;
+  transition: background .25s ease;
+}
+.cr-section:last-child { border-bottom: none; }
+.cr-section.is-active { background: #EFF7FF; }
+
+.cr-section-label {
+  display: block;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #4cc3c9;
+  margin-bottom: 10px;
+}
+.cr-section-h2 {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+.cr-section-desc {
+  font-size: 18px;
+  color: #4a5f70;
+  line-height: 1.72;
+  max-width: 720px;
+  margin-bottom: 36px;
+}
+.cr-section-desc a { color: #3b71b9; }
+.cr-section-desc a:hover { text-decoration: underline; }
+
+.cr-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.cr-lang-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 22px 14px 22px;
+  background: #ffffff;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #14234c;
+  box-shadow: 0 1px 6px rgba(20,35,76,.06);
+  text-align: center;
+  transition: box-shadow .2s, transform .18s;
+}
+.cr-lang-card:hover {
+  box-shadow: 0 6px 22px rgba(20,35,76,.11);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.cr-lang-script {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.2;
+}
+.cr-lang-script[lang="ar"] { font-size: 26px; }
+.cr-lang-script[lang="ru"] { font-size: 19px; }
+.cr-lang-mockup {
+  width: 60%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(20,35,76,.12);
+  border: 1px solid rgba(205,227,247,.8);
+  display: block;
+  margin: 8px 0;
+}
+.cr-lang-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #6b7f8f;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.cr-lang-dl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3b71b9;
+}
+.cr-lang-dl svg { width: 13px; height: 13px; }
+
+.cr-search-wrap {
+  position: relative;
+  max-width: 460px;
+  margin-bottom: 6px;
+}
+.cr-search-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: #a0b4cc;
+  pointer-events: none;
+  width: 16px; height: 16px;
+}
+#cr-search {
+  width: 100%;
+  padding: 13px 16px 13px 44px;
+  border: 1px solid #cde3f7;
+  border-radius: 10px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 16px;
+  color: #14234c;
+  background: #ffffff;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+#cr-search:focus {
+  border-color: #3b71b9;
+  box-shadow: 0 0 0 3px rgba(59,113,185,.1);
+}
+#cr-search::placeholder { color: #a0b4cc; }
+.cr-search-meta {
+  font-size: 13px;
+  color: #a0b4cc;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+.cr-search-meta strong { color: #4cc3c9; font-weight: 700; }
+.cr-no-results {
+  font-size: 16px;
+  color: #a0b4cc;
+  padding: 28px 0;
+  text-align: center;
+  display: none;
+}
+.cr-no-results.visible { display: block; }
+mark {
+  background: rgba(76,195,201,.2);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.cr-acc-list {
+  list-style: none;
+  padding: 0;
+  border-top: 0.75px solid rgba(205,227,247,.8);
+}
+.cr-acc-item {
+  border-bottom: 0.75px solid rgba(205,227,247,.8);
+}
+.cr-acc-item.hidden { display: none; }
+
+.cr-acc-trigger {
+  width: 100%;
+  background: #EFF7FF;
+  border: none;
+  padding: 20px 60px 20px 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  transition: background .15s;
+  min-height: 68px;
+}
+.cr-acc-trigger:hover { background: #e4f1fb; }
+.cr-acc-item.open > .cr-acc-trigger { background: #ffffff; }
+
+.cr-chevron {
+  position: absolute;
+  right: 20px; top: 50%;
+  transform: translateY(-50%);
+  color: #4cc3c9;
+  flex-shrink: 0;
+  transition: transform .25s ease;
+  width: 18px; height: 18px;
+}
+.cr-acc-item.open > .cr-acc-trigger .cr-chevron {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.cr-acc-body {
+  display: none;
+  padding: 24px 60px 28px 24px;
+  font-size: 17px;
+  color: #4a5f70;
+  line-height: 1.78;
+  border-top: 0.75px solid rgba(205,227,247,.6);
+  background: #ffffff;
+}
+.cr-acc-item.open > .cr-acc-body { display: block; }
+.cr-acc-body p { margin-bottom: 14px; }
+.cr-acc-body p:last-child { margin-bottom: 0; }
+.cr-acc-body strong { color: #14234c; font-weight: 600; }
+.cr-acc-body a { color: #3b71b9; }
+
+.cr-term-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cr-term-text {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.35;
+}
+.cr-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: #4cc3c9;
+  background: rgba(76,195,201,.1);
+  border: 0.75px solid rgba(76,195,201,.4);
+  border-radius: 100px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.cr-faq-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.cr-faq-num {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #4cc3c9;
+  background: rgba(76,195,201,.1);
+  border: 0.75px solid rgba(76,195,201,.4);
+  border-radius: 100px;
+  padding: 3px 10px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.cr-faq-q {
+  font-family: 'Obvia','IBM Plex Sans',sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #14234c;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .cr-lang-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .cr-lang-grid { grid-template-columns: repeat(2, 1fr); }
+  .cr-section-h2 { font-size: 24px; }
+  .cr-section-desc { font-size: 16px; }
+  .cr-acc-trigger { padding: 18px 52px 18px 18px; }
+  .cr-acc-body { padding: 18px 18px 22px; font-size: 15px; }
+  .cr-nav-link { padding: 10px 14px; font-size: 11px; }
+  .cr-section { padding: 48px 5% 44px; }
+}
+</style>
+
+<div class="cr-root" id="cr-root">
+
+  <nav class="cr-nav" id="cr-nav">
+    <div class="cr-nav-inner">
+      <a class="cr-nav-link active" href="#questionnaires">Latest Questionnaires</a>
+      <a class="cr-nav-link" href="#glossary">Glossary</a>
+      <a class="cr-nav-link" href="#faq">FAQs</a>
+    </div>
+  </nav>
+
+  <!-- 1. QUESTIONNAIRES -->
+  <section class="cr-section" id="questionnaires">
+    <span class="cr-section-label">Download</span>
+    <h2 class="cr-section-h2">Survey Questionnaires</h2>
+    <p class="cr-section-desc">Download the latest GAIN Survey questionnaire, available as a paper version in five languages.</p> 
+    <div class="cr-lang-grid">
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_English_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script">English</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/ENGLISH-File.jpeg" alt="English questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Paper questionnaire</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_French_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script">Français</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/FRENCH-File.jpeg" alt="French questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Questionnaire papier</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_Spanish_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script">Español</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/SPANISH-File.jpeg" alt="Spanish questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Cuestionario en papel</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_Russian_2025_v04.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script" lang="ru">Русский</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/RUSSIAN-File.jpeg" alt="Russian questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">Бумажный опросник</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+      <a class="cr-lang-card" href="https://egrisstats.org/wp-content/uploads/EGRISS-GAIN-Survey_Questionnaire_Arabic_2025.pdf" target="_blank" rel="noopener">
+        <div class="cr-lang-script" lang="ar">العربية</div>
+        <img decoding="async" class="cr-lang-mockup" src="https://egrisstats.org/wp-content/uploads/ARABIC-File.jpeg" alt="Arabic questionnaire mockup" loading="lazy">
+        <div class="cr-lang-name">استبيان ورقي</div>
+        <div class="cr-lang-dl">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- 2. GLOSSARY -->
+  <section class="cr-section" id="glossary">
+    <span class="cr-section-label">Reference</span>
+    <h2 class="cr-section-h2">Glossary</h2>
+    <p class="cr-section-desc">Key terms used in the GAIN Survey. Definitions are consistent across all survey rounds.</p> 
+
+    <div class="cr-search-wrap">
+      <svg class="cr-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="search" id="cr-search" placeholder="Search terms and definitions…" autocomplete="off" aria-label="Search glossary">
+    </div>
+    <p class="cr-search-meta"><strong id="cr-count">6</strong> terms</p> 
+    <p class="cr-no-results" id="cr-no-results">No terms match your search.</p> 
+
+    <ul class="cr-acc-list" id="cr-glossary-list">
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="example statistical country institution cso national organised initiative survey census database training workshop">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Example</span>
+            <span class="cr-tag">PRO01 / PRO01A</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>An organised initiative taking place in the survey year that includes or solely focuses on improving/producing national statistics on refugees, IDPs and/or stateless people. These examples encompass a wide range — they might involve working on a data source like implementation of a survey, administration of a database, work on a census, a data integration project between different data sources, or work on a non-traditional data source. Examples could also be tools like developing strategies, guidance documents, or the organisation of training sessions and workshops. Examples can occur at different levels, whether on a national, regional, or global scale, and they may be at various stages of progress, including planning or implementation phases. Additionally, examples can entail collaboration with partners.</p> 
+          <p>Example leads can be countries, institutions or CSOs (or other). <strong>Country-led examples</strong> include activities led by National Statistical Offices or another Government entity conducted in their national context, usually as part of the national statistical system. <strong>Institution-led examples</strong> are led by international organisations without explicit country leadership. <strong>CSO-led examples</strong> are led by civil society organisations or other entities.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="current example ongoing investments budgeting training enumeration listing">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row"><span class="cr-term-text">Current Example</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>An example that is ongoing at the time of the GAIN Survey, meaning that some time / capacity / staffing / financial investments have been made, for example, survey design / budgeting / training / enumeration / listing or other example-related activities have started.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="future example planned anticipated forward fpr upcoming year planning">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Future Example</span>
+            <span class="cr-tag">FPR</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>An example for which no significant investments have yet been made in terms of design, budgeting, training, listing, or enumeration. The Future Examples (FPR) section enables respondents to provide details on anticipated examples planned for an upcoming survey year. Responses provided support forward-looking planning and help identify emerging trends, align efforts across stakeholders, and enhance collaboration between national, regional, and international actors to advance statistical inclusion efforts.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="partnership collaboration partner international academic national">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row"><span class="cr-term-text">Partnership</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The involvement of a national, international, or academic partner in the implementation of an example. Respondents may list multiple partners for a single example.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="data sources tools survey database census register humanitarian social media strategic documents guidelines training workshops">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Data Sources & Tools</span>
+            <span class="cr-tag">PRO08</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Data sources and tools used to provide information on the example can be: (A) statistical surveys, (B) government records and databases, (C) general population censuses, (D) combining data from many places, (E) non-standard sources like humanitarian groups or social media data, (F) developing strategic documents, (G) following guidelines or toolkits, (H) giving training or workshops to get data, and any other source not listed where data comes from.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="glossary"
+          data-term="challenges difficulties problems resource constraints technical political security data quality skills guidance coverage errors confidentiality">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-term-row">
+            <span class="cr-term-text">Challenges</span>
+            <span class="cr-tag">PRO19–20</span>
+          </div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Significant difficulties encountered during an example. Categories include: incomplete response coverage, data collection errors, difficulties identifying specific groups (refugees, stateless), data confidentiality concerns, resource constraints, political or security issues, data quality delays, lack of technical skills or tools, and insufficient guidance.</p> 
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <!-- 3. FAQs -->
+  <section class="cr-section" id="faq">
+    <span class="cr-section-label">Help</span>
+    <h2 class="cr-section-h2">Frequently Asked Questions</h2>
+    <p class="cr-section-desc">Process and practical questions about completing the GAIN Survey. For terminology, see the <a href="#glossary">Glossary</a> above.</p> 
+
+    <ul class="cr-acc-list" id="cr-faq-list">
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">01</span><span class="cr-faq-q">Who is the GAIN Survey aimed at, and what is its purpose?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The GAIN Survey is designed for countries (NSOs or other responsible agencies) and national, regional, and international organisations working to enhance official statistics related to refugees, individuals in need of international protection, IDPs, or stateless persons. The purpose is to collect information on planned, ongoing, or completed statistical examples involving forcibly displaced and stateless populations, and to support decision-making in EGRISS's work.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">02</span><span class="cr-faq-q">Who should fill in the questionnaire as the respondent for the organisation?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The questionnaire should be completed by the focal point or the most knowledgeable person in your organisation regarding the related statistical example. You can include contact information for several colleagues if necessary, who were contributing to the provided information.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">03</span><span class="cr-faq-q">How long does it take to complete the survey?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>The time required typically ranges from 10 to 20 minutes, depending on the number of examples you have to report. Most questions are designed for quick, concise responses, with only three open-ended questions requiring brief descriptive answers.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">04</span><span class="cr-faq-q">How does participation contribute to our understanding of refugee, IDP, and stateless populations?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Participating in the GAIN Survey allows EGRISS to gather comprehensive and accurate information, enabling better addressing of the unique challenges faced by practitioners making efforts to include these populations in official statistics. Your input is instrumental in shaping policies and strategies in this regard.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">05</span><span class="cr-faq-q">What examples should be reported?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>EGRISS encourages you to report all examples and provide as much information as possible for each one. This applies to both country-led and institution-led examples; please also report examples that you are supporting as a partner institution, as well as examples implementing novel or exploratory methodologies.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">06</span><span class="cr-faq-q">What if we have more than one example to report?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>You can include multiple examples in a single questionnaire. When completing the survey, you will be able to add additional examples (question PRO02) and provide relevant information for each one.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">07</span><span class="cr-faq-q">What if we have planned or initiated but not yet completed an example — is it still relevant to include?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Yes, please include information about examples that are either in the design/planning or implementation phases, or have been completed during the survey year. These should be reported in the PRO section of the questionnaire.</p> 
+        </div>
+      </li>
+
+      <li class="cr-acc-item" data-section="faq">
+        <button class="cr-acc-trigger" aria-expanded="false">
+<div class="cr-faq-row"><span class="cr-faq-num">08</span><span class="cr-faq-q">What if our organisation does not have any examples to report?</span></div>
+          <svg class="cr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="cr-acc-body">
+          <p>Yes, even without examples to report, your input is still valuable. The GAIN Survey includes questions about planned future examples (FPR section) and the use of EGRISS outputs or recommendations. Sharing information on upcoming initiatives or explaining why no examples are available provides essential context for EGRISS, helping identify gaps and prioritise support where it is needed most.</p> 
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+</div>
+
+<script>
+(function () {
+
+  var HEADER_HEIGHT = 105;
+  var nav      = document.getElementById('cr-nav');
+  var links    = document.querySelectorAll('.cr-nav-link');
+  var sections = document.querySelectorAll('.cr-section');
+  var map      = [];
+
+  links.forEach(function (link) {
+    var id = link.getAttribute('href').replace('#', '');
+    var el = document.getElementById(id);
+    if (el) map.push({ link: link, el: el });
+  });
+
+  function getOffset() { return HEADER_HEIGHT + nav.offsetHeight; }
+
+  function setActive(id) {
+    links.forEach(function (link) {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + id) link.classList.add('active');
+    });
+    sections.forEach(function (section) {
+      section.classList.remove('is-active');
+      if (section.id === id) section.classList.add('is-active');
+    });
+  }
+
+  function goToSection(id) {
+    var target = document.getElementById(id);
+    if (!target) return;
+    setActive(id);
+    var y = target.getBoundingClientRect().top + window.pageYOffset - getOffset();
+    document.documentElement.scrollTop = y;
+    document.body.scrollTop = y;
+  }
+
+  links.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      goToSection(this.getAttribute('href').replace('#', ''));
+    });
+  });
+
+  function spy() {
+    var current = null;
+    var trigger = HEADER_HEIGHT + nav.offsetHeight + 40;
+    map.forEach(function (item) {
+      if (item.el.getBoundingClientRect().top <= trigger) current = item;
+    });
+    if (current) setActive(current.el.id);
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  window.addEventListener('resize', spy, { passive: true });
+  spy();
+
+  /* ── Accordion ── */
+  document.querySelectorAll('.cr-acc-trigger').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var item    = btn.closest('.cr-acc-item');
+      var isOpen  = item.classList.contains('open');
+      var section = item.getAttribute('data-section');
+      document.querySelectorAll('.cr-acc-item[data-section="' + section + '"].open').forEach(function (el) {
+        el.classList.remove('open');
+        el.querySelector('.cr-acc-trigger').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ── Glossary search ── */
+  var searchEl = document.getElementById('cr-search');
+  var countEl  = document.getElementById('cr-count');
+  var noResEl  = document.getElementById('cr-no-results');
+  var items    = Array.from(document.querySelectorAll('.cr-acc-item[data-section="glossary"]'));
+
+  countEl.textContent = items.length;
+
+  items.forEach(function (item) {
+    var termEl = item.querySelector('.cr-term-text');
+    item.setAttribute('data-orig-term', termEl ? termEl.innerHTML : '');
+    item.setAttribute('data-orig-body', item.querySelector('.cr-acc-body').innerHTML);
+  });
+
+  function escRe(s)   { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function escHtml(s) { return s.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>'); }
+
+  searchEl.addEventListener('input', function () {
+    var q    = this.value.trim();
+    var qLow = q.toLowerCase();
+
+    items.forEach(function (item) {
+      item.classList.remove('open', 'hidden');
+      item.querySelector('.cr-acc-trigger').setAttribute('aria-expanded', 'false');
+      var termEl = item.querySelector('.cr-term-text');
+      if (termEl) termEl.innerHTML = item.getAttribute('data-orig-term');
+      item.querySelector('.cr-acc-body').innerHTML = item.getAttribute('data-orig-body');
+    });
+
+    if (!q) {
+      countEl.textContent = items.length;
+      noResEl.classList.remove('visible');
+      return;
+    }
+
+    var re      = new RegExp('(' + escRe(q) + ')', 'gi');
+    var visible = 0;
+
+    items.forEach(function (item) {
+      var kw        = (item.getAttribute('data-term') || '').toLowerCase();
+      var origTerm  = item.getAttribute('data-orig-term');
+      var origBody  = item.getAttribute('data-orig-body');
+      var termPlain = origTerm.replace(/<[^>]+>/g, '').toLowerCase();
+      var bodyPlain = origBody.replace(/<[^>]+>/g, '').toLowerCase();
+
+      var hit = kw.includes(qLow) || termPlain.includes(qLow) || bodyPlain.includes(qLow);
+
+      if (!hit) { item.classList.add('hidden'); return; }
+
+      visible++;
+
+      var termEl = item.querySelector('.cr-term-text');
+      if (termEl && termPlain.includes(qLow)) {
+        re.lastIndex = 0;
+        termEl.innerHTML = origTerm.replace(re, function (m) { return '<mark>' + escHtml(m) + '</mark>'; });
+      }
+
+      re.lastIndex = 0;
+      item.querySelector('.cr-acc-body').innerHTML =
+        origBody.replace(re, function (m) { return '<mark>' + escHtml(m) + '</mark>'; });
+      re.lastIndex = 0;
+
+      if (bodyPlain.includes(qLow)) {
+        item.classList.add('open');
+        item.querySelector('.cr-acc-trigger').setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    countEl.textContent = visible;
+    noResEl.classList.toggle('visible', visible === 0);
+  });
+
+}());
+</script>
