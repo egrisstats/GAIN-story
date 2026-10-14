@@ -38,6 +38,8 @@ jobs:
           cp assets/fonts/Obvia-SemiBold.otf _site/assets/fonts/
           touch _site/.nojekyll
           cp -r campaign _site/
+          mkdir -p _site/website/gain-resources
+          cp website/gain-resources/GAIN-Resources-page-update.html website/gain-resources/preview.html _site/website/gain-resources/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
