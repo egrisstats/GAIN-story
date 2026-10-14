@@ -170,62 +170,115 @@ a{color:var(--blue)} a:hover{color:var(--fg)}
 .todo.ok{border-left-color:var(--ok)}
 </style>
 
+<style>
+/* Compact timeline: dates across, one lane per account */
+.wrap{max-width:1180px}
+.lanes .dh b{white-space:normal}
+.lanewrap{margin-top:18px;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);-webkit-overflow-scrolling:touch}
+.lanes{display:grid;min-width:780px;gap:0}
+.lanes>div{border-right:1px solid var(--line);padding:5px}
+.lanes .dh{border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:1px;font-family:var(--f-mono);font-size:11.5px;line-height:1.3}
+.lanes .dh b{font-weight:500;color:var(--fg)}
+.lanes .dh .wk{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-height:2.6em;line-height:1.3}
+.lanes .dh em{font-style:normal;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);font-weight:600}
+.lanes .dh.key{background:var(--teal-soft)}
+.lanes .dh.gap,.lanes .cell.gap{background:repeating-linear-gradient(135deg,transparent 0 6px,var(--sunk) 6px 7px)}
+.lanes .lh{border-bottom:1px solid var(--line)}
+.lanes .lname{font:600 12px var(--f-display);display:flex;align-items:center;border-left:3px solid var(--egriss)}
+.lanes .lname.filip{border-left-color:var(--filip);border-top:1px solid var(--line)}
+.lanes .cell{display:flex;flex-direction:column;gap:4px;min-height:52px}
+.lanes .lname.filip~.cell{border-top:1px solid var(--line)}
+.pill{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:2px;border-radius:6px;padding:4px 5px;font:600 11px/1.2 var(--f-display);hyphens:auto;overflow-wrap:anywhere;background:var(--sunk);border-left:3px solid var(--egriss)}
+.pill.filip{border-left-color:var(--filip)}
+.pill.re{background:transparent;border:1px dashed var(--filip);border-left:3px solid var(--filip)}
+.pill:hover{outline:1px solid var(--blue)}
+.pill.on{background:var(--navy);color:#fff;outline:none}
+.pill.on .pr{color:#C9D6EE}
+.pill:focus-visible{outline:3px solid rgba(59,113,185,.45)}
+.pill .pr{display:flex;align-items:center;gap:5px;font:500 10px var(--f-mono);color:var(--muted)}
+.pill.demo{display:inline-flex;cursor:default;font-size:11px;padding:2px 7px}
+.vd{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.vd.part{background:var(--warn)} .vd.miss{background:var(--coral)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;font-size:12px;color:var(--muted);align-items:center}
+.legend>span{display:inline-flex;gap:6px;align-items:center}
+.tlnav{display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:16px}
+.tlnav>span:last-child{display:flex;gap:6px}
+/* Selected post: date, then videos on one side and text on the other */
+.post{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:10px;scroll-margin-top:70px}
+.week .post{margin-bottom:14px}
+.phead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.bigdate{display:flex;gap:10px;align-items:center;font-family:var(--f-mono);background:var(--sunk);border-radius:10px;padding:8px 14px 8px 10px}
+.bigdate .dn{font-size:40px;line-height:1;font-weight:500;color:var(--fg)}
+.bigdate>span:last-child{display:flex;flex-direction:column;font-size:12px;color:var(--muted);line-height:1.35}
+.bigdate b{font-weight:500;color:var(--fg);font-size:14px;text-transform:uppercase;letter-spacing:.06em}
+.ptitle h3{font-size:21px}
+.ptitle .fmt{margin:4px 0 0}
+.dist{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dist .acct b{font-weight:600}
+.pnote{margin:12px 0 0;font-size:13px;background:var(--warn-soft);color:var(--fg);border-radius:8px;padding:8px 12px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:16px;align-items:start}
+.col{display:flex;flex-direction:column;gap:12px}
+.colh{font:500 11.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0}
+.vopt{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.vopt.main{border-color:var(--teal);box-shadow:inset 0 0 0 1px var(--teal)}
+.vopt .lbl{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.vopt .lbl>span{display:flex;flex-direction:column;font-size:13px}
+.vopt .lbl b{font:600 14px var(--f-display)}
+.vopt .vlabel{font:500 11px var(--f-mono);color:var(--muted)}
+.vopt.main .vlabel{color:var(--teal)}
+.vopt .vbox{max-height:420px;margin-inline:auto;width:100%}
+.vopt .vbox:not(.w){max-width:336px}
+.copy .lbl>span{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.copy .role{font:500 11px var(--f-mono);letter-spacing:.04em;text-transform:none;color:var(--muted)}
+.copy.filip{border-left:3px solid var(--filip)} .copy.egriss{border-left:3px solid var(--egriss)}
+details.todo summary{cursor:pointer;font-size:14px}
+details.todo[open] summary{margin-bottom:8px}
+@media (max-width:760px){.split{grid-template-columns:1fr}.phead{grid-template-columns:1fr;gap:10px}.bigdate .dn{font-size:30px}}
+</style>
 <div class="wrap">
   <header>
     <div class="eyebrow">EGRISS · GAIN 2026 · LinkedIn</div>
     <h1>GAIN 2026 campaign calendar</h1>
     <div class="rule"></div>
-    <p class="lede">Ten posts from the teaser to the thank-you, with the final copy and the video for each. Play each video in place in either size, or download the MP4; anything not added yet is marked in red. The Videos view lists every film, including the UN Statistical Commission clip.</p>
+    <p class="lede">Twelve posts from the teaser to the thank-you. The timeline shows every post and which account carries it; pick one to see its video options next to the final text for each account.</p>
     <div class="keydates"><span>Opens <b>Tue 3 Nov</b></span><span>Deadline <b>Sun 22 Nov</b></span><span>Final push <b>Thu 19 and Fri 20 Nov</b></span><span>Landing page <b>How GAIN data is used</b></span></div>
   </header>
 
-  <div class="toolbar" role="region" aria-label="Filters">
+  <div class="toolbar" role="region" aria-label="Views">
+    <div class="views" id="views">
+      <button class="chip" data-v="timeline" aria-pressed="true">Timeline</button>
+      <button class="chip" data-v="list" aria-pressed="false">All posts</button>
+      <button class="chip" data-v="videos" aria-pressed="false">Videos</button>
+    </div>
     <div class="chips" id="chips">
-      <button class="chip" data-f="all" aria-pressed="true">All posts</button>
+      <button class="chip" data-f="all" aria-pressed="true">Both accounts</button>
       <button class="chip" data-f="egriss" aria-pressed="false">EGRISS page</button>
       <button class="chip" data-f="filip" aria-pressed="false">Filip's account</button>
     </div>
-    <div class="views" id="views">
-      <button class="chip" data-v="timeline" aria-pressed="true">Timeline</button>
-      <button class="chip" data-v="list" aria-pressed="false">List</button>
-      <button class="chip" data-v="videos" aria-pressed="false">Videos</button>
-    </div>
   </div>
 
-  <section class="todo" id="todo" aria-label="Videos still to add"></section>
+  <details class="todo" id="todo" aria-label="Videos still to add"></details>
   <main id="list"></main>
-  <div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-label="Post details"></div>
 
   <footer>Videos are stored in the <code>campaign/videos</code> folder of the GAIN-story repository. Post copy follows EGRISS style: recommendations, never standards.</footer>
 </div>
 
 <script>
 const POSTS = [
- {id:"teaser", week:"Week of 26 October", date:"2026-10-27", accts:["egriss"], title:"Teaser: every example counts", fmt:"Video · 6 s · dot columns 2021 to 2026", dots:2,
-  copy:["Since 2021, national statistical offices and partners have reported how they include refugees, internally displaced and stateless people in official statistics, guided by the International Recommendations.","GAIN 2026 opens on 3 November. Every example counts."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"post1", week:"Week of 26 October", date:"2026-10-29", accts:["filip"], title:"Post 1: why the global record matters", fmt:"Text post · reshare the teaser", dots:2,
-  copy:["Every year we ask national statistical offices and international organisations one question: how are the International Recommendations on refugee, IDP and statelessness statistics being used in practice?","That is what GAIN, the Global Annual Inclusion survey, records. The 2026 round opens on 3 November. Most questionnaires arrive prefilled with the examples and pledges you reported before, so the task is updating rather than starting over, and the survey is available in English, French, Spanish, Arabic and Russian.","If you are a GAIN focal point, look out for the invitation from 3 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"launch", week:"Launch week", date:"2026-11-03", accts:["egriss"], title:"Launch: hero film and landing page", fmt:"Video · 59 s hero film · link to landing page", dots:3,
-  copy:["GAIN 2026 is open.","Collecting data on refugees, internally displaced and stateless people is hard work. GAIN is how that work is seen: it shows where countries stand in applying the International Recommendations, informs EGRISS methodological work and guidance, and brings national evidence to the forums where statistical policy is shaped.","Invitations are going out by email today, with previous examples already filled in. The deadline is 22 November.","Find out how GAIN data is used: [landing page link]"], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"post2", week:"Launch week", date:"2026-11-03", accts:["filip"], title:"Post 2: what a response does", fmt:"Reshare of the hero film with a personal note", dots:3,
-  copy:["GAIN 2026 is open, and this year I want to say clearly what a response does.","It makes your work visible: examples reported to GAIN enter the global record and can become EGRISS case studies. It shapes policy: GAIN evidence is presented at the UN Statistical Commission and regional forums. It improves the methods: the challenges you report show where guidance and support are most needed. And it feeds the reports and tools partners rely on.","Your invitation arrives by email from today, with your previous examples already filled in. Deadline 22 November. If it did not reach the right person in your institution, message me and I will make sure it does."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"qa", week:"Launch week", date:"2026-11-04", accts:["egriss"], title:"Q&A: your questions answered", fmt:"Video · 75 s full Q&A · also 8 single-question clips", dots:3,
-  copy:["Questions about GAIN 2026? Here are the answers our focal points ask for most: who should respond, how long it takes, which examples to report, and why a response matters even when there is nothing new to report.","Full FAQ and the questionnaire in five languages: https://egrisstats.org/implementation/gain-survey/resources/","GAIN 2026 is open until 22 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"post3", week:"Launch week", date:"2026-11-05", accts:["filip"], title:"Post 3: case study, DR Congo", fmt:"Video · 30 s case study clip", dots:3,
-  copy:["Good statistical work deserves to be seen beyond the country that did it.","In 2025, the Democratic Republic of the Congo included refugees and internally displaced people in its national Survey on Household Living Conditions, with questions aligned with the IRRS and IRIS. Despite operating in conflict-affected provinces, the survey gathered information on more than 7,500 forcibly displaced people.","The work was reported to GAIN and is now an EGRISS case study, documenting the approach and lessons for statistical offices facing similar challenges. If your institution has a new example this year, GAIN 2026 is where to record it. Deadline 22 November.","Read the case study: [link]"], tags:"#RefugeeStatistics #IDPs #OfficialStatistics #EGRISS", note:"Let INS DR Congo know before posting."},
- {id:"mid", week:"Fielding week 2", date:"2026-11-11", accts:["egriss"], title:"Mid-way reminder, tagging partners", fmt:"Video · reuse the full Q&A video", dots:4,
-  copy:["GAIN 2026 is halfway through, and responses are coming in from national statistical offices and partners. Thank you to everyone who has already responded.","Not sure who in your institution should respond, or what to report? The Q&A answers the most common questions.","Thank you to our partners for sharing with their networks: [tag World Bank, IOM, JDC, UNHCR and regional partners]. Deadline 22 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"week", week:"Final week", date:"2026-11-16", accts:["egriss"], title:"Countdown: 1 week left", fmt:"Video · 6 s countdown", dots:5,
-  copy:["One week left to respond to GAIN 2026. If your institution has new work on including refugees, internally displaced or stateless people in official statistics, please add it to the global record.","Deadline Sunday 22 November."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"three", week:"Final week", date:"2026-11-19", accts:["egriss","filip"], title:"Countdown: 3 days left", fmt:"Video · 6 s countdown", dots:5,
-  copy:["Three days left: GAIN 2026 closes on Sunday 22 November.","If the invitation did not reach you, or reached the wrong person, message me and we will resend it today."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"last", week:"Final week", date:"2026-11-20", accts:["egriss","filip"], title:"Countdown: last working day", fmt:"Video · 6 s countdown", dots:6,
-  copy:["Today is the last working day to respond to GAIN 2026, which closes on Sunday 22 November.","A response with no new activity this year is also valuable. Thank you to everyone who has already responded."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"},
- {id:"thanks", week:"After close", date:"2026-11-24", accts:["egriss","filip"], title:"Thank you and next steps", fmt:"Video · 6 s thank-you clip", dots:6,
-  copy:["GAIN 2026 is now closed. Thank you to every national statistical office and partner organisation that responded.","Your examples will feed the GAIN Tables, EGRISS case studies and the methodological work of the year ahead. Results will be published in the GAIN Tables in [month]."],
-  copy2:["GAIN 2026 closed on Sunday. Thank you to every focal point who took the time to respond.","Over the coming months the examples you reported will be cleaned, analysed and published in the GAIN Tables. Some will become case studies, and the challenges you described will shape the guidance and support EGRISS develops next. I will share the first results here."], tags:"#RefugeeStatistics #OfficialStatistics #EGRISS"}
+ {"id": "teaser", "week": "Week of 26 October", "date": "2026-10-27", "accts": ["egriss"], "title": "Teaser: every example counts", "fmt": "Video · 6 s teaser", "dots": 1, "copy": ["413 examples in five years.", "Since 2021, national statistical offices and partners have reported to GAIN how they include refugees, internally displaced and stateless people in official statistics. 337 of those examples apply the International Recommendations.", "The sixth round opens on 3 November. What will your institution add?"], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "hero", "week": "Week of 26 October", "date": "2026-10-29", "accts": ["egriss"], "title": "Hero film: you do the hard work", "fmt": "Video · 59 s hero film", "dots": 2, "copy": ["You do the hard work. GAIN makes sure it counts.", "Every year, national statistical offices and international organisations report to GAIN how they include refugees, internally displaced and stateless people in official statistics. Those reports feed the EGRISS Annual Report and case studies, show where methods need refinement, and bring national evidence to the UN Statistical Commission.", "GAIN 2026 opens on 3 November. Look out for the invitation in your inbox."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "post1", "week": "Week of 26 October", "date": "2026-10-29", "accts": ["filip"], "title": "Post 1: how widespread the work already is", "fmt": "Reshare of the hero film with a personal note", "dots": 2, "copy": ["What strikes me most in five years of GAIN data is how widespread this work already is.", "In 2025 alone, 117 examples came in from 49 countries, 63 led by countries and 54 by international organisations. Each one is a census, survey, register or guidance effort that now counts refugees, internally displaced or stateless people.", "GAIN 2026 opens on 3 November. If you reported before, your questionnaire arrives with your previous examples already filled in, so it is a matter of updating, not starting again. It is available in English, French, Spanish, Arabic and Russian.", "Not sure the invitation will reach the right person in your institution? Message me now."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS", "note": "Confirm 49 countries refers to 2025 only, and that the 54 institution-led examples are all international organisations."},
+ {"id": "launch", "week": "Launch week", "date": "2026-11-03", "accts": ["egriss"], "title": "Launch: GAIN 2026 is open", "fmt": "Video · 6 s teaser, closing line changed to the opening · link to landing page", "dots": 3, "copy": ["GAIN 2026 is open until 22 November.", "Invitations are going out by email today to focal points in national statistical offices and international organisations. If you reported before, your previous examples and pledges are already filled in.", "A response puts your work in the global record. It shows where the International Recommendations are being applied and where they are hard to apply, and it brings that evidence to the UN Statistical Commission.", "Find out how GAIN data is used: [landing page link]"], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS", "note": "Re-export the teaser with the closing line set to: GAIN 2026 is open · Deadline 22 November. Until then this shows the current teaser."},
+ {"id": "post2", "week": "Launch week", "date": "2026-11-03", "accts": ["filip"], "title": "Post 2: the question about what got in the way", "fmt": "Reshare of the launch post with a personal note", "dots": 3, "copy": ["The GAIN question I find most useful is not about what was done. It is about what got in the way.", "In 2024 and 2025, 84 examples reported 206 challenges. Resource constraints came first (40), then identifying the populations themselves (32), then safety concerns and political issues (27 each). Those answers feed directly into the guidance and support EGRISS develops.", "So when you fill in GAIN 2026, please don't skip that question. And if the invitation hasn't reached the right person, message me and I will make sure it does. Deadline 22 November."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "qa", "week": "Launch week", "date": "2026-11-04", "accts": ["egriss"], "title": "Q&A: your questions answered", "fmt": "Video · 75 s full Q&A · also 8 single-question clips", "dots": 3, "copy": ["How long does GAIN take? Usually 10 to 20 minutes.", "Who should fill it in, which examples count, what if there is nothing new this year? Eight answers in 75 seconds.", "The short version: report every example, finished or not, country-led or institution-led. And respond even if there is nothing new, because telling us why helps identify gaps.", "FAQ and the questionnaire in five languages: [link]. Open until 22 November."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "post3", "week": "Launch week", "date": "2026-11-05", "accts": ["filip"], "title": "Post 3: case study, DR Congo", "fmt": "Video · 30 s case study clip", "dots": 3, "copy": ["More than 7,500 forcibly displaced people, counted in a national household survey run in conflict-affected provinces.", "That is what [tag INS DR Congo] achieved in its 2025 Survey on Household Living Conditions, adding questions aligned with the IRRS and IRIS. I think it is one of the clearest examples of what can be done in difficult conditions.", "It was reported to GAIN and is now an EGRISS case study for offices facing similar challenges. Most work like this never travels beyond the country that did it. GAIN is how it does.", "New work this year? Report it by 22 November. Case study: [link]"], "tags": "#RefugeeStatistics #IDPs #OfficialStatistics #EGRISS", "note": "Let INS DR Congo know before posting."},
+ {"id": "mid", "week": "Fielding week 2", "date": "2026-11-11", "accts": ["egriss"], "title": "Mid-way: responses so far", "fmt": "Video · reuse the full Q&A video", "dots": 4, "copy": ["[X] responses so far, from [Y] countries. Thank you.", "GAIN 2026 is halfway through, with 11 days left. Not sure who should respond or what counts? The Q&A answers it in 75 seconds.", "Thanks to [tag World Bank, IOM, JDC, UNHCR and regional partners] for sharing with their networks. Deadline 22 November."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS", "note": "Fill in the response count from the Kobo data on the day."},
+ {"id": "week", "week": "Final week", "date": "2026-11-16", "accts": ["egriss"], "title": "Countdown: 1 week left", "fmt": "Video · 6 s countdown", "dots": 5, "copy": ["One week left. GAIN 2026 closes on Sunday 22 November.", "Last year, 117 examples were reported from 49 countries. If your institution's work is not yet in this year's record, now is the time to add it, including work still being planned."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "three", "week": "Final week", "date": "2026-11-19", "accts": ["egriss", "filip"], "title": "Countdown: 3 days left", "fmt": "Video · 6 s countdown", "dots": 5, "copy": ["Three days left, GAIN 2026 closes Sunday 22 November.", "Invitation did not arrive, or went to the wrong person? Message us today and we will resend it."], "copy2": ["Three days to go on GAIN 2026.", "If your invitation has gone astray, message me and I will resend it today."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "last", "week": "Final week", "date": "2026-11-20", "accts": ["egriss", "filip"], "title": "Countdown: last working day", "fmt": "Video · 6 s countdown", "dots": 6, "copy": ["Last working day for GAIN 2026. The survey closes on Sunday, but we are here today if you have questions.", "No new activity this year? Please still respond. Telling us why helps show where support is needed."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"},
+ {"id": "thanks", "week": "After close", "date": "2026-11-24", "accts": ["egriss", "filip"], "title": "Thank you and next steps", "fmt": "Video · 6 s thank-you clip", "dots": 6, "copy": ["GAIN 2026 is closed. [X] institutions from [Y] countries responded, thank you.", "Their examples will be published in the GAIN Tables in [month], and some will become EGRISS case studies. Last year's results are in the GAIN Tables 2025: [link]"], "copy2": ["GAIN 2026 closed on Sunday, and I want to thank every focal point who took the time to respond.", "Over the coming months the examples will be cleaned, analysed and published in the GAIN Tables in [month]. The challenges you described will shape the guidance EGRISS develops next. I will share the first results here."], "tags": "#RefugeeStatistics #OfficialStatistics #EGRISS"}
 ];
-const KIND={teaser:"teaser",post1:"teaser",launch:"heroV02",post2:"heroV02",qa:"qa",mid:"qa",post3:"case",week:"cd|1|week left",three:"cd|3|days left",last:"cd||Last working day",thanks:"thanks"};
+const KIND={teaser:"teaser",hero:"hero",post1:"hero",launch:"teaser",post2:"teaser",qa:"qa",mid:"qa",post3:"case",week:"cd|1|week left",three:"cd|3|days left",last:"cd||Last working day",thanks:"thanks"};
 const WORKS={
  teaser:{title:"Teaser: every example counts",dur:"6 s",main:"1080x1350",slug:"teaser",kind:"teaser"},
  heroV02:{title:"Hero film v02 (main pick)",dur:"59 s",main:"1920x1080",slug:"hero-v02",kind:"hero"},
@@ -237,7 +290,7 @@ const WORKS={
  cd3:{title:"Countdown: 3 days left",dur:"6 s",main:"1080x1350",slug:"countdown-3-days",kind:"cd|3|days left"},
  cdl:{title:"Countdown: last working day",dur:"6 s",main:"1080x1350",slug:"countdown-last-day",kind:"cd||Last working day"}
 };
-const POST_WORK={teaser:"teaser",post1:"teaser",launch:"heroV02",post2:"heroV02",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
+const POST_WORK={teaser:"teaser",hero:"heroV02",post1:"heroV02",launch:"teaser",post2:"teaser",qa:"qa",mid:"qa",post3:"case",week:"cd1",three:"cd3",last:"cdl",thanks:null};
 const SIZES=[["1080x1350","4:5 · 1080×1350"],["1920x1080","16:9 · 1920×1080"]];
 
 // Files in campaign/videos. Add a name here when you add the MP4.
@@ -283,11 +336,41 @@ function mockSVG(kind){
   return `<svg class="mock" viewBox="0 0 160 200" role="img" aria-label="Video mock-up" preserveAspectRatio="xMidYMid slice"><rect width="160" height="200" fill="${N}"/>${body}${k==="hero"?"":logo}</svg>`;
 }
 
-const el=(t,a={},...k)=>{const n=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x.startsWith("on"))n.addEventListener(x.slice(2),v);else n.setAttribute(x,v)}k.flat().forEach(c=>c!=null&&n.append(c));return n};
-const fmtDate=s=>{const d=new Date(s+"T12:00:00");return{d:d.getDate(),m:d.toLocaleString("en-GB",{month:"short"}),w:d.toLocaleString("en-GB",{weekday:"short"})}};
-const acctLabel={egriss:"EGRISS page",filip:"Filip"};
-let filter="all", view="timeline", openId=null, sel=null; const fmtSel={};
-try{filter=localStorage.getItem("gainFilter")||"all";view=localStorage.getItem("gainView")||"timeline";if(!["timeline","list","videos"].includes(view))view="timeline"}catch(e){}
+// Video options per post, main pick first. Alternatives are proposals to choose from.
+const POST_VIDEOS={
+ teaser:[["teaser","Main pick"]],
+ hero:[["heroV02","Main pick"],["hero","Alternative · earlier hero version"]],
+ post1:[["heroV02","Reshare of the EGRISS hero post"],["hero","Alternative · earlier hero version"]],
+ launch:[["teaser","Main pick · teaser re-exported with the opening line"],["commission","Alternative · UN Statistical Commission clip"],["heroV02","Alternative · hero film again"]],
+ post2:[["teaser","Reshare of the EGRISS launch post"]],
+ qa:[["qa","Main pick"]],
+ post3:[["case","Main pick"]],
+ mid:[["qa","Main pick · reuse the full Q&A"],["commission","Alternative · UN Statistical Commission clip"]],
+ week:[["cd1","Main pick"]],
+ three:[["cd3","Main pick"]],
+ last:[["cdl","Main pick"]],
+ thanks:[]
+};
+const SHORT={teaser:"Teaser",hero:"Hero film",post1:"Post 1 · how widespread",launch:"Launch: GAIN is open",post2:"Post 2 · what got in the way",qa:"Q&A",post3:"Post 3 · DR Congo",mid:"Mid-way",week:"1 week left",three:"3 days left",last:"Last working day",thanks:"Thank you"};
+const ACCTS=[["egriss","EGRISS page"],["filip","Filip's account"]];
+// What each account does with a post: the proposed distribution.
+function role(p,a){
+  if(!p.accts.includes(a))return null;
+  if(a==="egriss")return "Post";
+  if(p.accts.length===1)return /^Reshare/.test(p.fmt)?"Reshare with a personal note":"Own post";
+  return p.copy2?"Own post, own text":"Reshare the EGRISS post";
+}
+function textFor(p,a){
+  if(!p.accts.includes(a))return null;
+  if(a==="filip"&&p.accts.length>1)return p.copy2||null;
+  return p.copy;
+}
+
+const el=(t,a={},...k)=>{const n=document.createElement(t);for(const[x,v]of Object.entries(a)){if(v==null||v===false)continue;if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x.startsWith("on"))n.addEventListener(x.slice(2),v);else n.setAttribute(x,v)}k.flat().forEach(c=>c!=null&&c!==false&&n.append(c));return n};
+const fmtDate=s=>{const d=new Date(s+"T12:00:00");return{d:d.getDate(),m:d.toLocaleString("en-GB",{month:"short"}),w:d.toLocaleString("en-GB",{weekday:"short"}),long:d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}};
+let view="timeline", sel=null, filter="all"; const fmtSel={};
+try{view=localStorage.getItem("gainView")||"timeline";if(!["timeline","list","videos"].includes(view))view="timeline";filter=localStorage.getItem("gainFilter")||"all"}catch(e){}
+try{const h=location.hash.slice(1);if(POSTS.find(p=>p.id===h))sel=h}catch(e){}
 
 function mockInto(box,kind,tag,miss){box.innerHTML=mockSVG(kind);if(box.classList.contains("w")){const s=box.querySelector("svg");if(s)s.setAttribute("preserveAspectRatio","xMidYMid meet")}box.append(el("span",{class:"mocktag"+(miss?" miss":""),text:tag}))}
 function player(wid,size){
@@ -301,94 +384,116 @@ function links(wid,size){
     el("p",{class:"missnote"},"To add: export ",el("b",{text:SRC[wid]+" "+size}),", save in campaign/videos as ",el("code",{text:vidFile(wid,size)})),
     el("div",{class:"vactions"},el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"})));
   return el("div",{class:"vactions"},
-  el("a",{class:"dl",href:vidUrl(wid,size),download:vidFile(wid,size),text:"Download MP4"}),
-  el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"}))}
-// "" = both sizes added, "part" = main size there but not the other, "miss" = no video for this post yet
-function vidState(p){const wid=POST_WORK[p.id];if(!wid)return "miss";
+    el("a",{class:"dl",href:vidUrl(wid,size),download:vidFile(wid,size),text:"Download MP4"}),
+    el("a",{class:"dl",href:liveUrl(wid,size),target:"_blank",rel:"noopener",text:"Open live version"}))}
+// "" = main pick in both sizes, "part" = main size only, "miss" = no video yet
+function vidState(p){const o=POST_VIDEOS[p.id];if(!o||!o.length)return "miss";const wid=o[0][0];
   const n=SIZES.filter(([s])=>has(wid,s)).length;return n===SIZES.length?"":has(wid,WORKS[wid].main)?"part":"miss"}
-function thumbFor(p){const w=el("span",{class:"thumb"}),wid=POST_WORK[p.id];
-  if(!wid){mockInto(w,KIND[p.id]||"teaser","Missing",true);return w}
-  if(!has(wid,"1080x1350")){mockInto(w,WORKS[wid].kind,"Missing",true);return w}
-  const v=el("video",{src:vidUrl(wid,"1080x1350")+"#t=0.6",muted:"",preload:"metadata",playsinline:""});
-  v.addEventListener("error",()=>mockInto(w,WORKS[wid].kind,"Mock-up"));w.append(v);return w}
+
 function renderTodo(){
   const box=document.getElementById("todo");box.textContent="";const items=[],seen=new Set();
-  POSTS.forEach(p=>{const wid=POST_WORK[p.id],d=fmtDate(p.date),when=d.w+" "+d.d+" "+d.m;
-    if(!wid){items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:p.title}),": "+p.fmt.replace(/^Video · /,"")+" — not designed yet"));return}
-    if(seen.has(wid))return;seen.add(wid);
-    SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))})});
-  Object.keys(WORKS).filter(w=>!seen.has(w)).forEach(wid=>SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:"Not in a post · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))}));
-  if(!items.length){box.className="todo ok";box.append(el("h2",{text:"All videos are added"}));return}
+  POSTS.forEach(p=>{const d=fmtDate(p.date),when=d.w+" "+d.d+" "+d.m,opts=POST_VIDEOS[p.id]||[];
+    if(!opts.length){items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:p.title}),": "+p.fmt.replace(/^Video · /,"")+", not designed yet"));return}
+    opts.forEach(([wid])=>{if(seen.has(wid))return;seen.add(wid);
+      SIZES.forEach(([s])=>{if(!has(wid,s))items.push(el("li",{},el("span",{class:"when",text:when+" · "}),el("b",{text:SRC[wid]+" "+s}),", save as ",el("code",{text:vidFile(wid,s)})))})})});
+  if(!items.length){box.className="todo ok";box.append(el("summary",{},el("b",{text:"All videos are added"})));return}
   box.className="todo";
-  box.append(el("h2",{text:items.length+" videos still to add"}),
+  box.append(el("summary",{},el("b",{text:items.length+" videos still to add"}),el("span",{class:"when",text:" · show list"})),
     el("p",{text:"In date order of first use. Export each one and save it in campaign/videos under the name shown."}),
     el("ol",{},items));
 }
 
 async function copyText(text,btn){try{await navigator.clipboard.writeText(text);btn.textContent="Copied";setTimeout(()=>btn.textContent="Copy text",1500)}catch(e){const r=document.createRange();r.selectNodeContents(btn.closest(".copy").querySelector(".txt"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Text selected, press Ctrl+C"}}
-function copyBlock(p){
-  const blocks=[];
-  const mk=(label,paras)=>{const txt=el("div",{class:"txt"},paras.map(x=>el("p",{text:x})),el("p",{class:"tags",text:p.tags}));
-    const full=paras.join("\n\n")+"\n\n"+p.tags;
-    const b=el("button",{class:"btn",type:"button",text:"Copy text"});b.addEventListener("click",()=>copyText(full,b));
-    return [el("div",{class:"lbl"},el("span",{text:label}),b),txt]};
-  if(p.copy2){blocks.push(...mk("EGRISS page",p.copy),el("h4",{text:""}),...mk("Filip's account",p.copy2))}
-  else blocks.push(...mk("Post text",p.copy));
-  if(p.note)blocks.push(el("p",{class:"vnote",text:"Before posting: "+p.note}));
-  return el("div",{class:"copy"},blocks);
+function copyFor(p,a){
+  const r=role(p,a),paras=textFor(p,a),lbl=ACCTS.find(x=>x[0]===a)[1];
+  const head=el("div",{class:"lbl"},el("span",{},el("span",{class:"acct "+a,text:lbl}),el("span",{class:"role",text:r})));
+  if(!paras)return el("div",{class:"copy "+a},head,el("p",{class:"vnote",text:"No separate text: reshare the EGRISS post, optionally with one line of your own."}));
+  const full=paras.join("\n\n")+"\n\n"+p.tags;
+  const b=el("button",{class:"btn",type:"button",text:"Copy text"});b.addEventListener("click",()=>copyText(full,b));
+  head.append(b);
+  return el("div",{class:"copy "+a},head,el("div",{class:"txt"},paras.map(x=>el("p",{text:x})),el("p",{class:"tags",text:p.tags})));
 }
 function sizeSwitch(cur,onPick){const s=el("div",{class:"seg",role:"group","aria-label":"Video size"});
   SIZES.forEach(([v,l])=>{const b=el("button",{type:"button","aria-pressed":String(v===cur),title:l,text:v==="1080x1350"?"4:5":"16:9"});b.addEventListener("click",()=>onPick(v));s.append(b)});return s}
-function videoBlock(p){
-  const wid=POST_WORK[p.id];
-  if(!wid){const box=el("div",{class:"vbox"});mockInto(box,KIND[p.id]||"teaser","Missing · not designed yet",true);
-    return el("div",{class:"video"},el("div",{class:"lbl"},el("span",{text:"Video"})),box,el("p",{class:"vnote",text:p.fmt}),
-      el("p",{class:"missnote",text:"To add: this clip has no design yet. Make it, then save it in campaign/videos."}))}
-  const size=fmtSel[wid]||WORKS[wid].main;
-  const wrap=el("div",{class:"video"},
-    el("div",{class:"lbl"},el("span",{text:"Video · "+size.replace("x","×")}),sizeSwitch(size,v=>{fmtSel[wid]=v;wrap.replaceWith(videoBlock(p))})),
-    player(wid,size),el("p",{class:"vnote",text:p.fmt}),links(wid,size));
+function videoOption(p,wid,label,i){
+  const key=p.id+":"+wid,size=fmtSel[key]||WORKS[wid].main;
+  const wrap=el("div",{class:"vopt"+(i===0?" main":"")},
+    el("div",{class:"lbl"},el("span",{},el("b",{text:WORKS[wid].title}),el("span",{class:"vlabel",text:label+" · "+WORKS[wid].dur})),
+      sizeSwitch(size,v=>{fmtSel[key]=v;wrap.replaceWith(videoOption(p,wid,label,i))})),
+    player(wid,size),links(wid,size));
   return wrap;
 }
-function renderTimeline(list){
-  const vis=POSTS.filter(p=>filter==="all"||p.accts.includes(filter));
-  if(!vis.length){list.append(el("p",{class:"vnote",text:"No posts for this account."}));return}
-  if(!sel||!vis.find(p=>p.id===sel))sel=vis[0].id;
-  const tl=el("div",{class:"tl",role:"listbox","aria-label":"Posts in date order"});const tr=el("div",{class:"tltrack"});
-  const marks=[["2026-11-03","Opens","3 Nov"],["2026-11-22","Closes","22 Nov"]];
-  let lastWeek=null;
-  vis.forEach(p=>{
-    marks.forEach(m=>{if(m[0]<=p.date&&!m.done){if(m[0]<p.date||m[1]==="Opens"){tr.append(el("div",{class:"tlmark"},el("span",{text:m[1]}),el("b",{text:m[2]})));m.done=true}}});
-    if(p.week!==lastWeek){lastWeek=p.week;tr.append(el("div",{class:"tlsep"},el("span",{text:p.week}),el("i")))}
-    const d=fmtDate(p.date),cls=p.accts.length>1?"both":p.accts[0],st=vidState(p);
-    const b=el("button",{class:"tlitem "+cls,type:"button",role:"option","aria-current":String(p.id===sel),"aria-selected":String(p.id===sel),"data-id":p.id},
-      el("span",{class:"tldate"},el("span",{text:d.w+" "+d.d+" "+d.m})),
-      thumbFor(p),
-      st&&el("span",{class:"tlflag "+st,text:st==="miss"?"Video missing":"16:9 missing"}),
-      el("b",{text:p.title}),
-      el("span",{class:"fmt",text:p.accts.map(a=>acctLabel[a]).join(" + ")}));
-    b.addEventListener("click",()=>{sel=p.id;render()});tr.append(b)});
-  marks.forEach(m=>{if(!m.done)tr.append(el("div",{class:"tlmark"},el("span",{text:m[1]}),el("b",{text:m[2]})))});
-  tl.append(tr);list.append(tl);
-  const idx=vis.findIndex(p=>p.id===sel);
-  const prev=el("button",{class:"btn",type:"button",text:"Previous post"}),next=el("button",{class:"btn",type:"button",text:"Next post"});
-  prev.disabled=idx<=0;next.disabled=idx>=vis.length-1;
-  prev.addEventListener("click",()=>{sel=vis[idx-1].id;render()});next.addEventListener("click",()=>{sel=vis[idx+1].id;render()});
-  list.append(el("div",{class:"tlnav"},prev,next));
-  list.append(el("div",{class:"tldetail"},cardFor(vis[idx])));
-  requestAnimationFrame(()=>{const cur=tr.querySelector('[aria-current="true"]');if(cur){tl.scrollLeft=Math.max(0,cur.offsetLeft-tl.clientWidth/2+cur.offsetWidth/2)}});
+function videosFor(p){
+  const opts=POST_VIDEOS[p.id]||[];
+  const col=el("div",{class:"col vids"},el("h4",{class:"colh",text:opts.length>1?"Video options ("+opts.length+")":"Video"}));
+  if(!opts.length){const box=el("div",{class:"vbox"});mockInto(box,KIND[p.id]||"teaser","Missing · not designed yet",true);
+    col.append(el("div",{class:"vopt main"},box,el("p",{class:"missnote",text:"To add: "+p.fmt.replace(/^Video · /,"")+". This clip has no design yet."})));return col}
+  opts.forEach(([wid,label],i)=>col.append(videoOption(p,wid,label,i)));
+  return col;
 }
-function cardFor(p){const d=fmtDate(p.date);
-  return el("article",{class:"card",id:p.id},
-    el("div",{class:"date"},el("div",{class:"d",text:d.d}),el("div",{class:"m",text:d.m}),el("div",{class:"w",text:d.w})),
-    el("div",{},
-      el("div",{class:"top"},el("h3",{text:p.title})),
-      el("div",{class:"meta"},p.accts.map(a=>el("span",{class:"acct "+a,text:acctLabel[a]}))),
-      el("div",{class:"body"},copyBlock(p),videoBlock(p))))}
+function detail(p){
+  const d=fmtDate(p.date);
+  return el("article",{class:"post",id:"post-"+p.id},
+    el("header",{class:"phead"},
+      el("div",{class:"bigdate"},el("span",{class:"dn",text:d.d}),el("span",{},el("b",{text:d.w+" "+d.m}),el("span",{text:p.week}))),
+      el("div",{class:"ptitle"},el("h3",{text:p.title}),el("p",{class:"fmt",text:p.fmt}),
+        el("div",{class:"dist"},ACCTS.filter(([a])=>p.accts.includes(a)).map(([a,l])=>el("span",{class:"acct "+a},l+": ",el("b",{text:role(p,a)})))))),
+    p.note&&el("p",{class:"pnote",text:"Before posting: "+p.note}),
+    el("div",{class:"split"},
+      videosFor(p),
+      el("div",{class:"col texts"},el("h4",{class:"colh",text:"Post text"}),ACCTS.filter(([a])=>p.accts.includes(a)).map(([a])=>copyFor(p,a)))));
+}
+
+// Compact timeline: one column per posting date, one lane per account.
+function renderLanes(host){
+  const dates=[...new Set(POSTS.map(p=>p.date)),"2026-11-22"].sort();
+  const marks={"2026-11-03":"Opens","2026-11-22":"Closes"};
+  const grid=el("div",{class:"lanes",style:"grid-template-columns:84px repeat("+dates.length+",minmax(62px,1fr))"});
+  grid.append(el("div",{class:"lh"}));
+  let lastWeek=null;
+  dates.forEach(ds=>{const d=fmtDate(ds),p=POSTS.find(x=>x.date===ds),wk=p?p.week:null;
+    grid.append(el("div",{class:"dh"+(marks[ds]?" key":"")+(p?"":" gap")},
+      el("span",{class:"wk",text:wk&&wk!==lastWeek?wk:" "}),
+      el("b",{text:d.w+" "+d.d+" "+d.m}),
+      marks[ds]&&el("em",{text:marks[ds]})));
+    if(wk)lastWeek=wk;});
+  ACCTS.forEach(([a,l])=>{
+    grid.append(el("div",{class:"lname "+a,text:l}));
+    dates.forEach(ds=>{const cell=el("div",{class:"cell"+(marks[ds]==="Closes"?" gap":"")});
+      POSTS.filter(p=>p.date===ds&&p.accts.includes(a)).forEach(p=>{
+        const st=vidState(p),r=role(p,a),reshare=/^Reshare/.test(r);
+        const b=el("button",{type:"button",class:"pill "+a+(reshare?" re":"")+(p.id===sel?" on":""),"aria-pressed":String(p.id===sel),title:p.title+" · "+r},
+          el("span",{class:"pt",text:SHORT[p.id]||p.title}),
+          el("span",{class:"pr"},el("i",{class:"vd "+(st||"ok"),title:st==="miss"?"Video missing":st==="part"?"16:9 missing":"Video ready"}),reshare?"reshare":r==="Own post, own text"?"own text":""));
+        b.addEventListener("click",()=>{sel=p.id;try{history.replaceState(null,"","#"+p.id)}catch(e){}render();document.getElementById("post-"+p.id)?.scrollIntoView({behavior:"smooth",block:"start"})});
+        cell.append(b)});
+      grid.append(cell)})});
+  host.append(el("div",{class:"lanewrap"},grid),
+    el("div",{class:"legend"},
+      el("span",{},el("i",{class:"vd ok"}),"Video ready"),el("span",{},el("i",{class:"vd part"}),"16:9 missing"),el("span",{},el("i",{class:"vd miss"}),"Video missing"),
+      el("span",{},el("span",{class:"pill egriss demo",text:"EGRISS post"})),el("span",{},el("span",{class:"pill filip re demo",text:"Filip reshare"}))));
+}
+function renderTimeline(list){
+  if(!sel)sel=POSTS[0].id;
+  renderLanes(list);
+  const idx=POSTS.findIndex(p=>p.id===sel);
+  const go=i=>{sel=POSTS[i].id;try{history.replaceState(null,"","#"+sel)}catch(e){}render()};
+  const prev=el("button",{class:"btn",type:"button",text:"← Previous post"}),next=el("button",{class:"btn",type:"button",text:"Next post →"});
+  prev.disabled=idx<=0;next.disabled=idx>=POSTS.length-1;
+  prev.addEventListener("click",()=>go(idx-1));next.addEventListener("click",()=>go(idx+1));
+  list.append(el("div",{class:"tlnav"},el("span",{class:"fmt",text:"Post "+(idx+1)+" of "+POSTS.length}),el("span",{},prev,next)));
+  list.append(detail(POSTS[idx]));
+}
+function renderList(list){
+  let curWeek=null,sec=null;
+  POSTS.forEach(p=>{if(filter!=="all"&&!p.accts.includes(filter))return;
+    if(p.week!==curWeek){curWeek=p.week;sec=el("section",{class:"week"},el("h2",{text:p.week}));list.append(sec)}
+    sec.append(detail(p))});
+}
 function renderLibrary(list){
   const lib=el("div",{class:"lib"});
   Object.entries(WORKS).forEach(([wid,w])=>{
-    const used=POSTS.filter(p=>POST_WORK[p.id]===wid).map(p=>p.title);
+    const used=POSTS.filter(p=>(POST_VIDEOS[p.id]||[]).some(o=>o[0]===wid)).map(p=>{const d=fmtDate(p.date);return d.d+" "+d.m+" "+p.title+((POST_VIDEOS[p.id][0][0]===wid)?"":" (alternative)")});
     lib.append(el("article",{class:"work",id:"v-"+wid},
       el("div",{class:"top"},el("h3",{text:w.title}),el("span",{class:"fmt",text:"Video · "+w.dur})),
       el("p",{class:"used",text:used.length?"Used in: "+used.join(" · "):"Not yet assigned to a post"}),
@@ -398,13 +503,8 @@ function renderLibrary(list){
 }
 function render(){
   const list=document.getElementById("list");list.textContent="";renderTodo();
-  document.getElementById("chips").style.visibility=view==="videos"?"hidden":"visible";
-  if(view==="videos"){renderLibrary(list);return}
-  if(view==="timeline"){renderTimeline(list);return}
-  let curWeek=null,sec=null;
-  POSTS.forEach(p=>{if(filter!=="all"&&!p.accts.includes(filter))return;
-    if(p.week!==curWeek){curWeek=p.week;sec=el("section",{class:"week"},el("h2",{text:p.week}));list.append(sec)}
-    sec.append(cardFor(p))});
+  document.getElementById("chips").style.display=view==="list"?"":"none";
+  if(view==="videos")renderLibrary(list);else if(view==="list")renderList(list);else renderTimeline(list);
 }
 document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;filter=b.dataset.f;try{localStorage.setItem("gainFilter",filter)}catch(x){}
   document.querySelectorAll("#chips .chip").forEach(c=>c.setAttribute("aria-pressed",c===b));render()});
