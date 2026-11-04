@@ -339,7 +339,7 @@ footer a { color: var(--ink-2); }
     src: params.get('src'),                      // live export (CSV or JSON); also tried: data/gain2026.csv
     live: 'data/gain2026.csv',
     demo: 'data/gain2026_DEMO.csv',
-    refreshMin: +(params.get('refresh') || 5),   // re-read the feed every N minutes
+    refreshMin: +(params.get('refresh') || 2),   // re-read the feed every N minutes
     open: new Date('2026-11-03T00:00:00Z'),
     deadline: new Date('2026-11-22T23:59:00Z'),
     bench: 117,
@@ -478,8 +478,8 @@ footer a { color: var(--ink-2); }
     if (!S.pulledAt) { el.textContent = 'Kobo data · read ' + d3.timeFormat('%H:%M')(S.loadedAt); return; }
     var mins = Math.max(0, Math.round((Date.now() - S.pulledAt) / 6e4));
     var ago = mins < 1 ? 'just now' : mins < 60 ? mins + ' min ago' : Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min ago';
-    el.textContent = 'Kobo data as of ' + d3.timeFormat('%H:%M')(S.pulledAt) + ' (' + ago + ') · updated about every 15 min';
-    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes; GitHub takes a new copy from Kobo about every 15 minutes, sometimes later.';
+    el.textContent = 'Kobo data as of ' + d3.timeFormat('%H:%M')(S.pulledAt) + ' (' + ago + ') · updates within minutes of a new submission';
+    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes. Each new Kobo submission makes GitHub take a fresh copy within about a minute; a 15-minute schedule is the fallback.';
     dot.className = 'dot' + (mins > 45 ? ' off' : '');
   }
 

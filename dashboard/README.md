@@ -77,6 +77,23 @@ To switch it on: GitHub repo → Settings → Secrets and variables → Actions 
 name `KOBO_TOKEN`, value the Kobo API key. Add it to the repository whose Pages link goes in Teams
 (`mitrovif/GAIN-story` or the EGRISS copy).
 
+### Updating within minutes of a submission
+
+GitHub's 15-minute schedule often starts late, so the GAIN 2026 form also tells GitHub directly when a
+submission arrives (a Kobo REST Service). It sends **no submission data**: the body is only
+`{"ref":"main"}`, which starts the publish workflow; the workflow then pulls from Kobo as usual. The
+page re-checks every 2 minutes, so a new response shows within about 3 minutes.
+
+Set up on the EGRISS copy (the Teams link):
+- GitHub fine-grained token "Kobo - GAIN tracker": resource owner `egrisstats`, only the `GAIN-story`
+  repository, permission **Actions: read and write** only (it can start the workflow, not change code),
+  expiry 30 days.
+- Kobo, the form, Settings, REST Services, Register a new service: endpoint
+  `https://api.github.com/repos/egrisstats/GAIN-story/actions/workflows/pages.yml/dispatches`, type JSON,
+  no authorization, headers `Authorization: Bearer <token>` and `Accept: application/vnd.github+json`,
+  custom wrapper `{"ref":"main"}`, fields subset `INT02` (nothing else is sent anyway).
+- Kobo project managers can see the token in the REST Service settings; revoke it after collection.
+
 ## Hosting and personal data
 
 Decided 4 Nov 2026: **public GitHub Pages link, with example titles, without any personal data on the
