@@ -132,6 +132,19 @@ svg text { fill: var(--ink-3); font: 400 11px "IBM Plex Sans", sans-serif; }
 #donut.focus .dot-ex { opacity: .12; }
 #donut.focus .dot-ex.on { opacity: 1; }
 @media (max-width: 720px) { .cover { flex-direction: column; } }
+.dr { display: grid; grid-template-columns: minmax(0, 0.9fr) 2.3fr 62px; gap: 10px; align-items: center; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid #15264c; }
+.dr:last-child { border-bottom: 0; }
+.dr.click { cursor: pointer; }
+.dr.click:hover .lab, .dr.click:focus-visible .lab { color: #fff; text-decoration: underline; }
+.dr:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 2px; }
+.hbars .dr .lab { white-space: normal; text-overflow: clip; color: var(--ink-2); line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.dr .pts { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-height: 12px; }
+.dr .pts i { display: block; border-radius: 50%; flex: none; }
+.dr .pts i:hover { outline: 1.5px solid #fff; outline-offset: 1px; }
+.dr .n { text-align: right; color: #fff; font: 500 14px "IBM Plex Mono", monospace; line-height: 1.1; }
+.dr .n small { display: block; font: 400 10.5px "IBM Plex Sans", sans-serif; color: var(--ink-3); margin-top: 1px; }
+.dotkey { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11.5px; color: var(--ink-3); margin: 0 0 6px; }
+.dotkey i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 .hbars .r { display: grid; grid-template-columns: minmax(0, 1fr) 2.2fr 34px; gap: 8px; align-items: center; font-size: 12.5px; padding: 3px 0; cursor: default; }
 .hbars .r.click { cursor: pointer; }
 .hbars .r.click:hover .lab { color: #fff; text-decoration: underline; }
@@ -271,26 +284,29 @@ footer a { color: var(--ink-2); }
 
   <div class="grid3">
     <section class="panel" aria-labelledby="hReg">
-      <div class="ph"><div><h2 id="hReg">Country-led and institution-led, by region</h2><div class="sub">Examples · click a region to filter</div></div></div>
+      <div class="ph"><div><h2 id="hReg">Country-led and institution-led, by region</h2><div class="sub">Each dot is an example · click a region to filter</div></div></div>
+      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using / don’t know</span></div>
       <div id="regBars" class="hbars"></div>
     </section>
     <section class="panel" aria-labelledby="hCty">
-      <div class="ph"><div><h2 id="hCty">Country-led: top countries</h2><div class="sub">Examples from national institutions · click to filter</div></div></div>
+      <div class="ph"><div><h2 id="hCty">Country-led: top countries</h2><div class="sub">Each dot is an example from a national institution · click to filter</div></div></div>
       <div id="ctyBars" class="hbars"></div>
     </section>
     <section class="panel" aria-labelledby="hInst">
-      <div class="ph"><div><h2 id="hInst">Institution-led: top organisations</h2><div class="sub">Examples from international and regional organisations</div></div></div>
+      <div class="ph"><div><h2 id="hInst">Institution-led: top organisations</h2><div class="sub">Each dot is an example from an international, regional or civil society organisation, or academia</div></div></div>
       <div id="instBars" class="hbars"></div>
     </section>
   </div>
 
   <div class="grid2">
     <section class="panel" aria-labelledby="hSrc">
-      <div class="ph"><div><h2 id="hSrc">Data sources and tools</h2><div class="sub">An example can report more than one</div></div></div>
+      <div class="ph"><div><h2 id="hSrc">Data sources and tools</h2><div class="sub">Each dot is an example; one can report more than one source</div></div></div>
+      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using / don’t know</span></div>
       <div id="srcBars" class="hbars"></div>
     </section>
     <section class="panel" aria-labelledby="hPop">
-      <div class="ph"><div><h2 id="hPop">Population groups covered</h2><div class="sub">An example can cover more than one</div></div></div>
+      <div class="ph"><div><h2 id="hPop">Population groups covered</h2><div class="sub">Each dot is an example; one can cover more than one group</div></div></div>
+      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using / don’t know</span></div>
       <div id="popBars" class="hbars"></div>
     </section>
   </div>
@@ -966,13 +982,54 @@ footer a { color: var(--ink-2); }
       a.addEventListener('mouseleave', off); a.addEventListener('blur', off);
     });
   }
+  // Dot rows, in the story's language: one point of light per example, coloured by lead,
+  // filled if it uses the Recommendations and a ring if not.
+  function exTip(d) {
+    return '<b>' + esc(d.country || 'Regional / global') + '</b> · ' + LEAD[d.lead].name + '<div>' + esc(d.org) + '</div><div class="muted" style="margin:3px 0">' + esc(d.title) + '</div>' +
+      '<span class="tag"><i style="background:' + RECBY[d.rec].color + '"></i>' + (d.codes.length ? d.codes.join(' + ') : RECBY[d.rec].name) + '</span>';
+  }
+  function dotrows(el, items, opts) {
+    opts = opts || {};
+    var box = document.getElementById(el);
+    if (!items.length) { box.innerHTML = '<div class="empty">No examples match the filters yet.</div>'; return; }
+    var maxN = d3.max(items, function (it) { return it.rows.length; });
+    var size = maxN > 60 ? 6 : maxN > 30 ? 8 : 10; // smaller points when a row gets long
+    box.innerHTML = items.map(function (it, k) {
+      var v = it.rows.slice().sort(function (a, b) { return d3.ascending(a.lead, b.lead) || d3.ascending(a.rec === 'None', b.rec === 'None'); });
+      var using = v.filter(function (d) { return d.rec !== 'None'; }).length;
+      return '<div class="dr' + (opts.click ? ' click' : '') + '" data-k="' + k + '"' + (opts.click ? ' tabindex="0" role="button"' : '') + '>' +
+        '<span class="lab" title="' + esc(it.label) + '">' + esc(it.label) + '</span><span class="pts">' +
+        v.map(function (d, j) {
+          var c = LEAD[d.lead].color, on = d.rec !== 'None';
+          return '<i data-j="' + j + '" style="width:' + size + 'px;height:' + size + 'px;' + (on ? 'background:' + c + ';box-shadow:0 0 5px ' + c : 'box-shadow:inset 0 0 0 1.5px ' + c) + '"></i>';
+        }).join('') + '</span><span class="n">' + v.length + '<small>' + (opts.noPct ? '' : pct(using, v.length) + ' using') + '</small></span></div>';
+    }).join('');
+    box.querySelectorAll('.dr').forEach(function (r) {
+      var it = items[+r.dataset.k];
+      var v = it.rows.slice().sort(function (a, b) { return d3.ascending(a.lead, b.lead) || d3.ascending(a.rec === 'None', b.rec === 'None'); });
+      r.addEventListener('mousemove', function (ev) {
+        var j = ev.target.dataset && ev.target.dataset.j;
+        if (j != null) { showTip(exTip(v[+j]), ev); return; }
+        var nC = v.filter(function (d) { return d.lead === 'C'; }).length;
+        showTip('<b>' + esc(it.label) + '</b><div class="row"><span><i class="sw" style="background:var(--country)"></i>Country-led</span><b>' + nC + '</b></div>' +
+          '<div class="row"><span><i class="sw" style="background:var(--inst)"></i>Institution-led</span><b>' + (v.length - nC) + '</b></div>' +
+          '<div class="row"><span>Using the Recommendations</span><b>' + pct(v.filter(function (d) { return d.rec !== 'None'; }).length, v.length) + '</b></div>' +
+          (it.note ? '<div class="muted" style="margin-top:4px">' + it.note + '</div>' : ''), ev);
+      });
+      r.addEventListener('mouseleave', hideTip);
+      if (opts.click) {
+        r.addEventListener('click', function () { opts.click(it); });
+        r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opts.click(it); } });
+      }
+    });
+  }
   function renderRegions() {
     var rows = current({ reg: true });
-    var items = REGIONS.concat(['Other']).map(function (r) { var v = rows.filter(function (d) { return d.region === r; }); return { label: r, key: r, parts: leadParts(v) }; })
-      .filter(function (it) { return it.parts[0].n + it.parts[1].n; })
-      .sort(function (a, b) { return (b.parts[0].n + b.parts[1].n) - (a.parts[0].n + a.parts[1].n); });
+    var items = REGIONS.concat(['Other']).map(function (r) { return { label: r, key: r, rows: rows.filter(function (d) { return d.region === r; }) }; })
+      .filter(function (it) { return it.rows.length; })
+      .sort(function (a, b) { return b.rows.length - a.rows.length; });
     items.forEach(function (it) { it.note = S.reg === it.key ? 'Click again to clear' : 'Click to filter'; });
-    hbars('regBars', items, { click: function (it) { S.reg = S.reg === it.key ? 'all' : it.key; document.getElementById('fReg').value = S.reg; render(); } });
+    dotrows('regBars', items, { click: function (it) { S.reg = S.reg === it.key ? 'all' : it.key; document.getElementById('fReg').value = S.reg; render(); } });
   }
   function topBy(rows, key, n) {
     return d3.rollups(rows, function (v) { return v; }, key).sort(function (a, b) { return b[1].length - a[1].length || d3.ascending(a[0], b[0]); }).slice(0, n);
@@ -980,21 +1037,21 @@ footer a { color: var(--ink-2); }
   function renderTop() {
     var rows = current();
     var cty = topBy(rows.filter(function (d) { return d.lead === 'C' && d.mn; }), function (d) { return d.mn; }, 10);
-    hbars('ctyBars', cty.map(function (e) {
-      return { label: e[0], key: e[0], note: new Set(e[1].map(function (d) { return d.org; })).size + ' institution(s) · click to filter', parts: [{ name: 'Country-led examples', color: LEAD.C.color, n: e[1].length }] };
+    dotrows('ctyBars', cty.map(function (e) {
+      return { label: e[0], key: e[0], rows: e[1], note: new Set(e[1].map(function (d) { return d.org; })).size + ' institution(s) · click to filter' };
     }), { click: function (it) { S.country = S.country === it.key ? null : it.key; render(); } });
-    var inst = topBy(rows.filter(function (d) { return d.lead === 'I'; }), function (d) { return shortOrg(d.org); }, 10);
-    hbars('instBars', inst.map(function (e) {
-      return { label: e[0], note: new Set(e[1].map(function (d) { return d.country || 'Regional / global'; })).size + ' countries or regional', parts: [{ name: 'Institution-led examples', color: LEAD.I.color, n: e[1].length }] };
+    var inst = topBy(rows.filter(function (d) { return d.lead === 'I'; }), function (d) { return shortOrg(d.org) || 'Not named'; }, 10);
+    dotrows('instBars', inst.map(function (e) {
+      return { label: e[0], rows: e[1], note: new Set(e[1].map(function (d) { return d.country || 'Regional / global'; })).size + ' countries or regional' };
     }));
   }
   function shortOrg(o) { var m = String(o).match(/\(([A-Z][A-Za-z&\-]{1,12})\)\s*$/); return m ? m[1] : o; }
   function renderMulti(el, field) {
     var rows = current(), tally = {};
     rows.forEach(function (d) { d[field].forEach(function (s) { (tally[s] = tally[s] || []).push(d); }); });
-    var items = Object.keys(tally).map(function (k) { return { label: k, parts: leadParts(tally[k]), note: pct(tally[k].length, rows.length) + ' of examples' }; })
-      .sort(function (a, b) { return (b.parts[0].n + b.parts[1].n) - (a.parts[0].n + a.parts[1].n); }).slice(0, 9);
-    hbars(el, items);
+    var items = Object.keys(tally).map(function (k) { return { label: k, rows: tally[k], note: pct(tally[k].length, rows.length) + ' of examples' }; })
+      .sort(function (a, b) { return b.rows.length - a.rows.length; }).slice(0, 9);
+    dotrows(el, items);
   }
 
   // ---------- feed ----------
