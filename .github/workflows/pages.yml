@@ -16,9 +16,12 @@ permissions:
   pages: write
   id-token: write
 
+# Publishes queue rather than overlap: GitHub Pages refuses a new deployment while the previous one is
+# still being processed, which happens when submissions (or pushes) come in quick succession.
+# Only the newest waiting run is kept, so the site always ends on the latest data.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -27,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Collect the page and its files
@@ -60,4 +63,12 @@ jobs:
         with:
           path: _site
       - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      # if Pages was still busy finishing the previous deployment, wait and try once more
+      - name: Wait before retrying the deployment
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 90
+      - id: deploy_retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
