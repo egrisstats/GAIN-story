@@ -20,18 +20,17 @@
   --ink-2: #cfe0f4;
   --ink-3: #8b98b3;
   --accent: #f06667;
-  /* lead (validated on #0e1b3d: CVD ΔE 16.2, normal 18.1) */
-  --country: #4a7fd4;
-  --inst: #1ea58a;
-  /* Recommendations (validated: CVD ΔE 13.2, normal 16.9) */
-  --irrs: #9174e3;
-  --iris: #d07a35;
-  --iross: #cf4f8c;
+  /* the story's colours: lead, then the Recommendations (as in 'Counted, and counting') */
+  --country: #5b8fd9;
+  --inst: #4cc3c9;
+  --irrs: #8db8e3;
+  --iris: #3f78d6;
+  --iross: #e3c3a0;
   --mixed: #d7dde6;
-  --undet: #8b98b3;
+  --undet: #6b7a99;
   --none: #34446b;
-  --land: #172a55;
-  --ocean: #0c1838;
+  --land: rgba(207,224,244,0.16);
+  --ocean: #14295a;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--ink); }
@@ -105,7 +104,7 @@ svg text { fill: var(--ink-3); font: 400 11px "IBM Plex Sans", sans-serif; }
 #globeBox { position: relative; height: 560px; touch-action: none; }
 #globe { width: 100%; height: 100%; cursor: grab; }
 #globe:active { cursor: grabbing; }
-.country { stroke: #0a1430; stroke-width: .5; cursor: pointer; }
+.country { stroke: rgba(10,22,52,0.9); stroke-width: .4; cursor: pointer; }
 .country:hover { stroke: #fff; stroke-width: 1; }
 .country.sel { stroke: #fff; stroke-width: 1.6; }
 .pulse { fill: var(--accent); }
@@ -135,6 +134,8 @@ svg text { fill: var(--ink-3); font: 400 11px "IBM Plex Sans", sans-serif; }
 .dr { display: grid; grid-template-columns: minmax(0, 0.9fr) 2.3fr 62px; gap: 10px; align-items: center; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid #15264c; }
 .dr:last-child { border-bottom: 0; }
 .dr.click { cursor: pointer; }
+.dr.wg { grid-template-columns: 52px minmax(0, 0.8fr) 2.3fr 62px; padding: 4px 0; }
+.dr canvas.mg { width: 52px; height: 52px; display: block; }
 .dr.click:hover .lab, .dr.click:focus-visible .lab { color: #fff; text-decoration: underline; }
 .dr:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 2px; }
 .hbars .dr .lab { white-space: normal; text-overflow: clip; color: var(--ink-2); line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
@@ -376,16 +377,32 @@ footer a { color: var(--ink-2); }
     'Tuvalu': [179.2, -8.5], 'Kiribati': [173, 1.9], 'Nauru': [166.9, -0.5], 'Samoa': [-172.1, -13.8], 'Tonga': [-175.2, -21.2],
     'Singapore': [103.8, 1.35], 'Bahrain': [50.55, 26.07], 'Comoros': [43.3, -11.7], 'Mauritius': [57.55, -20.3], 'Cabo Verde': [-23.6, 15.1],
     'Seychelles': [55.45, -4.6], 'Andorra': [1.6, 42.5], 'Monaco': [7.42, 43.74], 'San Marino': [12.45, 43.94], 'Barbados': [-59.55, 13.15] };
-  var REG = {
-    'Sub-Saharan Africa': 'Angola Benin Botswana|Burkina Faso|Burundi|Cabo Verde|Cameroon|Central African Rep.|Chad|Comoros|Congo|Dem. Rep. Congo|Côte d\'Ivoire|Djibouti|Eq. Guinea|Eritrea|eSwatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Madagascar|Malawi|Mali|Mauritania|Mauritius|Mozambique|Namibia|Niger|Nigeria|Rwanda|Senegal|Seychelles|Sierra Leone|Somalia|Somaliland|South Africa|S. Sudan|Sudan|Tanzania|Togo|Uganda|Zambia|Zimbabwe',
-    'Middle East and North Africa': 'Algeria|Bahrain|Egypt|Iraq|Iran|Israel|Jordan|Kuwait|Lebanon|Libya|Morocco|Oman|Palestine|Qatar|Saudi Arabia|Syria|Tunisia|United Arab Emirates|W. Sahara|Yemen',
-    'Asia and the Pacific': 'Afghanistan|Australia|Bangladesh|Bhutan|Brunei|Cambodia|China|Fiji|India|Indonesia|Japan|Kiribati|Laos|Malaysia|Maldives|Marshall Islands|Mongolia|Myanmar|Nauru|Nepal|New Zealand|North Korea|Pakistan|Papua New Guinea|Philippines|Samoa|Singapore|Solomon Is.|South Korea|Sri Lanka|Taiwan|Thailand|Timor-Leste|Tonga|Tuvalu|Vanuatu|Vietnam',
-    'Europe and Central Asia': 'Albania|Andorra|Armenia|Austria|Azerbaijan|Belarus|Belgium|Bosnia and Herz.|Bulgaria|Croatia|Cyprus|Czechia|Denmark|Estonia|Finland|France|Georgia|Germany|Greece|Hungary|Iceland|Ireland|Italy|Kazakhstan|Kosovo|Kyrgyzstan|Latvia|Liechtenstein|Lithuania|Luxembourg|Macedonia|Malta|Moldova|Monaco|Montenegro|Netherlands|Norway|Poland|Portugal|Romania|Russia|San Marino|Serbia|Slovakia|Slovenia|Spain|Sweden|Switzerland|Tajikistan|Turkey|Turkmenistan|Ukraine|United Kingdom|Uzbekistan',
-    'Americas': 'Argentina|Bahamas|Barbados|Belize|Bolivia|Brazil|Canada|Chile|Colombia|Costa Rica|Cuba|Dominican Rep.|Ecuador|El Salvador|Guatemala|Guyana|Haiti|Honduras|Jamaica|Mexico|Nicaragua|Panama|Paraguay|Peru|Puerto Rico|Suriname|Trinidad and Tobago|United States of America|Uruguay|Venezuela'
-  };
-  var REGOF = {};
-  Object.keys(REG).forEach(function (r) { REG[r].replace('Angola Benin Botswana', 'Angola|Benin|Botswana').split('|').forEach(function (c) { REGOF[c] = r; }); });
-  var REGIONS = Object.keys(REG).concat(['Regional / global']);
+  // the five GAIN regions of the story, drawn as lon/lat outlines; a country belongs to the one holding its centroid
+  var STORY_REG = [
+    { name: 'Africa', at: [18, 4], poly: [[-20, 38], [10, 38], [32, 32], [35, 29], [43, 12], [52, 12], [52, -36], [-20, -36]] },
+    { name: 'Europe', at: [18, 48], poly: [[-30, 72], [60, 72], [60, 42], [42, 42], [26, 41], [27, 36], [-10, 35], [-30, 40]] },
+    { name: 'Americas', at: [-80, 10], poly: [[-180, 84], [-30, 84], [-30, -58], [-180, -58]] },
+    { name: 'Asia and Oceania', at: [105, 15], poly: [[60, 84], [180, 84], [180, -58], [105, -58], [95, 6], [60, 20], [62, 40], [60, 42]] },
+    { name: 'Middle East', at: [45, 28], poly: [[32, 32], [35, 29], [43, 12], [60, 12], [62, 26], [62, 40], [42, 42], [26, 41], [27, 36]] }
+  ];
+  var REGIONS = STORY_REG.map(function (r) { return r.name; }).concat(['Regional / global']);
+  function inPoly(pt, poly) {
+    var x = pt[0], y = pt[1], inside = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  var CENTROID = {}; // filled when the world map has loaded
+  function regionOf(mn) {
+    if (!mn) return 'Regional / global';
+    var c = CENTROID[mn] || POINTS[mn];
+    if (!c) return 'Other';
+    for (var k = 0; k < STORY_REG.length; k++) if (inPoly(c, STORY_REG[k].poly)) return STORY_REG[k].name;
+    return 'Other';
+  }
+  function assignRegions() { S.rows.forEach(function (d) { if (!d.fixedRegion) d.region = regionOf(d.mn); }); }
   function mapName(c) { return ALIAS[c] || c; }
 
   // ---------- state ----------
@@ -417,9 +434,9 @@ footer a { color: var(--ink-2); }
       var rec = codes.length > 1 ? 'Mixed' : codes.length === 1 ? codes[0] : /undetermined|unspecified|not specified/i.test(recTxt) ? 'Undetermined' : 'None';
       var country = String(get(o, ['country', 'country_name'])).trim();
       var mn = country ? mapName(country) : '';
-      var region = get(o, ['region']) || (mn ? (REGOF[mn] || 'Other') : 'Regional / global');
+      var given = get(o, ['region']), region = given || regionOf(mn);
       return {
-        i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
+        fixedRegion: !!given, i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
         title: get(o, ['title', 'example_title']), rec: rec, codes: codes, recTxt: recTxt,
@@ -459,6 +476,7 @@ footer a { color: var(--ink-2); }
       if (!S.demo) fetch(res.url.replace(/\.csv(\?|$)/, '_meta.json$1') + (res.url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; }).then(function (m) { if (m && m.pulled_at) { S.pulledAt = new Date(m.pulled_at); setUpdated(); } }).catch(function () {});
       setUpdated();
+      assignRegions();
       buildRegionSelect();
       render();
     }).catch(function (e) {
@@ -594,7 +612,9 @@ footer a { color: var(--ink-2); }
     // cumulative per lead at every submission time
     var pts = [{ t: x.domain()[0], C: 0, I: 0 }], c = 0, ii = 0;
     rows.forEach(function (d) { if (d.lead === 'C') c++; else ii++; pts.push({ t: d.t, C: c, I: ii }); });
-    var endT = S.demo ? x.domain()[1] : new Date(Math.min(Date.now(), x.domain()[1]));
+    // close the shape at now (live) or the end of the window, never before the last submission
+    var lastT = rows.length ? rows[rows.length - 1].t : x.domain()[0];
+    var endT = new Date(Math.max(+lastT, S.demo ? +x.domain()[1] : Math.min(Date.now(), +x.domain()[1])));
     pts.push({ t: endT, C: c, I: ii });
     var yMax = Math.max(CONFIG.bench * 1.08, c + ii + 4);
     var y = d3.scaleLinear().domain([0, yMax]).nice().range([H - m.b, m.t]);
@@ -697,7 +717,10 @@ footer a { color: var(--ink-2); }
   var proj, path, counts = {}, cmax = 1, color;
   function setupGlobe(topo) {
     world = topojson.feature(topo, topo.objects.countries).features.filter(function (f) { return f.properties.name !== 'Antarctica'; });
-    world.forEach(function (f) { f.c = d3.geoCentroid(f); });
+    world.forEach(function (f) { f.c = d3.geoCentroid(f); CENTROID[f.properties.name] = f.c; });
+    // a few centroids fall outside their country's region outline: France's overseas territories, Russia
+    CENTROID['France'] = [2.5, 46.5]; CENTROID['Russia'] = [40, 56]; CENTROID['Norway'] = [10, 61];
+    if (S.rows.length) { assignRegions(); buildRegionSelect(); render(); }
     var drag = d3.drag()
       .on('start', function () { spin = false; })
       .on('drag', function (ev) {
@@ -707,6 +730,12 @@ footer a { color: var(--ink-2); }
       .on('end', function () { lastInteract = Date.now(); });
     gSvg.call(drag);
     gSvg.on('wheel', function (ev) { if (!ev.ctrlKey && !ev.metaKey) return; ev.preventDefault(); scaleK = Math.max(.8, Math.min(5, scaleK * (ev.deltaY < 0 ? 1.1 : .9))); drawGlobe(); }, { passive: false });
+    var defs = gSvg.append('defs');
+    var ag = defs.append('radialGradient').attr('id', 'atmo');
+    [[0.80, 'rgba(76,195,201,0.32)'], [0.86, 'rgba(76,195,201,0.10)'], [1, 'rgba(76,195,201,0)']].forEach(function (st) { ag.append('stop').attr('offset', st[0]).attr('stop-color', st[1]); });
+    var og = defs.append('radialGradient').attr('id', 'oceanLit').attr('cx', '31%').attr('cy', '29%').attr('r', '80%');
+    [[0, '#22468c'], [0.55, '#14295a'], [1, '#0a1634']].forEach(function (st) { og.append('stop').attr('offset', st[0]).attr('stop-color', st[1]); });
+    gSvg.append('circle').attr('class', 'atmo');
     gSvg.append('circle').attr('class', 'ocean');
     gSvg.append('path').attr('class', 'grat');
     gSvg.append('g').attr('class', 'lands');
@@ -732,7 +761,7 @@ footer a { color: var(--ink-2); }
     counts = {};
     current({ country: true }).forEach(function (d) { if (d.mn) counts[d.mn] = (counts[d.mn] || 0) + 1; });
     cmax = Math.max(1, d3.max(Object.values(counts)) || 1);
-    color = d3.scaleSequentialSqrt(d3.interpolateLab('#2b5aa8', '#d9e9ff')).domain([1, Math.max(2, cmax)]);
+    color = d3.scaleSequentialSqrt(d3.interpolateLab('#5b8fd9', '#e8f2ff')).domain([1, Math.max(2, cmax)]);
     document.getElementById('rampBar').style.background = 'linear-gradient(90deg,' + d3.range(0, 1.01, .25).map(function (k) { return color(1 + k * (Math.max(2, cmax) - 1)); }).join(',') + ')';
     document.getElementById('rampMax').textContent = cmax;
     var noC = current().filter(function (d) { return !d.mn; }).length;
@@ -753,9 +782,10 @@ footer a { color: var(--ink-2); }
     if (!world) return;
     sizeProj();
     var isG = S.proj === 'globe';
+    gSvg.select('.atmo').attr('cx', isG ? proj.translate()[0] : -999).attr('cy', proj.translate()[1]).attr('r', isG ? proj.scale() * 1.2 : 0).attr('fill', 'url(#atmo)');
     gSvg.select('.ocean').attr('cx', isG ? proj.translate()[0] : -999).attr('cy', proj.translate()[1]).attr('r', isG ? proj.scale() : 0)
-      .attr('fill', C('ocean')).attr('stroke', '#2b4174');
-    gSvg.select('.grat').attr('d', path(d3.geoGraticule10())).attr('fill', 'none').attr('stroke', '#16264d').attr('stroke-width', .5);
+      .attr('fill', 'url(#oceanLit)');
+    gSvg.select('.grat').attr('d', path(d3.geoGraticule10())).attr('fill', 'none').attr('stroke', 'rgba(207,224,244,0.07)').attr('stroke-width', .5);
     gSvg.select('.lands').selectAll('path').data(world, function (f) { return f.properties.name; }).join(function (en) {
       return en.append('path').attr('class', 'country')
         .on('mousemove', function (ev, f) { tipCountry(ev, f.properties.name); })
@@ -997,7 +1027,8 @@ footer a { color: var(--ink-2); }
     box.innerHTML = items.map(function (it, k) {
       var v = it.rows.slice().sort(function (a, b) { return d3.ascending(a.lead, b.lead) || d3.ascending(a.rec === 'None', b.rec === 'None'); });
       var using = v.filter(function (d) { return d.rec !== 'None'; }).length;
-      return '<div class="dr' + (opts.click ? ' click' : '') + '" data-k="' + k + '"' + (opts.click ? ' tabindex="0" role="button"' : '') + '>' +
+      return '<div class="dr' + (opts.click ? ' click' : '') + (it.globe != null ? ' wg' : '') + '" data-k="' + k + '"' + (opts.click ? ' tabindex="0" role="button"' : '') + '>' +
+        (it.globe != null ? '<canvas class="mg" data-reg="' + it.globe + '" aria-hidden="true"></canvas>' : '') +
         '<span class="lab" title="' + esc(it.label) + '">' + esc(it.label) + '</span><span class="pts">' +
         v.map(function (d, j) {
           var c = LEAD[d.lead].color, on = d.rec !== 'None';
@@ -1025,12 +1056,50 @@ footer a { color: var(--ink-2); }
   }
   function renderRegions() {
     var rows = current({ reg: true });
-    var items = REGIONS.concat(['Other']).map(function (r) { return { label: r, key: r, rows: rows.filter(function (d) { return d.region === r; }) }; })
+    var items = REGIONS.concat(['Other']).map(function (r, i) { return { label: r, key: r, globe: i < STORY_REG.length ? i : (r === 'Regional / global' ? -1 : null), rows: rows.filter(function (d) { return d.region === r; }) }; })
       .filter(function (it) { return it.rows.length; })
       .sort(function (a, b) { return b.rows.length - a.rows.length; });
     items.forEach(function (it) { it.note = S.reg === it.key ? 'Click again to clear' : 'Click to filter'; });
     dotrows('regBars', items, { click: function (it) { S.reg = S.reg === it.key ? 'all' : it.key; document.getElementById('fReg').value = S.reg; render(); } });
+    document.querySelectorAll('#regBars .dr').forEach(function (r) {
+      var it = items[+r.dataset.k];
+      r.addEventListener('mouseenter', function () { miniPick = it.globe; });
+      r.addEventListener('mouseleave', function () { miniPick = null; });
+    });
   }
+  // small globes, as in the story's regions chart: each rocks about its region, the region's land lit,
+  // countries with examples brighter; the row under the pointer swings wider and quicker
+  var miniPick = null;
+  function drawMinis(time) {
+    if (!world) return;
+    var cvs = document.querySelectorAll('#regBars canvas.mg');
+    if (!cvs.length) return;
+    var still = matchMedia('(prefers-reduced-motion: reduce)').matches, dpr = devicePixelRatio || 1;
+    cvs.forEach(function (cv) {
+      // -1: regional or global examples, the whole world faintly lit and turning slowly
+      var k = +cv.dataset.reg, all = k < 0, RG = all ? { at: [0, 10] } : STORY_REG[k], me = miniPick === k, size = cv.clientWidth || 52;
+      if (cv.width !== Math.round(size * dpr)) { cv.width = cv.height = Math.round(size * dpr); }
+      var ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, size, size);
+      var t = still ? 0 : time, R = size / 2 - 3;
+      var lon = all ? (t * (me ? 0.03 : 0.01)) % 360 : RG.at[0] + (me ? 40 * Math.sin(t * 0.0012 + k * 1.7) : 35 * Math.sin(t * 0.00045 + k * 1.7));
+      var lat = Math.max(-25, Math.min(45, RG.at[1] * 0.85));
+      var pr = d3.geoOrthographic().clipAngle(90).translate([size / 2, size / 2]).scale(R).rotate([-lon, -lat]);
+      var gp = d3.geoPath(pr, ctx);
+      if (me) { ctx.fillStyle = 'rgba(76,195,201,0.18)'; ctx.beginPath(); ctx.arc(size / 2, size / 2, R + 3, 0, 6.2832); ctx.fill(); }
+      var og = ctx.createRadialGradient(size / 2 - R * 0.35, size / 2 - R * 0.4, R * 0.05, size / 2, size / 2, R);
+      og.addColorStop(0, '#22468c'); og.addColorStop(1, '#0a1634');
+      ctx.fillStyle = og; ctx.beginPath(); ctx.arc(size / 2, size / 2, R, 0, 6.2832); ctx.fill();
+      world.forEach(function (f) {
+        var n = f.properties.name, inReg = all || (f.reg || (f.reg = regionOf(n))) === RG.name;
+        ctx.beginPath(); gp(f);
+        ctx.fillStyle = all ? 'rgba(76,195,201,0.45)' : inReg ? (counts[n] ? '#e8f2ff' : 'rgba(76,195,201,0.75)') : 'rgba(207,224,244,0.16)';
+        ctx.fill();
+      });
+      ctx.strokeStyle = me ? 'rgba(207,224,244,0.9)' : 'rgba(207,224,244,0.35)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(size / 2, size / 2, R, 0, 6.2832); ctx.stroke();
+    });
+  }
+  (function miniLoop(time) { if (!document.hidden) drawMinis(time || 0); setTimeout(function () { requestAnimationFrame(miniLoop); }, 40); })();
   function topBy(rows, key, n) {
     return d3.rollups(rows, function (v) { return v; }, key).sort(function (a, b) { return b[1].length - a[1].length || d3.ascending(a[0], b[0]); }).slice(0, n);
   }
