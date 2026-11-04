@@ -55,6 +55,17 @@ button, select, input { font: inherit; color: var(--ink); }
 .btn:hover { border-color: #3a5288; }
 .btn:focus-visible, select:focus-visible, input:focus-visible, .seg button:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 1px; }
 
+.snow { position: relative; height: 190px; border-radius: 12px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--line);
+  background: radial-gradient(120% 140% at 80% 0%, #13275a 0%, #0b1736 55%, #081129 100%); }
+.snow canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.snow .over { position: absolute; left: 0; top: 0; bottom: 0; padding: 22px 26px; width: min(440px, 70%); pointer-events: none;
+  background: linear-gradient(90deg, rgba(8,17,41,.92) 0%, rgba(8,17,41,.75) 60%, rgba(8,17,41,0) 100%); }
+.snow .big { font: 600 44px/1 "IBM Plex Sans", sans-serif; color: #fff; font-variant-numeric: tabular-nums; }
+.snow .big small { font-size: 15px; font-weight: 400; color: var(--ink-2); margin-left: 6px; }
+.snow .cap { font-size: 13px; color: var(--ink-2); margin-top: 6px; max-width: 340px; }
+.snow .keys { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11.5px; color: var(--ink-2); margin-top: 12px; }
+.snow .k { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+@media (max-width: 720px) { .snow { height: 170px; } .snow .over { width: 100%; padding: 16px; } .snow .big { font-size: 34px; } }
 .demo { display: none; background: rgba(240,102,103,.12); border: 1px solid rgba(240,102,103,.5); color: #ffd6d6; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; margin-bottom: 14px; }
 .demo b { color: #fff; }
 
@@ -171,6 +182,19 @@ footer a { color: var(--ink-2); }
     </div>
     <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading…</span><button class="btn" id="refreshBtn" type="button">Refresh</button></div>
   </header>
+
+  <section class="snow" aria-label="Every GAIN 2026 example as a point of light">
+    <canvas id="snowCv"></canvas>
+    <div class="over">
+      <div class="big" id="snowN">–</div>
+      <div class="cap" id="snowCap">Every point of light is a GAIN 2026 example; the faint ones are still to come to match GAIN 2025.</div>
+      <div class="keys">
+        <span><i class="k" style="background:var(--country);box-shadow:0 0 6px var(--country)"></i>Country-led</span>
+        <span><i class="k" style="background:var(--inst);box-shadow:0 0 6px var(--inst)"></i>Institution-led</span>
+        <span><i class="k" style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using, or don’t know</span>
+      </div>
+    </div>
+  </section>
 
   <div class="demo" id="demo"><b>Demo data.</b> No live feed is connected yet, so this page shows a simulated 2026 round built from GAIN 2024–2025 answers (titles start with “[demo]”). Point it at the live export with <span class="mono">?src=&lt;csv or json url&gt;</span> or by placing <span class="mono">data/gain2026.csv</span> next to this page.</div>
 
@@ -472,6 +496,63 @@ footer a { color: var(--ink-2); }
       return '<div class="kpi"><div class="k">' + t.k + '</div><div class="v">' + t.v + '</div><div class="s">' + t.s + '</div>' + bar + '</div>';
     }).join('');
   }
+
+  // ---------- points of light (the story's opening "snow") ----------
+  // one dot per example, filled if it uses the Recommendations, a ring if not, coloured by lead;
+  // faint dots stand for the GAIN 2025 examples still to come; the newest glint
+  var snow = { list: [], ghosts: 0, hover: null };
+  var snowCv = document.getElementById('snowCv'), snowCtx = snowCv.getContext('2d');
+  function hash(i, k) { var a = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return a - Math.floor(a); }
+  function hexRgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+  function renderSnow() {
+    var rows = current(), dayAgo = new Date(+S.asOf - 864e5);
+    snow.list = rows.map(function (d) { return { d: d, seed: d.i + 1, fresh: d.t > dayAgo }; });
+    snow.ghosts = Math.max(0, CONFIG.bench - rows.length);
+    document.getElementById('snowN').innerHTML = rows.length + '<small>' + (rows.length === 1 ? 'example' : 'examples') + ' counted so far</small>';
+    document.getElementById('snowCap').textContent = rows.length >= CONFIG.bench
+      ? 'Every point of light is a GAIN 2026 example: already more than the ' + CONFIG.bench + ' of GAIN 2025.'
+      : 'Every point of light is a GAIN 2026 example; the ' + snow.ghosts + ' faint ones are still to come to match GAIN 2025 (' + CONFIG.bench + ').';
+  }
+  function snowPos(seed, W, H, time) {
+    var h = function (k) { return hash(seed, k); }, span = H + 30, spd = 0.006 + h(3) * 0.012;
+    return { x: h(1) * W + Math.sin(time * 0.001 * (0.35 + h(5) * 0.8) + h(6) * 6.28) * (6 + h(4) * 14),
+             y: ((h(2) * span + time * spd) % span) - 15, r: 2 + h(7) * 2.2 };
+  }
+  var RGB = { C: hexRgb(LEAD.C.color), I: hexRgb(LEAD.I.color) };
+  function drawSnow(time) {
+    var W = snowCv.clientWidth, H = snowCv.clientHeight, dpr = devicePixelRatio || 1;
+    if (snowCv.width !== Math.round(W * dpr)) { snowCv.width = Math.round(W * dpr); snowCv.height = Math.round(H * dpr); }
+    var ctx = snowCtx; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    var still = matchMedia('(prefers-reduced-motion: reduce)').matches, t = still ? 0 : time;
+    for (var g = 0; g < snow.ghosts; g++) {
+      var q = snowPos(10000 + g, W, H, t);
+      ctx.beginPath(); ctx.arc(q.x, q.y, q.r * 0.8, 0, 6.2832); ctx.fillStyle = 'rgba(207,224,244,0.13)'; ctx.fill();
+    }
+    snow.list.forEach(function (o) {
+      var p = snowPos(o.seed, W, H, t), c = RGB[o.d.lead], using = o.d.rec !== 'None';
+      o.x = p.x; o.y = p.y; o.r = p.r;
+      var col = 'rgba(' + c.join(',') + ',1)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832);
+      if (using) { ctx.shadowColor = col; ctx.shadowBlur = still ? 0 : 7; ctx.fillStyle = col; ctx.fill(); ctx.shadowBlur = 0; }
+      else { ctx.lineWidth = 1.4; ctx.strokeStyle = 'rgba(' + c.join(',') + ',0.95)'; ctx.stroke(); }
+      if (o.fresh && !still) { // a short glint at a steady rhythm, as on the story's examples with a cover
+        var ph = ((time * 0.001 + hash(o.seed, 9) * 3) % 3) / 3;
+        if (ph < 0.25) { var a = 1 - ph / 0.25; ctx.beginPath(); ctx.arc(p.x, p.y, p.r + 2 + ph * 26, 0, 6.2832); ctx.strokeStyle = 'rgba(255,255,255,' + (0.7 * a).toFixed(3) + ')'; ctx.lineWidth = 1.2; ctx.stroke(); }
+      }
+      if (snow.hover === o) { ctx.beginPath(); ctx.arc(p.x, p.y, p.r + 4, 0, 6.2832); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); }
+    });
+  }
+  (function loop(time) { if (!document.hidden) drawSnow(time || 0); requestAnimationFrame(loop); })();
+  snowCv.addEventListener('mousemove', function (ev) {
+    var b = snowCv.getBoundingClientRect(), mx = ev.clientX - b.left, my = ev.clientY - b.top, best = null, bd = 12;
+    snow.list.forEach(function (o) { var dd = Math.hypot(o.x - mx, o.y - my); if (dd < bd) { bd = dd; best = o; } });
+    snow.hover = best;
+    if (!best) { hideTip(); return; }
+    var d = best.d;
+    showTip('<b>' + esc(d.country || 'Regional / global') + '</b> · ' + LEAD[d.lead].name + '<div>' + esc(d.org) + '</div><div class="muted" style="margin:3px 0">' + esc(d.title) + '</div>' +
+      '<span class="tag"><i style="background:' + RECBY[d.rec].color + '"></i>' + (d.codes.length ? d.codes.join(' + ') : RECBY[d.rec].name) + '</span><div class="muted" style="margin-top:3px">Submitted ' + fmtTime(d.t) + '</div>', ev);
+  });
+  snowCv.addEventListener('mouseleave', function () { snow.hover = null; hideTip(); });
 
   // ---------- timeline ----------
   function xDomain() {
@@ -953,7 +1034,7 @@ footer a { color: var(--ink-2); }
     var chip = document.getElementById('countryChip');
     chip.style.display = S.country ? 'inline-flex' : 'none';
     document.getElementById('countryChipTxt').textContent = S.country || '';
-    var asOfTxt = S.asOf < latest() ? ' · viewing as of ' + fmtFull(S.asOf) : '';
+    var asOfTxt = S.asOf < latest() - 3e5 ? ' · viewing as of ' + fmtFull(S.asOf) : '';
     document.getElementById('globeSub').textContent = 'Examples per country' + asOfTxt + ' · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter';
   }
 
@@ -961,6 +1042,7 @@ footer a { color: var(--ink-2); }
     if (!S.rows.length && !S.loadedAt) return;
     syncControls();
     renderKPIs();
+    renderSnow();
     renderTimeline();
     computeCounts();
     drawGlobe();
@@ -979,7 +1061,8 @@ footer a { color: var(--ink-2); }
     .catch(function () { document.getElementById('globeSub').textContent = 'The world map could not be loaded.'; });
   load();
   setInterval(load, CONFIG.refreshMin * 6e4);
-  setInterval(function () { if (!S.demo && S.asOf >= latest() - 6e4) { S.asOf = latest(); renderKPIs(); } }, 6e4);
+  // live data: keep following the present unless the viewer has gone back in time on the timeline
+  setInterval(function () { if (!S.demo && !playTimer && S.asOf >= latest() - 3e5) { S.asOf = latest(); render(); } }, 6e4);
 })();
 </script>
 </body>
