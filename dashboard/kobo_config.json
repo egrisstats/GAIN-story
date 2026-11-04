@@ -1,16 +1,25 @@
 {
-  "_note": "Fill in from the GAIN 2026 form in Kobo. Question names are the 'name' column of the XLSForm (not the labels). The API token is never stored here: it comes from the KOBO_TOKEN secret.",
-  "server": "https://kf.kobotoolbox.org",
-  "asset_uid": "FILL-IN-form-uid",
-  "examples_repeat": "examples",
+  "_note": "GAIN 2026 form 'Global Annual Inclusion Survey 2026' on UNHCR Kobo. Question names are the 'name' column of the XLSForm. The API token is never stored here: it comes from the KOBO_TOKEN secret. Nothing in the FOC section (focal points: names, positions, emails) is ever read.",
+  "server": "https://kobo.unhcr.org",
+  "asset_uid": "aV7FR8eJgE6AssQUMxKwDZ",
+  "blocked_groups": ["FOC"],
+  "examples_repeat": "group_roster",
   "fields": {
-    "country": "country",
-    "organisation": "organisation",
-    "lead": "lead",
-    "title": "example_title",
-    "recommendations": "recommendations",
-    "data_source": "data_source",
-    "population_groups": "population_groups"
+    "country": ["PRO03C", "Country"],
+    "organisation": ["organization"],
+    "title": ["_PRO02A"],
+    "recommendations": ["PRO10"],
+    "data_source": ["PRO08", "PRO08B"],
+    "population_groups": ["PRO07"]
   },
+  "combine": ["data_source"],
+  "lead": {
+    "respondent_type": "LOC01",
+    "country_led": ["01"],
+    "example_lead": "PRO03D",
+    "example_country_led": ["01"],
+    "example_institution_led": ["02"]
+  },
+  "no_country_scope": { "field": "PRO03B", "codes": ["01", "02"] },
   "skip_validation_status": ["validation_status_not_approved"]
 }

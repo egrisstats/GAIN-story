@@ -379,7 +379,8 @@ footer a { color: var(--ink-2); }
       var mn = country ? mapName(country) : '';
       var region = get(o, ['region']) || (mn ? (REGOF[mn] || 'Other') : 'Regional / global');
       return {
-        i: i, id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
+        i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
+        id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
         title: get(o, ['title', 'example_title']), rec: rec, codes: codes, recTxt: recTxt,
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
@@ -441,22 +442,25 @@ footer a { color: var(--ink-2); }
     if (!skip.country && S.country && d.mn !== S.country) return false;
     return true;
   }
-  function current(skip) { return S.rows.filter(function (d) { return d.t <= S.asOf && passFilters(d, skip); }); }
+  // examples only; responses(): every response, including those that report no new example
+  function current(skip) { return S.rows.filter(function (d) { return d.kind === 'example' && d.t <= S.asOf && passFilters(d, skip); }); }
+  function responses() { return S.rows.filter(function (d) { return d.t <= S.asOf && passFilters(d, { rec: true }); }); }
 
   // ---------- KPIs ----------
   function renderKPIs() {
-    var rows = current();
-    var resp = new Set(rows.map(function (d) { return d.id; })).size;
+    var rows = current(), allResp = responses();
+    var resp = new Set(allResp.map(function (d) { return d.id; })).size;
+    var noEx = new Set(allResp.filter(function (d) { return d.kind === 'response'; }).map(function (d) { return d.id; })).size;
     var ctry = new Set(rows.filter(function (d) { return d.mn; }).map(function (d) { return d.mn; })).size;
     var nC = rows.filter(function (d) { return d.lead === 'C'; }).length, nI = rows.length - nC;
     var using = rows.filter(function (d) { return d.rec !== 'None'; }).length;
     var dayAgo = new Date(+S.asOf - 864e5);
-    var last24 = new Set(rows.filter(function (d) { return d.t > dayAgo; }).map(function (d) { return d.id; })).size;
+    var last24 = new Set(allResp.filter(function (d) { return d.t > dayAgo; }).map(function (d) { return d.id; })).size;
     var left = Math.ceil((CONFIG.deadline - S.asOf) / 864e5);
     var tiles = [
       { k: 'Examples', v: rows.length, s: pct(rows.length, CONFIG.bench) + ' of GAIN 2025 (' + CONFIG.bench + ')',
         bar: [[Math.min(1, rows.length / CONFIG.bench), '#cfe0f4']] },
-      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' },
+      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') },
       { k: 'Countries', v: ctry, s: 'with at least one example' },
       { k: 'Lead', v: nC + ' · ' + nI, s: '<span class="sw" style="background:var(--country)"></span>country · <span class="sw" style="background:var(--inst)"></span>institution',
         bar: rows.length ? [[nC / rows.length, LEAD.C.color], [nI / rows.length, LEAD.I.color]] : [] },
@@ -472,14 +476,16 @@ footer a { color: var(--ink-2); }
   // ---------- timeline ----------
   function xDomain() {
     var end = d3.max([CONFIG.deadline, S.rows.length ? S.rows[S.rows.length - 1].t : CONFIG.deadline, S.demo ? CONFIG.deadline : new Date()]);
-    return [CONFIG.open, d3.utcDay.ceil(new Date(+end + 1))];
+    var start = S.rows.length ? d3.utcDay.floor(d3.min([CONFIG.open, S.rows[0].t])) : CONFIG.open;
+    return [start, d3.utcDay.ceil(new Date(+end + 1))];
   }
   function renderTimeline() {
     var box = document.getElementById('timeline'), W = Math.max(260, box.clientWidth), H = 210, m = { t: 18, r: 46, b: 22, l: 34 };
-    var rows = S.rows.filter(function (d) { return passFilters(d); });
+    var allRows = S.rows.filter(function (d) { return passFilters(d, { rec: true }); });
+    var rows = S.rows.filter(function (d) { return d.kind === 'example' && passFilters(d); });
     var x = d3.scaleUtc().domain(xDomain()).range([m.l, W - m.r]);
     // cumulative per lead at every submission time
-    var pts = [{ t: CONFIG.open, C: 0, I: 0 }], c = 0, ii = 0;
+    var pts = [{ t: x.domain()[0], C: 0, I: 0 }], c = 0, ii = 0;
     rows.forEach(function (d) { if (d.lead === 'C') c++; else ii++; pts.push({ t: d.t, C: c, I: ii }); });
     var endT = S.demo ? x.domain()[1] : new Date(Math.min(Date.now(), x.domain()[1]));
     pts.push({ t: endT, C: c, I: ii });
@@ -534,7 +540,7 @@ footer a { color: var(--ink-2); }
       })
       .on('mouseleave', function () { hl.attr('opacity', 0); hideTip(); })
       .on('click', function (ev) { var t = x.invert(d3.pointer(ev)[0]); S.asOf = new Date(Math.min(t, latest())); stopPlay(); render(); });
-    renderDaily(rows, x, W);
+    renderDaily(allRows, x, W);
   }
   function cumAt(pts, t) { var p = pts[0]; for (var k = 0; k < pts.length && pts[k].t <= t; k++) p = pts[k]; return p; }
 
@@ -570,7 +576,7 @@ footer a { color: var(--ink-2); }
   function stopPlay() { if (playTimer) { playTimer.stop(); playTimer = null; } document.getElementById('playBtn').textContent = '▶ Replay'; }
   document.getElementById('playBtn').addEventListener('click', function () {
     if (playTimer) { stopPlay(); return; }
-    var a = +CONFIG.open, b = +latest(), dur = 9000;
+    var a = +xDomain()[0], b = +latest(), dur = 9000;
     this.textContent = '❚❚ Pause';
     playTimer = d3.timer(function (el) {
       var k = Math.min(1, el / dur); S.asOf = new Date(a + (b - a) * k); render(true);
@@ -739,7 +745,7 @@ footer a { color: var(--ink-2); }
     var rO = Math.max(70, Math.min(W / 2 - side, H / 2 - 14));
     // dot grid in concentric rows, dot pitch shrinking until every example fits (as in the story)
     var rowsN = N <= 130 ? 3 : 5, p, cnt, q;
-    for (p = 30; p > 3; p -= 0.25) {
+    for (p = 16; p > 3; p -= 0.25) {
       cnt = 0;
       for (q = 0; q < rowsN; q++) cnt += Math.floor(2 * Math.PI * (rO - (q + 0.5) * p) / p);
       if (cnt >= N) break;
