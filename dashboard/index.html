@@ -339,6 +339,9 @@ footer a { color: var(--ink-2); }
   var CONFIG = {
     src: params.get('src'),                      // live export (CSV or JSON); also tried: data/gain2026.csv
     live: 'data/gain2026.csv',
+    // other published copies of the same Kobo pull; the page reads whichever was taken from Kobo most recently
+    // (the mitrovif copy is refreshed by Kobo on every submission, the EGRISS copy only on a schedule)
+    mirrors: ['https://mitrovif.github.io/GAIN-story/dashboard/data/gain2026.csv', 'https://egrisstats.github.io/GAIN-story/dashboard/data/gain2026.csv'],
     demo: 'data/gain2026_DEMO.csv',
     refreshMin: +(params.get('refresh') || 2),   // re-read the feed every N minutes
     open: new Date('2026-11-03T00:00:00Z'),
@@ -455,8 +458,25 @@ footer a { color: var(--ink-2); }
       });
     });
   }
+  function metaUrl(u) { return u.replace(/\.csv(\?|$)/, '_meta.json$1'); }
+  function readMeta(u) {
+    return fetch(metaUrl(u) + (u.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+  }
+  // the freshest published Kobo pull among this site's own copy and its mirrors
+  function pickLive() {
+    var cands = [CONFIG.live].concat(CONFIG.mirrors.filter(function (m) { return new URL(m).host !== location.host; }));
+    return Promise.all(cands.map(readMeta)).then(function (ms) {
+      var best = null;
+      ms.forEach(function (m, i) { if (m && m.pulled_at && (!best || m.pulled_at > best.m.pulled_at)) best = { u: cands[i], m: m }; });
+      return best ? best.u : CONFIG.live;
+    });
+  }
   function load() {
-    var tries = CONFIG.src ? [[CONFIG.src, false]] : [[CONFIG.live, false], [CONFIG.demo, true]];
+    if (!CONFIG.src) return pickLive().then(function (u) { return loadFrom([[u, false], [CONFIG.live, false], [CONFIG.demo, true]]); });
+    return loadFrom([[CONFIG.src, false]]);
+  }
+  function loadFrom(tries) {
     var attempt = function (k) {
       if (k >= tries.length) return Promise.reject(new Error('No data source could be read'));
       return fetchTable(tries[k][0]).then(function (raw) { return { raw: raw, demo: tries[k][1], url: tries[k][0] }; })
@@ -473,8 +493,7 @@ footer a { color: var(--ink-2); }
       document.getElementById('liveDot').className = 'dot' + (S.demo ? ' off' : '');
       document.getElementById('srcNote').textContent = 'Source: ' + res.url + (S.demo ? ' (simulated)' : '') + ' · ' + rows.length + ' example rows';
       S.pulledAt = null;
-      if (!S.demo) fetch(res.url.replace(/\.csv(\?|$)/, '_meta.json$1') + (res.url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { cache: 'no-store' })
-        .then(function (r) { return r.ok ? r.json() : null; }).then(function (m) { if (m && m.pulled_at) { S.pulledAt = new Date(m.pulled_at); setUpdated(); } }).catch(function () {});
+      if (!S.demo) readMeta(res.url).then(function (m) { if (m && m.pulled_at) { S.pulledAt = new Date(m.pulled_at); setUpdated(); } }).catch(function () {});
       setUpdated();
       assignRegions();
       buildRegionSelect();
@@ -497,7 +516,7 @@ footer a { color: var(--ink-2); }
     var mins = Math.max(0, Math.round((Date.now() - S.pulledAt) / 6e4));
     var ago = mins < 1 ? 'just now' : mins < 60 ? mins + ' min ago' : Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min ago';
     el.textContent = 'Kobo data as of ' + d3.timeFormat('%H:%M')(S.pulledAt) + ' (' + ago + ') · refreshes automatically';
-    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes. GitHub takes a fresh copy from Kobo when a submission arrives (where Kobo is set to notify this site) and on a 15-minute schedule.';
+    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes. It reads whichever published copy (this site or its mirror) was taken from Kobo most recently; a fresh copy is taken when a submission arrives.';
     dot.className = 'dot' + (mins > 45 ? ' off' : '');
   }
 

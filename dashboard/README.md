@@ -84,6 +84,11 @@ submission arrives (a Kobo REST Service). It sends **no submission data**: the b
 `{"ref":"main"}`, which starts the publish workflow; the workflow then pulls from Kobo as usual. The
 page re-checks every 2 minutes, so a new response shows within about 3 minutes.
 
+Only the mitrovif copy is notified (the egrisstats organisation does not allow fine-grained tokens), and
+GitHub's schedule has in practice not run at all. So each copy of the page reads the `_meta.json` of both
+published copies and loads whichever pull is newest: the EGRISS link shows the data the mitrovif copy
+took from Kobo seconds after the submission. The list is `CONFIG.mirrors` in `index.html`.
+
 Set up on the EGRISS copy (the Teams link):
 - GitHub fine-grained token "Kobo - GAIN tracker": resource owner `egrisstats`, only the `GAIN-story`
   repository, permission **Actions: read and write** only (it can start the workflow, not change code),
