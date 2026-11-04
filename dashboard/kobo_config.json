@@ -1,0 +1,16 @@
+{
+  "_note": "Fill in from the GAIN 2026 form in Kobo. Question names are the 'name' column of the XLSForm (not the labels). The API token is never stored here: it comes from the KOBO_TOKEN secret.",
+  "server": "https://kf.kobotoolbox.org",
+  "asset_uid": "FILL-IN-form-uid",
+  "examples_repeat": "examples",
+  "fields": {
+    "country": "country",
+    "organisation": "organisation",
+    "lead": "lead",
+    "title": "example_title",
+    "recommendations": "recommendations",
+    "data_source": "data_source",
+    "population_groups": "population_groups"
+  },
+  "skip_validation_status": ["validation_status_not_approved"]
+}

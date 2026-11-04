@@ -1,11 +1,15 @@
 # Publishes the story to GitHub Pages on every push to main.
 # Only the page and the files it loads go online; review/, pipeline/ and the full-size covers stay out.
+# During GAIN 2026 collection it also runs every 15 minutes to refresh the submissions tracker
+# (dashboard/) from Kobo. The Kobo data is written into the published site only, never committed.
 name: Publish the story
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "*/15 * 3-24 11 *"   # GAIN 2026 tracker refresh, 3–24 November (UTC)
 
 permissions:
   contents: read
@@ -40,6 +44,17 @@ jobs:
           cp -r campaign _site/
           mkdir -p _site/website/gain-resources
           cp website/gain-resources/GAIN-Resources-page-update.html website/gain-resources/preview.html _site/website/gain-resources/
+          mkdir -p _site/dashboard/data _site/dashboard/assets
+          cp dashboard/index.html _site/dashboard/
+          cp -r dashboard/assets/recs _site/dashboard/assets/
+          cp dashboard/data/gain2026_DEMO.csv _site/dashboard/data/
+      - name: Pull GAIN 2026 submissions from Kobo (no respondent details)
+        # without the KOBO_TOKEN secret, or before kobo_config.json is filled in, this skips and the tracker shows demo data
+        env:
+          KOBO_TOKEN: ${{ secrets.KOBO_TOKEN }}
+        run: |
+          python3 dashboard/tools/kobo_to_csv.py
+          if [ -f dashboard/data/gain2026.csv ]; then mv dashboard/data/gain2026.csv _site/dashboard/data/; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

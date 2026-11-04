@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAIN 2026 Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0a1430;
+  --panel: #0e1b3d;
+  --panel-2: #13234b;
+  --line: #22355f;
+  --grid: #1c2d55;
+  --ink: #ffffff;
+  --ink-2: #cfe0f4;
+  --ink-3: #8b98b3;
+  --accent: #f06667;
+  /* lead (validated on #0e1b3d: CVD ΔE 16.2, normal 18.1) */
+  --country: #4a7fd4;
+  --inst: #1ea58a;
+  /* Recommendations (validated: CVD ΔE 13.2, normal 16.9) */
+  --irrs: #9174e3;
+  --iris: #d07a35;
+  --iross: #cf4f8c;
+  --mixed: #d7dde6;
+  --undet: #8b98b3;
+  --none: #34446b;
+  --land: #172a55;
+  --ocean: #0c1838;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 14px/1.45 "IBM Plex Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1480px; margin: 0 auto; padding: 18px 20px 40px; }
+h1, h2 { font-family: "IBM Plex Sans", system-ui, sans-serif; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+h1 { font-size: 24px; }
+h2 { font-size: 14px; color: var(--ink); }
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.muted { color: var(--ink-3); }
+.sub { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+
+header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; }
+.eyebrow { font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.live { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #2e9e7b; box-shadow: 0 0 0 0 rgba(46,158,123,.7); animation: beat 2s infinite; }
+.dot.off { background: var(--ink-3); animation: none; }
+@keyframes beat { 70% { box-shadow: 0 0 0 8px rgba(46,158,123,0); } 100% { box-shadow: 0 0 0 0 rgba(46,158,123,0); } }
+button, select, input { font: inherit; color: var(--ink); }
+.btn { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+.btn:hover { border-color: #3a5288; }
+.btn:focus-visible, select:focus-visible, input:focus-visible, .seg button:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 1px; }
+
+.demo { display: none; background: rgba(240,102,103,.12); border: 1px solid rgba(240,102,103,.5); color: #ffd6d6; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; margin-bottom: 14px; }
+.demo b { color: #fff; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; position: sticky; top: 0; z-index: 5; }
+.filters label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; margin-right: 6px; font-family: "IBM Plex Mono", monospace; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--ink-2); border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: #fff; box-shadow: inset 0 -2px 0 var(--ink-2); }
+select { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font-size: 12px; }
+.chip { display: none; align-items: center; gap: 6px; background: #1d3266; border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12px; }
+.chip button { background: transparent; border: 0; color: var(--ink-2); cursor: pointer; padding: 0 6px; font-size: 14px; line-height: 1; }
+.spacer { flex: 1; }
+
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.kpi .k { font: 500 11px/1.2 "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.kpi .v { font: 600 30px/1.1 "IBM Plex Sans", sans-serif; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi .s { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.kpi .bar { height: 6px; background: var(--grid); border-radius: 3px; margin-top: 8px; overflow: hidden; display: flex; gap: 2px; }
+.kpi .bar span { display: block; height: 100%; }
+.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: 0; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; margin-bottom: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; position: relative; }
+.ph { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.right-col { display: grid; gap: 14px; grid-template-rows: auto auto; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.legend span { white-space: nowrap; }
+svg { display: block; overflow: visible; }
+svg text { fill: var(--ink-3); font: 400 11px "IBM Plex Sans", sans-serif; }
+.axis path, .axis line { stroke: var(--grid); }
+.axis text { fill: var(--ink-3); }
+
+#globeBox { position: relative; height: 560px; touch-action: none; }
+#globe { width: 100%; height: 100%; cursor: grab; }
+#globe:active { cursor: grabbing; }
+.country { stroke: #0a1430; stroke-width: .5; cursor: pointer; }
+.country:hover { stroke: #fff; stroke-width: 1; }
+.country.sel { stroke: #fff; stroke-width: 1.6; }
+.pulse { fill: var(--accent); }
+.ring { fill: none; stroke: var(--accent); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: ring 2.2s ease-out infinite; }
+@keyframes ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(4); opacity: 0; } }
+.globe-ui { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; pointer-events: none; flex-wrap: wrap; }
+.globe-ui > * { pointer-events: auto; }
+.ramp { font-size: 11px; color: var(--ink-3); }
+.ramp .rbar { width: 160px; height: 8px; border-radius: 2px; margin: 4px 0 2px; }
+.ramp .rl { display: flex; justify-content: space-between; width: 160px; }
+
+.tip { position: fixed; pointer-events: none; background: #050c22; border: 1px solid #304b84; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--ink-2); max-width: 280px; z-index: 20; opacity: 0; transition: opacity .1s; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+.tip b { color: #fff; font-weight: 600; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; }
+
+.covers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.cover { display: flex; gap: 10px; align-items: flex-start; background: var(--panel-2); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: 8px; padding: 9px; color: inherit; text-decoration: none; min-width: 0; transition: border-color .15s; }
+.cover:hover, .cover:focus-visible { border-color: var(--c); outline: none; }
+.cover img { width: 46px; height: 65px; object-fit: cover; border-radius: 3px; flex: none; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+.cover .cc { font: 600 13px "IBM Plex Sans", sans-serif; color: #fff; }
+.cover .cn { font-size: 11px; color: var(--ink-3); line-height: 1.3; margin: 1px 0 5px; }
+.cover .cv { font: 500 18px "IBM Plex Mono", monospace; color: #fff; line-height: 1; }
+.cover .cs { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+#donut.focus .dot-ex { opacity: .12; }
+#donut.focus .dot-ex.on { opacity: 1; }
+@media (max-width: 720px) { .cover { flex-direction: column; } }
+.hbars .r { display: grid; grid-template-columns: minmax(0, 1fr) 2.2fr 34px; gap: 8px; align-items: center; font-size: 12.5px; padding: 3px 0; cursor: default; }
+.hbars .r.click { cursor: pointer; }
+.hbars .r.click:hover .lab { color: #fff; text-decoration: underline; }
+.hbars .lab { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbars .track { height: 12px; display: flex; gap: 2px; }
+.hbars .track span { height: 100%; display: block; }
+.hbars .track span:last-child { border-radius: 0 4px 4px 0; }
+.hbars .n { text-align: right; color: #fff; font-variant-numeric: tabular-nums; }
+.empty { color: var(--ink-3); font-size: 12.5px; padding: 18px 0; text-align: center; }
+
+.tbl-wrap { max-height: 420px; overflow: auto; border-top: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; font: 500 11px "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); position: sticky; top: 0; background: var(--panel); padding: 8px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 7px 8px; border-bottom: 1px solid #172852; color: var(--ink-2); vertical-align: top; }
+td:first-child { white-space: nowrap; color: var(--ink-3); font-family: "IBM Plex Mono", monospace; font-size: 11.5px; }
+tr.new td { background: rgba(240,102,103,.07); }
+.tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 11px; margin: 1px 2px 1px 0; background: #1b2c58; color: var(--ink-2); white-space: nowrap; }
+.tag i { display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 4px; font-style: normal; }
+input[type=search] { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; font-size: 12px; width: 220px; max-width: 100%; }
+footer { color: var(--ink-3); font-size: 12px; margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+footer a { color: var(--ink-2); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+@media (max-width: 1180px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid, .grid3 { grid-template-columns: minmax(0, 1fr); }
+  #globeBox { height: 460px; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 12px 16px 32px; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  #globeBox { height: 360px; }
+  .kpi .v { font-size: 24px; }
+  .filters { position: static; }
+  td:nth-child(6), th:nth-child(6) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ring, .dot { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">EGRISS Secretariat · internal</div>
+      <h1>GAIN 2026 · submissions tracker</h1>
+      <div class="sub">Global Annual Implementation (GAIN) survey on the use of the IRRS, IRIS and IROSS · collection 3–22 November 2026</div>
+    </div>
+    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading…</span><button class="btn" id="refreshBtn" type="button">Refresh</button></div>
+  </header>
+
+  <div class="demo" id="demo"><b>Demo data.</b> No live feed is connected yet, so this page shows a simulated 2026 round built from GAIN 2024–2025 answers (titles start with “[demo]”). Point it at the live export with <span class="mono">?src=&lt;csv or json url&gt;</span> or by placing <span class="mono">data/gain2026.csv</span> next to this page.</div>
+
+  <div class="filters" role="region" aria-label="Filters">
+    <div><label>Lead</label><span class="seg" id="fLead">
+      <button type="button" data-v="all" aria-pressed="true">All</button>
+      <button type="button" data-v="C" aria-pressed="false">Country-led</button>
+      <button type="button" data-v="I" aria-pressed="false">Institution-led</button>
+    </span></div>
+    <div><label for="fRec">Recommendations</label><select id="fRec">
+      <option value="all">All</option>
+      <option value="using">Using any</option>
+      <option value="IRRS">IRRS alone</option>
+      <option value="IRIS">IRIS alone</option>
+      <option value="IROSS">IROSS alone</option>
+      <option value="Mixed">Mixed use</option>
+      <option value="Undetermined">Undetermined</option>
+      <option value="None">Not used / don’t know</option>
+    </select></div>
+    <div><label for="fReg">Region</label><select id="fReg"><option value="all">All regions</option></select></div>
+    <span class="chip" id="countryChip"><span id="countryChipTxt"></span><button type="button" aria-label="Clear country" id="countryClear">×</button></span>
+    <span class="spacer"></span>
+    <button class="btn" type="button" id="resetBtn">Reset filters</button>
+  </div>
+
+  <section class="kpis" id="kpis" aria-label="Headline figures"></section>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="hGlobe">
+      <div class="ph">
+        <div><h2 id="hGlobe">Where submissions come from</h2><div class="sub" id="globeSub">Examples per country · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter</div></div>
+        <span class="seg" id="projSeg">
+          <button type="button" data-v="globe" aria-pressed="true">Globe</button>
+          <button type="button" data-v="flat" aria-pressed="false">Map</button>
+        </span>
+      </div>
+      <div id="globeBox">
+        <svg id="globe" role="img" aria-label="Globe of countries with GAIN 2026 submissions"></svg>
+        <div class="globe-ui">
+          <div class="ramp"><div>Examples per country</div><div class="rbar" id="rampBar"></div><div class="rl"><span>1</span><span id="rampMax">–</span></div>
+            <div style="margin-top:6px"><span class="sw" style="background:var(--accent);border-radius:50%"></span>New in the last 24 hours</div></div>
+          <div class="ramp" id="noCountry" style="text-align:right"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="right-col">
+      <section class="panel" aria-labelledby="hTime">
+        <div class="ph">
+          <div><h2 id="hTime">Timeline of submissions</h2><div class="sub">Cumulative examples by lead · click the chart to see the round as of that day</div></div>
+          <div style="display:flex;gap:6px"><button class="btn" type="button" id="playBtn">▶ Replay</button><button class="btn" type="button" id="nowBtn">Latest</button></div>
+        </div>
+        <div class="legend" style="margin-bottom:6px"><span><i class="sw" style="background:var(--country)"></i>Country-led</span><span><i class="sw" style="background:var(--inst)"></i>Institution-led</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
+        <div id="timeline"></div>
+        <div class="sub" style="margin:10px 0 2px">New responses per day</div>
+        <div id="daily"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="hRec">
+        <div class="ph">
+          <div><h2 id="hRec">Examples using the Recommendations</h2><div class="sub" id="recSub">Each dot is an example · as in the GAIN 2021–2025 story</div></div>
+          <span class="seg" id="donutSeg">
+            <button type="button" data-v="rec" aria-pressed="true">By Recommendations</button>
+            <button type="button" data-v="lead" aria-pressed="false">By lead</button>
+          </span>
+        </div>
+        <div id="donut"></div>
+        <div class="legend" id="recLegend" style="margin-top:4px"></div>
+        <div class="covers" id="recCovers"></div>
+        <div class="sub" id="recNote" style="margin-top:6px"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <section class="panel" aria-labelledby="hReg">
+      <div class="ph"><div><h2 id="hReg">Country-led and institution-led, by region</h2><div class="sub">Examples · click a region to filter</div></div></div>
+      <div id="regBars" class="hbars"></div>
+    </section>
+    <section class="panel" aria-labelledby="hCty">
+      <div class="ph"><div><h2 id="hCty">Country-led: top countries</h2><div class="sub">Examples from national institutions · click to filter</div></div></div>
+      <div id="ctyBars" class="hbars"></div>
+    </section>
+    <section class="panel" aria-labelledby="hInst">
+      <div class="ph"><div><h2 id="hInst">Institution-led: top organisations</h2><div class="sub">Examples from international and regional organisations</div></div></div>
+      <div id="instBars" class="hbars"></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="hSrc">
+      <div class="ph"><div><h2 id="hSrc">Data sources and tools</h2><div class="sub">An example can report more than one</div></div></div>
+      <div id="srcBars" class="hbars"></div>
+    </section>
+    <section class="panel" aria-labelledby="hPop">
+      <div class="ph"><div><h2 id="hPop">Population groups covered</h2><div class="sub">An example can cover more than one</div></div></div>
+      <div id="popBars" class="hbars"></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="hFeed">
+    <div class="ph">
+      <div><h2 id="hFeed">Latest submissions</h2><div class="sub" id="feedSub"></div></div>
+      <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search submissions">
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Submitted</th><th>Country</th><th>Organisation</th><th>Lead</th><th>Recommendations</th><th>Example</th></tr></thead>
+      <tbody id="feed"></tbody>
+    </table></div>
+  </section>
+
+  <footer>
+    <span id="srcNote"></span>
+    <span>Benchmarks: GAIN Tables 2025 (117 examples; 63 country-led, 54 institution-led).</span>
+    <a href="../Main.dc.html">GAIN 2021–2025 story ↗</a>
+  </footer>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+(function () {
+  'use strict';
+  // ---------- configuration ----------
+  var params = new URLSearchParams(location.search);
+  var CONFIG = {
+    src: params.get('src'),                      // live export (CSV or JSON); also tried: data/gain2026.csv
+    live: 'data/gain2026.csv',
+    demo: 'data/gain2026_DEMO.csv',
+    refreshMin: +(params.get('refresh') || 5),   // re-read the feed every N minutes
+    open: new Date('2026-11-03T00:00:00Z'),
+    deadline: new Date('2026-11-22T23:59:00Z'),
+    bench: 117,
+    world: 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json'
+  };
+  var MILESTONES = [
+    ['2026-11-03', 'Launch'], ['2026-11-11', 'Mid-way post'], ['2026-11-16', '1 week left'],
+    ['2026-11-22', 'Deadline']
+  ];
+  var css = getComputedStyle(document.documentElement);
+  var C = function (n) { return css.getPropertyValue('--' + n).trim(); };
+  var LEAD = { C: { name: 'Country-led', color: C('country') }, I: { name: 'Institution-led', color: C('inst') } };
+  var RECS = [
+    { k: 'IRRS', name: 'IRRS alone', color: C('irrs') },
+    { k: 'IRIS', name: 'IRIS alone', color: C('iris') },
+    { k: 'IROSS', name: 'IROSS alone', color: C('iross') },
+    { k: 'Mixed', name: 'Mixed use', color: C('mixed') },
+    { k: 'Undetermined', name: 'Undetermined', color: C('undet') },
+    { k: 'None', name: 'Not used / don’t know', color: C('none') }
+  ];
+  var RECBY = {}; RECS.forEach(function (r) { RECBY[r.k] = r; });
+
+  // ---------- country names and regions ----------
+  var ALIAS = { 'Democratic Republic of the Congo': 'Dem. Rep. Congo', 'DR Congo': 'Dem. Rep. Congo', 'Central African Republic': 'Central African Rep.',
+    'Republic of the Congo': 'Congo', 'South Sudan': 'S. Sudan', 'Republic of Moldova': 'Moldova', 'State of Palestine': 'Palestine',
+    'Syrian Arab Republic': 'Syria', 'Turkiye': 'Turkey', 'Türkiye': 'Turkey', 'Kosovo*': 'Kosovo', 'Bosnia and Herzegovina': 'Bosnia and Herz.',
+    'Dominican Republic': 'Dominican Rep.', 'Lao PDR': 'Laos', "Lao People's Democratic Republic": 'Laos', 'Iran (Islamic Republic of)': 'Iran',
+    'Russian Federation': 'Russia', 'United Republic of Tanzania': 'Tanzania', 'Viet Nam': 'Vietnam', 'North Macedonia': 'Macedonia',
+    'Republic of Korea': 'South Korea', 'Eswatini': 'eSwatini', "Cote d'Ivoire": "Côte d'Ivoire", 'Czech Republic': 'Czechia',
+    'Bolivia (Plurinational State of)': 'Bolivia', 'Venezuela (Bolivarian Republic of)': 'Venezuela', 'USA': 'United States of America',
+    'United States': 'United States of America', 'UK': 'United Kingdom', 'Equatorial Guinea': 'Eq. Guinea', 'Solomon Islands': 'Solomon Is.' };
+  // countries too small for the 110m map: drawn as a dot
+  var POINTS = { 'Marshall Islands': [171.2, 7.1], 'Liechtenstein': [9.55, 47.16], 'Malta': [14.4, 35.9], 'Maldives': [73.5, 4.2],
+    'Tuvalu': [179.2, -8.5], 'Kiribati': [173, 1.9], 'Nauru': [166.9, -0.5], 'Samoa': [-172.1, -13.8], 'Tonga': [-175.2, -21.2],
+    'Singapore': [103.8, 1.35], 'Bahrain': [50.55, 26.07], 'Comoros': [43.3, -11.7], 'Mauritius': [57.55, -20.3], 'Cabo Verde': [-23.6, 15.1],
+    'Seychelles': [55.45, -4.6], 'Andorra': [1.6, 42.5], 'Monaco': [7.42, 43.74], 'San Marino': [12.45, 43.94], 'Barbados': [-59.55, 13.15] };
+  var REG = {
+    'Sub-Saharan Africa': 'Angola Benin Botswana|Burkina Faso|Burundi|Cabo Verde|Cameroon|Central African Rep.|Chad|Comoros|Congo|Dem. Rep. Congo|Côte d\'Ivoire|Djibouti|Eq. Guinea|Eritrea|eSwatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Madagascar|Malawi|Mali|Mauritania|Mauritius|Mozambique|Namibia|Niger|Nigeria|Rwanda|Senegal|Seychelles|Sierra Leone|Somalia|Somaliland|South Africa|S. Sudan|Sudan|Tanzania|Togo|Uganda|Zambia|Zimbabwe',
+    'Middle East and North Africa': 'Algeria|Bahrain|Egypt|Iraq|Iran|Israel|Jordan|Kuwait|Lebanon|Libya|Morocco|Oman|Palestine|Qatar|Saudi Arabia|Syria|Tunisia|United Arab Emirates|W. Sahara|Yemen',
+    'Asia and the Pacific': 'Afghanistan|Australia|Bangladesh|Bhutan|Brunei|Cambodia|China|Fiji|India|Indonesia|Japan|Kiribati|Laos|Malaysia|Maldives|Marshall Islands|Mongolia|Myanmar|Nauru|Nepal|New Zealand|North Korea|Pakistan|Papua New Guinea|Philippines|Samoa|Singapore|Solomon Is.|South Korea|Sri Lanka|Taiwan|Thailand|Timor-Leste|Tonga|Tuvalu|Vanuatu|Vietnam',
+    'Europe and Central Asia': 'Albania|Andorra|Armenia|Austria|Azerbaijan|Belarus|Belgium|Bosnia and Herz.|Bulgaria|Croatia|Cyprus|Czechia|Denmark|Estonia|Finland|France|Georgia|Germany|Greece|Hungary|Iceland|Ireland|Italy|Kazakhstan|Kosovo|Kyrgyzstan|Latvia|Liechtenstein|Lithuania|Luxembourg|Macedonia|Malta|Moldova|Monaco|Montenegro|Netherlands|Norway|Poland|Portugal|Romania|Russia|San Marino|Serbia|Slovakia|Slovenia|Spain|Sweden|Switzerland|Tajikistan|Turkey|Turkmenistan|Ukraine|United Kingdom|Uzbekistan',
+    'Americas': 'Argentina|Bahamas|Barbados|Belize|Bolivia|Brazil|Canada|Chile|Colombia|Costa Rica|Cuba|Dominican Rep.|Ecuador|El Salvador|Guatemala|Guyana|Haiti|Honduras|Jamaica|Mexico|Nicaragua|Panama|Paraguay|Peru|Puerto Rico|Suriname|Trinidad and Tobago|United States of America|Uruguay|Venezuela'
+  };
+  var REGOF = {};
+  Object.keys(REG).forEach(function (r) { REG[r].replace('Angola Benin Botswana', 'Angola|Benin|Botswana').split('|').forEach(function (c) { REGOF[c] = r; }); });
+  var REGIONS = Object.keys(REG).concat(['Regional / global']);
+  function mapName(c) { return ALIAS[c] || c; }
+
+  // ---------- state ----------
+  var S = { donut: 'rec', rows: [], lead: 'all', rec: 'all', reg: 'all', country: null, asOf: null, q: '', proj: 'globe', demo: false, loadedAt: null, lastIds: null };
+  var tip = document.getElementById('tip');
+
+  function showTip(html, ev) {
+    tip.innerHTML = html; tip.style.opacity = 1;
+    var x = ev.clientX + 14, y = ev.clientY + 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    if (x + w > innerWidth - 8) x = ev.clientX - w - 14;
+    if (y + h > innerHeight - 8) y = ev.clientY - h - 14;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hideTip() { tip.style.opacity = 0; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var fmtDay = d3.utcFormat('%d %b'), fmtTime = d3.timeFormat('%d %b %H:%M'), fmtFull = d3.timeFormat('%d %b %Y, %H:%M');
+  function pct(a, b) { return b ? Math.round(100 * a / b) + '%' : '–'; }
+
+  // ---------- data ----------
+  function splitList(s) { return String(s || '').split(/\s*[;|]\s*/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  function normalise(raw) {
+    var get = function (o, keys) { for (var i = 0; i < keys.length; i++) { if (o[keys[i]] != null && o[keys[i]] !== '') return o[keys[i]]; } return ''; };
+    return raw.map(function (o, i) {
+      var t = new Date(get(o, ['submitted_at', 'submission_time', '_submission_time', 'end', 'timestamp']));
+      var leadTxt = String(get(o, ['lead', 'example_lead', 'type'])).toLowerCase();
+      var lead = /inst|international|org/.test(leadTxt) ? 'I' : 'C';
+      var recTxt = String(get(o, ['recommendations', 'recommendations_used', 'use_of_recommendations']));
+      var codes = ['IRRS', 'IRIS', 'IROSS'].filter(function (k) { return new RegExp('\\b' + k + '\\b', 'i').test(recTxt); });
+      var rec = codes.length > 1 ? 'Mixed' : codes.length === 1 ? codes[0] : /undetermined|unspecified|not specified/i.test(recTxt) ? 'Undetermined' : 'None';
+      var country = String(get(o, ['country', 'country_name'])).trim();
+      var mn = country ? mapName(country) : '';
+      var region = get(o, ['region']) || (mn ? (REGOF[mn] || 'Other') : 'Regional / global');
+      return {
+        i: i, id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
+        org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
+        title: get(o, ['title', 'example_title']), rec: rec, codes: codes, recTxt: recTxt,
+        src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
+      };
+    }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
+  }
+  function fetchTable(url) {
+    var u = url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(); // never a cached copy
+    return fetch(u, { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      var ct = r.headers.get('content-type') || '';
+      return r.text().then(function (txt) {
+        if (/json/.test(ct) || /^\s*[\[{]/.test(txt)) { var j = JSON.parse(txt); return Array.isArray(j) ? j : (j.results || j.data || j.rows || []); }
+        return d3.csvParse(txt);
+      });
+    });
+  }
+  function load() {
+    var tries = CONFIG.src ? [[CONFIG.src, false]] : [[CONFIG.live, false], [CONFIG.demo, true]];
+    var attempt = function (k) {
+      if (k >= tries.length) return Promise.reject(new Error('No data source could be read'));
+      return fetchTable(tries[k][0]).then(function (raw) { return { raw: raw, demo: tries[k][1], url: tries[k][0] }; })
+        .catch(function () { return attempt(k + 1); });
+    };
+    return attempt(0).then(function (res) {
+      var rows = normalise(res.raw);
+      var ids = new Set(rows.map(function (d) { return d.id + '|' + d.title; }));
+      var fresh = S.lastIds ? rows.filter(function (d) { return !S.lastIds.has(d.id + '|' + d.title); }).map(function (d) { return d.i; }) : [];
+      var wasLatest = !S.asOf || S.asOf >= latest();
+      S.rows = rows; S.demo = res.demo; S.url = res.url; S.loadedAt = new Date(); S.lastIds = ids; S.fresh = new Set(fresh);
+      if (wasLatest) S.asOf = latest();
+      document.getElementById('demo').style.display = S.demo ? 'block' : 'none';
+      document.getElementById('liveDot').className = 'dot' + (S.demo ? ' off' : '');
+      document.getElementById('srcNote').textContent = 'Source: ' + res.url + (S.demo ? ' (simulated)' : '') + ' · ' + rows.length + ' example rows';
+      setUpdated();
+      buildRegionSelect();
+      render();
+    }).catch(function (e) {
+      document.getElementById('updated').textContent = 'Could not read the data feed (' + e.message + ')';
+      document.getElementById('liveDot').className = 'dot off';
+    });
+  }
+  function latest() {
+    if (!S.rows.length) return new Date();
+    var last = S.rows[S.rows.length - 1].t;
+    return S.demo ? last : new Date(Math.max(last, Date.now()));
+  }
+  function setUpdated() {
+    document.getElementById('updated').textContent = (S.demo ? 'Demo · ' : 'Live · ') + 'read ' + d3.timeFormat('%H:%M')(S.loadedAt) +
+      ' · refreshes every ' + CONFIG.refreshMin + ' min';
+  }
+
+  // filters (asOf applies to everything except the timeline's own x-range)
+  function passFilters(d, skip) {
+    skip = skip || {};
+    if (!skip.lead && S.lead !== 'all' && d.lead !== S.lead) return false;
+    if (!skip.rec && S.rec !== 'all') { if (S.rec === 'using') { if (d.rec === 'None') return false; } else if (d.rec !== S.rec) return false; }
+    if (!skip.reg && S.reg !== 'all' && d.region !== S.reg) return false;
+    if (!skip.country && S.country && d.mn !== S.country) return false;
+    return true;
+  }
+  function current(skip) { return S.rows.filter(function (d) { return d.t <= S.asOf && passFilters(d, skip); }); }
+
+  // ---------- KPIs ----------
+  function renderKPIs() {
+    var rows = current();
+    var resp = new Set(rows.map(function (d) { return d.id; })).size;
+    var ctry = new Set(rows.filter(function (d) { return d.mn; }).map(function (d) { return d.mn; })).size;
+    var nC = rows.filter(function (d) { return d.lead === 'C'; }).length, nI = rows.length - nC;
+    var using = rows.filter(function (d) { return d.rec !== 'None'; }).length;
+    var dayAgo = new Date(+S.asOf - 864e5);
+    var last24 = new Set(rows.filter(function (d) { return d.t > dayAgo; }).map(function (d) { return d.id; })).size;
+    var left = Math.ceil((CONFIG.deadline - S.asOf) / 864e5);
+    var tiles = [
+      { k: 'Examples', v: rows.length, s: pct(rows.length, CONFIG.bench) + ' of GAIN 2025 (' + CONFIG.bench + ')',
+        bar: [[Math.min(1, rows.length / CONFIG.bench), '#cfe0f4']] },
+      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' },
+      { k: 'Countries', v: ctry, s: 'with at least one example' },
+      { k: 'Lead', v: nC + ' · ' + nI, s: '<span class="sw" style="background:var(--country)"></span>country · <span class="sw" style="background:var(--inst)"></span>institution',
+        bar: rows.length ? [[nC / rows.length, LEAD.C.color], [nI / rows.length, LEAD.I.color]] : [] },
+      { k: 'Using the Recommendations', v: pct(using, rows.length), s: using + ' of ' + rows.length + ' examples' },
+      { k: left > 0 ? 'Days to deadline' : 'Collection', v: left > 0 ? left : 'Closed', s: 'deadline 22 November 2026' }
+    ];
+    document.getElementById('kpis').innerHTML = tiles.map(function (t) {
+      var bar = t.bar ? '<div class="bar">' + t.bar.map(function (b) { return '<span style="width:' + (b[0] * 100) + '%;background:' + b[1] + '"></span>'; }).join('') + '</div>' : '';
+      return '<div class="kpi"><div class="k">' + t.k + '</div><div class="v">' + t.v + '</div><div class="s">' + t.s + '</div>' + bar + '</div>';
+    }).join('');
+  }
+
+  // ---------- timeline ----------
+  function xDomain() {
+    var end = d3.max([CONFIG.deadline, S.rows.length ? S.rows[S.rows.length - 1].t : CONFIG.deadline, S.demo ? CONFIG.deadline : new Date()]);
+    return [CONFIG.open, d3.utcDay.ceil(new Date(+end + 1))];
+  }
+  function renderTimeline() {
+    var box = document.getElementById('timeline'), W = Math.max(260, box.clientWidth), H = 210, m = { t: 18, r: 46, b: 22, l: 34 };
+    var rows = S.rows.filter(function (d) { return passFilters(d); });
+    var x = d3.scaleUtc().domain(xDomain()).range([m.l, W - m.r]);
+    // cumulative per lead at every submission time
+    var pts = [{ t: CONFIG.open, C: 0, I: 0 }], c = 0, ii = 0;
+    rows.forEach(function (d) { if (d.lead === 'C') c++; else ii++; pts.push({ t: d.t, C: c, I: ii }); });
+    var endT = S.demo ? x.domain()[1] : new Date(Math.min(Date.now(), x.domain()[1]));
+    pts.push({ t: endT, C: c, I: ii });
+    var yMax = Math.max(CONFIG.bench * 1.08, c + ii + 4);
+    var y = d3.scaleLinear().domain([0, yMax]).nice().range([H - m.b, m.t]);
+    var svg = d3.select(box).selectAll('svg').data([0]).join('svg').attr('width', W).attr('height', H)
+      .attr('role', 'img').attr('aria-label', 'Cumulative examples over time: ' + (c + ii) + ' examples so far');
+    svg.selectAll('*').remove();
+    svg.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + (H - m.b) + ')')
+      .call(d3.axisBottom(x).ticks(d3.utcDay.every(W < 520 ? 4 : 2)).tickFormat(fmtDay).tickSizeOuter(0)).call(function (g) { g.select('.domain').remove(); });
+    svg.append('g').attr('class', 'axis').attr('transform', 'translate(' + m.l + ',0)')
+      .call(d3.axisLeft(y).ticks(5).tickSize(-(W - m.l - m.r))).call(function (g) { g.select('.domain').remove(); g.selectAll('line').attr('stroke', C('grid')); });
+    // milestones
+    var ms = svg.append('g');
+    MILESTONES.forEach(function (mm, k) {
+      var mx = x(new Date(mm[0] + 'T12:00:00Z'));
+      ms.append('line').attr('x1', mx).attr('x2', mx).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', '#2b4174').attr('stroke-dasharray', '2 3');
+      if (W > 460 || k % 2 === 0) ms.append('text').attr('x', k === MILESTONES.length - 1 ? mx - 3 : mx + 3).attr('text-anchor', k === MILESTONES.length - 1 ? 'end' : 'start').attr('y', m.t - 6 + (k % 2) * 11).text(mm[1]).style('font-size', '10px');
+    });
+    // benchmark
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(CONFIG.bench)).attr('y2', y(CONFIG.bench)).attr('stroke', C('ink-3')).attr('stroke-dasharray', '5 4');
+    svg.append('text').attr('x', W - m.r + 4).attr('y', y(CONFIG.bench) + 4).text('2025: ' + CONFIG.bench);
+    // stacked areas (country below, institution on top), clipped at asOf
+    var clipId = 'clipAsOf';
+    svg.append('clipPath').attr('id', clipId).append('rect').attr('x', 0).attr('y', 0).attr('height', H).attr('width', Math.max(0, x(S.asOf)));
+    var step = d3.curveStepAfter;
+    var aC = d3.area().curve(step).x(function (p) { return x(p.t); }).y0(y(0)).y1(function (p) { return y(p.C); });
+    var aI = d3.area().curve(step).x(function (p) { return x(p.t); }).y0(function (p) { return y(p.C) - (p.I ? 1 : 0); }).y1(function (p) { return y(p.C + p.I); });
+    var g = svg.append('g');
+    // future part faint, past part solid
+    g.append('path').datum(pts).attr('d', aC).attr('fill', LEAD.C.color).attr('opacity', .18);
+    g.append('path').datum(pts).attr('d', aI).attr('fill', LEAD.I.color).attr('opacity', .18);
+    var gp = svg.append('g').attr('clip-path', 'url(#' + clipId + ')');
+    gp.append('path').datum(pts).attr('d', aC).attr('fill', LEAD.C.color).attr('opacity', .9);
+    gp.append('path').datum(pts).attr('d', aI).attr('fill', LEAD.I.color).attr('opacity', .9);
+    gp.append('path').datum(pts).attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 1.5)
+      .attr('d', d3.line().curve(step).x(function (p) { return x(p.t); }).y(function (p) { return y(p.C + p.I); }));
+    // as-of marker
+    var ax = x(S.asOf), atNow = cumAt(pts, S.asOf);
+    svg.append('line').attr('x1', ax).attr('x2', ax).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C('accent')).attr('stroke-width', 1.5);
+    svg.append('circle').attr('cx', ax).attr('cy', y(atNow.C + atNow.I)).attr('r', 4).attr('fill', C('accent')).attr('stroke', C('panel')).attr('stroke-width', 2);
+    svg.append('text').attr('x', ax > W - m.r - 60 ? ax - 8 : ax + 6).attr('text-anchor', ax > W - m.r - 60 ? 'end' : 'start').attr('y', y(atNow.C + atNow.I) - 8).style('fill', '#fff').style('font-weight', 600).text(atNow.C + atNow.I);
+    // hover + click layer
+    var hl = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', '#cfe0f4').attr('opacity', 0);
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent').style('cursor', 'pointer')
+      .on('mousemove', function (ev) {
+        var t = x.invert(d3.pointer(ev)[0]), p = cumAt(pts, t);
+        hl.attr('x1', x(t)).attr('x2', x(t)).attr('opacity', .5);
+        showTip('<b>' + fmtTime(t) + '</b><div class="row"><span><i class="sw" style="background:var(--country)"></i>Country-led</span><b>' + p.C + '</b></div>' +
+          '<div class="row"><span><i class="sw" style="background:var(--inst)"></i>Institution-led</span><b>' + p.I + '</b></div>' +
+          '<div class="row"><span>Total examples</span><b>' + (p.C + p.I) + '</b></div><div class="muted" style="margin-top:4px">Click to view the round as of this moment</div>', ev);
+      })
+      .on('mouseleave', function () { hl.attr('opacity', 0); hideTip(); })
+      .on('click', function (ev) { var t = x.invert(d3.pointer(ev)[0]); S.asOf = new Date(Math.min(t, latest())); stopPlay(); render(); });
+    renderDaily(rows, x, W);
+  }
+  function cumAt(pts, t) { var p = pts[0]; for (var k = 0; k < pts.length && pts[k].t <= t; k++) p = pts[k]; return p; }
+
+  function renderDaily(rows, x, W) {
+    var box = document.getElementById('daily'), H = 74, m = { t: 4, b: 18, l: 34, r: 46 };
+    var days = d3.utcDay.range(x.domain()[0], x.domain()[1]);
+    var seen = {}, byDay = days.map(function (d) { return { d: d, C: 0, I: 0 }; });
+    rows.forEach(function (r) { // count responses, not examples: first example row of a response
+      if (seen[r.id]) return; seen[r.id] = 1;
+      var k = d3.utcDay.count(x.domain()[0], r.t); if (byDay[k]) byDay[k][r.lead]++;
+    });
+    var y = d3.scaleLinear().domain([0, Math.max(4, d3.max(byDay, function (b) { return b.C + b.I; }))]).range([H - m.b, m.t]);
+    var bw = Math.max(2, (x(days[1] || x.domain()[1]) - x(days[0])) - 4);
+    var svg = d3.select(box).selectAll('svg').data([0]).join('svg').attr('width', W).attr('height', H).attr('role', 'img').attr('aria-label', 'New responses per day');
+    svg.selectAll('*').remove();
+    svg.append('g').attr('class', 'axis').attr('transform', 'translate(' + m.l + ',0)').call(d3.axisLeft(y).ticks(2).tickSize(-(W - m.l - m.r)))
+      .call(function (g) { g.select('.domain').remove(); g.selectAll('line').attr('stroke', C('grid')); });
+    var g = svg.selectAll('g.d').data(byDay).join('g').attr('class', 'd').attr('transform', function (b) { return 'translate(' + (x(b.d) + 2) + ',0)'; });
+    g.append('rect').attr('width', bw).attr('y', function (b) { return y(b.C); }).attr('height', function (b) { return y(0) - y(b.C); })
+      .attr('fill', LEAD.C.color).attr('opacity', function (b) { return b.d <= S.asOf ? 1 : .25; });
+    g.append('rect').attr('width', bw).attr('y', function (b) { return y(b.C + b.I) - (b.C && b.I ? 2 : 0); })
+      .attr('height', function (b) { return y(b.C) - y(b.C + b.I); }).attr('rx', 2)
+      .attr('fill', LEAD.I.color).attr('opacity', function (b) { return b.d <= S.asOf ? 1 : .25; });
+    g.append('rect').attr('width', bw + 4).attr('x', -2).attr('y', m.t).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('mousemove', function (ev, b) {
+        showTip('<b>' + d3.utcFormat('%a %d %b')(b.d) + '</b><div class="row"><span>Country-led responses</span><b>' + b.C + '</b></div><div class="row"><span>Institution-led responses</span><b>' + b.I + '</b></div>', ev);
+      }).on('mouseleave', hideTip);
+    svg.append('text').attr('x', W - m.r + 4).attr('y', H - m.b).text('per day');
+  }
+
+  // ---------- replay ----------
+  var playTimer = null;
+  function stopPlay() { if (playTimer) { playTimer.stop(); playTimer = null; } document.getElementById('playBtn').textContent = '▶ Replay'; }
+  document.getElementById('playBtn').addEventListener('click', function () {
+    if (playTimer) { stopPlay(); return; }
+    var a = +CONFIG.open, b = +latest(), dur = 9000;
+    this.textContent = '❚❚ Pause';
+    playTimer = d3.timer(function (el) {
+      var k = Math.min(1, el / dur); S.asOf = new Date(a + (b - a) * k); render(true);
+      if (k >= 1) stopPlay();
+    });
+  });
+  document.getElementById('nowBtn').addEventListener('click', function () { stopPlay(); S.asOf = latest(); render(); });
+
+  // ---------- globe ----------
+  var world = null, gSvg = d3.select('#globe'), rot = [-15, -12], scaleK = 1, spin = true, lastInteract = 0;
+  var proj, path, counts = {}, cmax = 1, color;
+  function setupGlobe(topo) {
+    world = topojson.feature(topo, topo.objects.countries).features.filter(function (f) { return f.properties.name !== 'Antarctica'; });
+    world.forEach(function (f) { f.c = d3.geoCentroid(f); });
+    var drag = d3.drag()
+      .on('start', function () { spin = false; })
+      .on('drag', function (ev) {
+        if (S.proj !== 'globe') return;
+        var k = 0.25 / scaleK; rot[0] += ev.dx * k; rot[1] = Math.max(-80, Math.min(80, rot[1] - ev.dy * k)); drawGlobe();
+      })
+      .on('end', function () { lastInteract = Date.now(); });
+    gSvg.call(drag);
+    gSvg.on('wheel', function (ev) { if (!ev.ctrlKey && !ev.metaKey) return; ev.preventDefault(); scaleK = Math.max(.8, Math.min(5, scaleK * (ev.deltaY < 0 ? 1.1 : .9))); drawGlobe(); }, { passive: false });
+    gSvg.append('circle').attr('class', 'ocean');
+    gSvg.append('path').attr('class', 'grat');
+    gSvg.append('g').attr('class', 'lands');
+    gSvg.append('g').attr('class', 'pts');
+    gSvg.append('g').attr('class', 'pulses');
+    d3.timer(function () {
+      if (S.proj === 'globe' && spin && !matchMedia('(prefers-reduced-motion: reduce)').matches) { rot[0] += 0.06; drawGlobe(); }
+      if (!spin && Date.now() - lastInteract > 6000 && lastInteract) { spin = true; }
+    });
+  }
+  function sizeProj() {
+    var box = document.getElementById('globeBox'), W = box.clientWidth, H = box.clientHeight;
+    gSvg.attr('viewBox', '0 0 ' + W + ' ' + H);
+    if (S.proj === 'globe') {
+      proj = d3.geoOrthographic().clipAngle(90).precision(.3).translate([W / 2, H / 2 - 18]).scale(Math.min(W, H - 50) / 2.05 * scaleK).rotate(rot);
+    } else {
+      proj = d3.geoEqualEarth().fitExtent([[6, 6], [W - 6, H - 70]], { type: 'Sphere' });
+      proj.scale(proj.scale() * scaleK);
+    }
+    path = d3.geoPath(proj);
+  }
+  function computeCounts() {
+    counts = {};
+    current({ country: true }).forEach(function (d) { if (d.mn) counts[d.mn] = (counts[d.mn] || 0) + 1; });
+    cmax = Math.max(1, d3.max(Object.values(counts)) || 1);
+    color = d3.scaleSequentialSqrt(d3.interpolateLab('#2b5aa8', '#d9e9ff')).domain([1, Math.max(2, cmax)]);
+    document.getElementById('rampBar').style.background = 'linear-gradient(90deg,' + d3.range(0, 1.01, .25).map(function (k) { return color(1 + k * (Math.max(2, cmax) - 1)); }).join(',') + ')';
+    document.getElementById('rampMax').textContent = cmax;
+    var noC = current().filter(function (d) { return !d.mn; }).length;
+    document.getElementById('noCountry').innerHTML = noC ? noC + ' regional or global example' + (noC > 1 ? 's' : '') + '<br>not shown on the map' : '';
+  }
+  function fillOf(name) { return counts[name] ? color(counts[name]) : C('land'); }
+  function tipCountry(ev, name) {
+    var rows = current({ country: true }).filter(function (d) { return d.mn === name; });
+    var nC = rows.filter(function (d) { return d.lead === 'C'; }).length;
+    var resp = new Set(rows.map(function (d) { return d.id; })).size;
+    var recs = d3.rollups(rows, function (v) { return v.length; }, function (d) { return d.rec; });
+    showTip('<b>' + esc(name) + '</b>' + (rows.length ? '<div class="row"><span>Examples</span><b>' + rows.length + '</b></div><div class="row"><span>Responses</span><b>' + resp + '</b></div>' +
+      '<div class="row"><span>Country-led · institution-led</span><b>' + nC + ' · ' + (rows.length - nC) + '</b></div>' +
+      '<div style="margin-top:4px">' + recs.map(function (r) { return '<span class="tag"><i style="background:' + RECBY[r[0]].color + '"></i>' + RECBY[r[0]].name + ' ' + r[1] + '</span>'; }).join('') + '</div>'
+      : '<div class="muted">No examples yet</div>') + (rows.length ? '<div class="muted" style="margin-top:4px">Click to filter the page</div>' : ''), ev);
+  }
+  function drawGlobe() {
+    if (!world) return;
+    sizeProj();
+    var isG = S.proj === 'globe';
+    gSvg.select('.ocean').attr('cx', isG ? proj.translate()[0] : -999).attr('cy', proj.translate()[1]).attr('r', isG ? proj.scale() : 0)
+      .attr('fill', C('ocean')).attr('stroke', '#2b4174');
+    gSvg.select('.grat').attr('d', path(d3.geoGraticule10())).attr('fill', 'none').attr('stroke', '#16264d').attr('stroke-width', .5);
+    gSvg.select('.lands').selectAll('path').data(world, function (f) { return f.properties.name; }).join(function (en) {
+      return en.append('path').attr('class', 'country')
+        .on('mousemove', function (ev, f) { tipCountry(ev, f.properties.name); })
+        .on('mouseleave', hideTip)
+        .on('click', function (ev, f) { var n = f.properties.name; if (!counts[n] && S.country !== n) return; S.country = S.country === n ? null : n; render(); });
+    }).attr('d', path).attr('fill', function (f) { return fillOf(f.properties.name); })
+      .classed('sel', function (f) { return f.properties.name === S.country; });
+    var visible = function (ll) { return !isG || d3.geoDistance(ll, [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2 - .05; };
+    // small countries as dots
+    var pts = Object.keys(POINTS).filter(function (n) { return counts[n] && visible(POINTS[n]); });
+    gSvg.select('.pts').selectAll('circle').data(pts, String).join('circle').attr('r', 4).attr('stroke', C('bg')).attr('stroke-width', 1)
+      .attr('fill', function (n) { return fillOf(n); }).attr('cx', function (n) { return proj(POINTS[n])[0]; }).attr('cy', function (n) { return proj(POINTS[n])[1]; })
+      .style('cursor', 'pointer').on('mousemove', function (ev, n) { tipCountry(ev, n); }).on('mouseleave', hideTip)
+      .on('click', function (ev, n) { S.country = S.country === n ? null : n; render(); });
+    // pulses: countries with a response in the 24 hours before asOf
+    var dayAgo = new Date(+S.asOf - 864e5), recent = {};
+    current({ country: true }).forEach(function (d) { if (d.t > dayAgo && d.mn) recent[d.mn] = 1; });
+    var cen = {}; world.forEach(function (f) { cen[f.properties.name] = f.c; });
+    var pl = Object.keys(recent).map(function (n) { return { n: n, ll: POINTS[n] || cen[n] }; }).filter(function (p) { return p.ll && visible(p.ll); });
+    var gs = gSvg.select('.pulses').selectAll('g').data(pl, function (p) { return p.n; }).join(function (en) {
+      var g = en.append('g').style('pointer-events', 'none'); g.append('circle').attr('class', 'ring').attr('r', 3); g.append('circle').attr('class', 'pulse').attr('r', 3); return g;
+    });
+    gs.attr('transform', function (p) { var xy = proj(p.ll); return 'translate(' + xy[0] + ',' + xy[1] + ')'; });
+  }
+  document.querySelectorAll('#projSeg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      S.proj = b.dataset.v; scaleK = 1;
+      document.querySelectorAll('#projSeg button').forEach(function (o) { o.setAttribute('aria-pressed', o === b); });
+      drawGlobe();
+    });
+  });
+
+  // ---------- bars ----------
+  function hbars(el, items, opts) {
+    opts = opts || {};
+    var box = document.getElementById(el);
+    if (!items.length) { box.innerHTML = '<div class="empty">No examples match the filters yet.</div>'; return; }
+    var max = opts.max || d3.max(items, function (it) { return d3.sum(it.parts, function (p) { return p.n; }); });
+    box.innerHTML = items.map(function (it, k) {
+      var tot = d3.sum(it.parts, function (p) { return p.n; });
+      var segs = it.parts.filter(function (p) { return p.n; }).map(function (p) {
+        return '<span style="width:calc(' + (100 * p.n / max) + '% - 2px);background:' + p.color + '"></span>';
+      }).join('');
+      return '<div class="r' + (opts.click ? ' click' : '') + '" data-k="' + k + '"' + (opts.click ? ' tabindex="0" role="button"' : '') + '><span class="lab" title="' + esc(it.label) + '">' + esc(it.label) +
+        '</span><span class="track">' + segs + '</span><span class="n">' + (opts.pct ? opts.pct(it, tot) : tot) + '</span></div>';
+    }).join('');
+    box.querySelectorAll('.r').forEach(function (r) {
+      var it = items[+r.dataset.k];
+      r.addEventListener('mousemove', function (ev) {
+        showTip('<b>' + esc(it.label) + '</b>' + it.parts.map(function (p) {
+          return '<div class="row"><span><i class="sw" style="background:' + p.color + '"></i>' + esc(p.name) + '</span><b>' + p.n + '</b></div>';
+        }).join('') + (it.note ? '<div class="muted" style="margin-top:4px">' + it.note + '</div>' : ''), ev);
+      });
+      r.addEventListener('mouseleave', hideTip);
+      if (opts.click) {
+        r.addEventListener('click', function () { opts.click(it); });
+        r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opts.click(it); } });
+      }
+    });
+  }
+  function leadParts(rows) {
+    return ['C', 'I'].map(function (l) { return { name: LEAD[l].name, color: LEAD[l].color, n: rows.filter(function (d) { return d.lead === l; }).length }; });
+  }
+  // Double donut, as in the GAIN 2021–2025 story: every example using the Recommendations is a dot in the
+  // outer band, grouped into outlined sectors with leader-line labels; the inner ring splits the same examples
+  // by lead ("By Recommendations"), or by Recommendations, faded ("By lead").
+  var ORD = ['IRRS', 'IRIS', 'Undetermined', 'Mixed', 'IROSS'];
+  function comboName(codes) { return codes.length === 3 ? 'All three' : codes.join(' + '); }
+  function renderRecs() {
+    var all = current({ rec: true }), byLead = S.donut === 'lead';
+    var list = all.filter(function (d) { return d.rec !== 'None'; });
+    var none = all.length - list.length, N = list.length;
+    var leadOrd = function (d) { return d.lead === 'C' ? 0 : 1; };
+    list.sort(function (a, b) {
+      if (byLead) return (leadOrd(a) - leadOrd(b)) || (ORD.indexOf(a.rec) - ORD.indexOf(b.rec)) || (a.t - b.t);
+      return (ORD.indexOf(a.rec) - ORD.indexOf(b.rec)) || d3.ascending(comboName(a.codes), comboName(b.codes)) || (leadOrd(a) - leadOrd(b)) || (a.t - b.t);
+    });
+    var box = document.getElementById('donut');
+    var legend = byLead
+      ? '<span class="muted">Dots: who led the example</span><span><i class="sw" style="background:' + LEAD.C.color + '"></i>Country-led</span><span><i class="sw" style="background:' + LEAD.I.color + '"></i>Institution-led</span><span class="muted">Faded inner ring: the Recommendations applied</span>'
+      : '<span class="muted">Dots:</span>' + ORD.map(function (k) { return '<span><i class="sw" style="background:' + RECBY[k].color + '"></i>' + (k === 'Mixed' ? 'Mixed use (dot split)' : RECBY[k].name.replace(' alone', '')) + '</span>'; }).join('') +
+        '<span class="muted">Inner ring: who led the example</span>';
+    document.getElementById('recLegend').innerHTML = legend;
+    var nC = list.filter(function (d) { return d.lead === 'C'; }).length, nI = N - nC;
+    var cAll = all.filter(function (d) { return d.lead === 'C'; }), iAll = all.filter(function (d) { return d.lead === 'I'; });
+    document.getElementById('recNote').textContent = (all.length ? N + ' of ' + all.length + ' examples (' + pct(N, all.length) + ') use the Recommendations; ' + none + ' do not or don’t know. ' +
+      'Country-led ' + pct(nC, cAll.length) + ', institution-led ' + pct(nI, iAll.length) + ' (GAIN 2025: 81% and 74%).' : '');
+    var W = Math.max(280, box.clientWidth), narrow = W < 460, H = narrow ? 300 : 340;
+    var svg = d3.select(box).selectAll('svg').data([0]).join('svg').attr('width', W).attr('height', H)
+      .attr('role', 'img').attr('aria-label', N + ' examples using the Recommendations, by ' + (byLead ? 'lead' : 'Recommendations'));
+    svg.selectAll('*').remove();
+    if (!N) { svg.append('text').attr('x', W / 2).attr('y', H / 2).attr('text-anchor', 'middle').text('No examples using the Recommendations match the filters yet.'); return; }
+    var side = narrow ? 74 : 150, cx = W / 2, cy = H / 2;
+    var rO = Math.max(70, Math.min(W / 2 - side, H / 2 - 14));
+    // dot grid in concentric rows, dot pitch shrinking until every example fits (as in the story)
+    var rowsN = N <= 130 ? 3 : 5, p, cnt, q;
+    for (p = 30; p > 3; p -= 0.25) {
+      cnt = 0;
+      for (q = 0; q < rowsN; q++) cnt += Math.floor(2 * Math.PI * (rO - (q + 0.5) * p) / p);
+      if (cnt >= N) break;
+    }
+    var pts = [];
+    for (q = 0; q < rowsN; q++) {
+      var rk = rO - (q + 0.5) * p, nk = Math.floor(2 * Math.PI * rk / p);
+      for (var m = 0; m < nk; m++) pts.push({ a: ((m + 0.5 + q * 0.33) / nk * 2 * Math.PI) % (2 * Math.PI), r: rk });
+    }
+    pts.sort(function (a, b) { return a.a - b.a; });
+    var band0 = rO - rowsN * p - 3, band1 = rO + 3, rin = band0 - 14, lwI = narrow ? 10 : 14, TAU = 2 * Math.PI;
+    var gap = 0.004 * TAU;
+    // groups for the outer sectors
+    var groups = byLead
+      ? [{ k: 'C', n: nC, name: 'Country-led', col: LEAD.C.color }, { k: 'I', n: nI, name: 'Institution-led', col: LEAD.I.color }]
+      : ORD.map(function (k) {
+        var v = list.filter(function (d) { return d.rec === k; }), g = { k: k, n: v.length, name: RECBY[k].name.replace(' alone', ''), col: RECBY[k].color };
+        if (k === 'Mixed') { g.name = 'Mixed use'; g.lines = d3.rollups(v, function (x) { return x.length; }, function (d) { return comboName(d.codes); }).sort(function (a, b) { return b[1] - a[1]; }).map(function (e) { return e[1] + '  ' + e[0]; }); }
+        return g;
+      });
+    var acc = 0, labels = [];
+    var gS = svg.append('g'), gL = svg.append('g'), gD = svg.append('g'), gI = svg.append('g');
+    groups.forEach(function (gr) {
+      if (!gr.n) return;
+      var f0 = acc / N, f1 = (acc + gr.n) / N; acc += gr.n;
+      gS.append('path').attr('transform', 'translate(' + cx + ',' + cy + ')')
+        .attr('d', d3.arc()({ innerRadius: band0, outerRadius: band1, startAngle: f0 * TAU + gap, endAngle: f1 * TAU - gap }))
+        .attr('fill', gr.col).attr('fill-opacity', .06).attr('stroke', gr.col).attr('stroke-width', 1.2).attr('stroke-opacity', .85)
+        .on('mousemove', function (ev) {
+          showTip('<b>' + esc(gr.name) + '</b><div class="row"><span>Examples</span><b>' + gr.n + ' · ' + pct(gr.n, N) + '</b></div>' +
+            (gr.lines ? '<div style="margin-top:4px">' + gr.lines.map(esc).join('<br>') + '</div>' : ''), ev);
+        }).on('mouseleave', hideTip);
+      var mid = (f0 + f1) / 2 * TAU, right = Math.sin(mid) >= 0;
+      labels.push({ gr: gr, mid: mid, right: right, y: cy - Math.cos(mid) * (band1 + 16) });
+    });
+    // labels: push them apart downwards on each side, then grow the chart to fit them
+    var lo = 0, hi = H;
+    [true, false].forEach(function (r) {
+      var L = labels.filter(function (l) { return l.right === r; }).sort(function (a, b) { return a.y - b.y; });
+      var h = function (l) { return (narrow ? 26 : 34) + (l.gr.lines && !narrow ? l.gr.lines.length * 14 : 0); };
+      for (var i = 1; i < L.length; i++) L[i].y = Math.max(L[i].y, L[i - 1].y + h(L[i - 1]));
+      L.forEach(function (l) { lo = Math.min(lo, l.y - 14); hi = Math.max(hi, l.y + h(l)); });
+    });
+    var shift = Math.max(0, -lo);
+    svg.attr('height', Math.max(H, hi) + shift);
+    [gS, gL, gD, gI].forEach(function (g) { g.attr('transform', 'translate(0,' + shift + ')'); });
+    labels.forEach(function (l) {
+      var sx = cx + Math.sin(l.mid) * band1, sy = cy - Math.cos(l.mid) * band1;
+      var ex = cx + Math.sin(l.mid) * (band1 + 12), hx = cx + (l.right ? 1 : -1) * (band1 + (narrow ? 18 : 28));
+      if (l.right ? hx < ex + 8 : hx > ex - 8) hx = ex + (l.right ? 8 : -8);
+      gL.append('polyline').attr('points', [[sx, sy], [ex, l.y], [hx, l.y]].join(' ')).attr('fill', 'none').attr('stroke', l.gr.col).attr('stroke-width', 1);
+      var t = gL.append('text').attr('x', hx + (l.right ? 5 : -5)).attr('y', l.y).attr('text-anchor', l.right ? 'start' : 'end');
+      t.append('tspan').attr('dy', '0.35em').style('font', '500 ' + (narrow ? 16 : 22) + 'px "IBM Plex Mono", monospace').style('fill', l.gr.col).text(l.gr.n);
+      t.append('tspan').attr('x', hx + (l.right ? 5 : -5)).attr('dy', narrow ? 13 : 16).style('fill', C('ink-2')).style('font-size', narrow ? '10px' : '11.5px').text(l.gr.name);
+      if (l.gr.lines && !narrow) l.gr.lines.forEach(function (ln) {
+        t.append('tspan').attr('x', hx + (l.right ? 5 : -5)).attr('dy', 14).style('font', '400 10.5px "IBM Plex Mono", monospace').style('fill', C('ink-3')).text(ln);
+      });
+    });
+    // dots, one per example; a mixed-use dot is split into its Recommendations
+    var dr = Math.max(1.6, p * 0.38);
+    list.forEach(function (d, k) {
+      var pt = pts[Math.floor((k + 0.5) * pts.length / N)], x = cx + Math.sin(pt.a) * pt.r, y = cy - Math.cos(pt.a) * pt.r;
+      var g = gD.append('g').attr('class', 'dot-ex' + d.codes.map(function (c) { return ' has-' + c; }).join('')).attr('transform', 'translate(' + x + ',' + y + ')').style('cursor', 'default');
+      if (!byLead && d.rec === 'Mixed') {
+        var n = d.codes.length;
+        d.codes.forEach(function (c, j) {
+          g.append('path').attr('d', d3.arc()({ innerRadius: 0, outerRadius: dr, startAngle: j / n * TAU, endAngle: (j + 1) / n * TAU })).attr('fill', RECBY[c].color);
+        });
+      } else {
+        g.append('circle').attr('r', dr).attr('fill', byLead ? LEAD[d.lead].color : RECBY[d.rec].color);
+      }
+      g.append('circle').attr('r', Math.max(dr + 2, p / 2)).attr('fill', 'transparent')
+        .on('mousemove', function (ev) {
+          showTip('<b>' + esc(d.country || 'Regional / global') + '</b> · ' + LEAD[d.lead].name + '<div>' + esc(d.org) + '</div><div class="muted" style="margin:3px 0">' + esc(d.title) + '</div>' +
+            (d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i style="background:' + RECBY[c].color + '"></i>' + c + '</span>'; }).join('') : '<span class="tag"><i style="background:' + RECBY[d.rec].color + '"></i>' + RECBY[d.rec].name + '</span>') +
+            '<div class="muted" style="margin-top:3px">Submitted ' + fmtTime(d.t) + '</div>', ev);
+        }).on('mouseleave', hideTip);
+    });
+    // inner ring
+    var ring = function (f0, f1, col, op, tipHtml) {
+      gI.append('path').attr('transform', 'translate(' + cx + ',' + cy + ')')
+        .attr('d', d3.arc()({ innerRadius: rin - lwI / 2, outerRadius: rin + lwI / 2, startAngle: f0 * TAU + (f1 - f0 < 1 ? gap / 2 : 0), endAngle: f1 * TAU - (f1 - f0 < 1 ? gap / 2 : 0) }))
+        .attr('fill', col).attr('opacity', op)
+        .on('mousemove', function (ev) { showTip(tipHtml, ev); }).on('mouseleave', hideTip);
+    };
+    if (!byLead) {
+      if (nC) ring(0, nC / N, LEAD.C.color, 1, '<b>Country-led</b><div class="row"><span>Examples using</span><b>' + nC + '</b></div>');
+      if (nI) ring(nC / N, 1, LEAD.I.color, 1, '<b>Institution-led</b><div class="row"><span>Examples using</span><b>' + nI + '</b></div>');
+    } else {
+      var a0 = 0;
+      ORD.forEach(function (k) {
+        var nf = list.filter(function (d) { return d.rec === k; }).length;
+        if (!nf) return;
+        ring(a0 / N, (a0 + nf) / N, RECBY[k].color, .35, '<b>' + RECBY[k].name + '</b><div class="row"><span>Examples</span><b>' + nf + '</b></div>');
+        a0 += nf;
+      });
+    }
+    renderCovers(list);
+    // centre: total, and the lead split under it (the inner ring's labels)
+    var ct = svg.append('g').attr('transform', 'translate(0,' + shift + ')').append('text').attr('x', cx).attr('y', cy - (byLead ? 8 : 16)).attr('text-anchor', 'middle');
+    ct.append('tspan').style('font', '600 ' + (narrow ? 28 : 38) + 'px "IBM Plex Sans", sans-serif').style('fill', '#fff').text(N);
+    ct.append('tspan').attr('x', cx).attr('dy', narrow ? 15 : 18).style('fill', C('ink-2')).style('font-size', narrow ? '10px' : '11.5px').text('examples using');
+    if (!byLead && rin > 50) {
+      ct.append('tspan').attr('x', cx).attr('dy', 17).style('font', '500 11px "IBM Plex Mono", monospace').style('fill', C('ink-2')).text(nC + ' country');
+      ct.append('tspan').attr('x', cx).attr('dy', 14).style('font', '500 11px "IBM Plex Mono", monospace').style('fill', C('ink-2')).text(nI + ' institution');
+    }
+  }
+  var REC_DOCS = [
+    { k: 'IRRS', name: 'International Recommendations on Refugee Statistics', year: 2018, url: 'https://egrisstats.org/recommendations/international-recommendations-on-refugee-statistics-irrs/' },
+    { k: 'IRIS', name: 'International Recommendations on IDP Statistics', year: 2020, url: 'https://egrisstats.org/recommendations/international-recommendations-on-idp-statistics-iris/' },
+    { k: 'IROSS', name: 'International Recommendations on Statelessness Statistics', year: 2023, url: 'https://egrisstats.org/recommendations/international-recommendations-on-statelessness-statistics-iross/' }
+  ];
+  function renderCovers(list) {
+    var box = document.getElementById('recCovers'), donut = document.getElementById('donut');
+    box.innerHTML = REC_DOCS.map(function (r) {
+      var all = list.filter(function (d) { return d.codes.indexOf(r.k) >= 0; }).length;
+      var alone = list.filter(function (d) { return d.rec === r.k; }).length;
+      return '<a class="cover" style="--c:' + RECBY[r.k].color + '" href="' + r.url + '" target="_blank" rel="noopener" data-k="' + r.k + '">' +
+        '<img src="assets/recs/' + r.k + '.jpg" alt="Cover of the ' + r.name + '" loading="lazy">' +
+        '<div style="min-width:0"><div class="cc">' + r.k + ' <span class="muted" style="font-weight:400">· ' + r.year + '</span></div><div class="cn">' + r.name + '</div>' +
+        '<div class="cv">' + all + '</div><div class="cs">examples apply it · ' + alone + ' alone, ' + (all - alone) + ' in mixed use</div></div></a>';
+    }).join('');
+    box.querySelectorAll('.cover').forEach(function (a) {
+      var on = function () { donut.classList.add('focus'); donut.querySelectorAll('.dot-ex').forEach(function (g) { g.classList.toggle('on', g.classList.contains('has-' + a.dataset.k)); }); };
+      var off = function () { donut.classList.remove('focus'); };
+      a.addEventListener('mouseenter', on); a.addEventListener('focus', on);
+      a.addEventListener('mouseleave', off); a.addEventListener('blur', off);
+    });
+  }
+  function renderRegions() {
+    var rows = current({ reg: true });
+    var items = REGIONS.concat(['Other']).map(function (r) { var v = rows.filter(function (d) { return d.region === r; }); return { label: r, key: r, parts: leadParts(v) }; })
+      .filter(function (it) { return it.parts[0].n + it.parts[1].n; })
+      .sort(function (a, b) { return (b.parts[0].n + b.parts[1].n) - (a.parts[0].n + a.parts[1].n); });
+    items.forEach(function (it) { it.note = S.reg === it.key ? 'Click again to clear' : 'Click to filter'; });
+    hbars('regBars', items, { click: function (it) { S.reg = S.reg === it.key ? 'all' : it.key; document.getElementById('fReg').value = S.reg; render(); } });
+  }
+  function topBy(rows, key, n) {
+    return d3.rollups(rows, function (v) { return v; }, key).sort(function (a, b) { return b[1].length - a[1].length || d3.ascending(a[0], b[0]); }).slice(0, n);
+  }
+  function renderTop() {
+    var rows = current();
+    var cty = topBy(rows.filter(function (d) { return d.lead === 'C' && d.mn; }), function (d) { return d.mn; }, 10);
+    hbars('ctyBars', cty.map(function (e) {
+      return { label: e[0], key: e[0], note: new Set(e[1].map(function (d) { return d.org; })).size + ' institution(s) · click to filter', parts: [{ name: 'Country-led examples', color: LEAD.C.color, n: e[1].length }] };
+    }), { click: function (it) { S.country = S.country === it.key ? null : it.key; render(); } });
+    var inst = topBy(rows.filter(function (d) { return d.lead === 'I'; }), function (d) { return shortOrg(d.org); }, 10);
+    hbars('instBars', inst.map(function (e) {
+      return { label: e[0], note: new Set(e[1].map(function (d) { return d.country || 'Regional / global'; })).size + ' countries or regional', parts: [{ name: 'Institution-led examples', color: LEAD.I.color, n: e[1].length }] };
+    }));
+  }
+  function shortOrg(o) { var m = String(o).match(/\(([A-Z][A-Za-z&\-]{1,12})\)\s*$/); return m ? m[1] : o; }
+  function renderMulti(el, field) {
+    var rows = current(), tally = {};
+    rows.forEach(function (d) { d[field].forEach(function (s) { (tally[s] = tally[s] || []).push(d); }); });
+    var items = Object.keys(tally).map(function (k) { return { label: k, parts: leadParts(tally[k]), note: pct(tally[k].length, rows.length) + ' of examples' }; })
+      .sort(function (a, b) { return (b.parts[0].n + b.parts[1].n) - (a.parts[0].n + a.parts[1].n); }).slice(0, 9);
+    hbars(el, items);
+  }
+
+  // ---------- feed ----------
+  function renderFeed() {
+    var q = S.q.toLowerCase();
+    var rows = current().filter(function (d) { return !q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0; }).slice().reverse();
+    var dayAgo = new Date(+S.asOf - 864e5);
+    document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + ' · newest first · highlighted: last 24 hours';
+    document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
+      var rec = RECBY[d.rec];
+      var recTags = d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i style="background:' + (RECBY[c] ? RECBY[c].color : rec.color) + '"></i>' + c + '</span>'; }).join('')
+        : '<span class="tag"><i style="background:' + rec.color + '"></i>' + esc(d.recTxt || 'Not reported') + '</span>';
+      return '<tr class="' + (d.t > dayAgo ? 'new' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
+        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">No submissions match.</td></tr>';
+  }
+
+  // ---------- controls ----------
+  function buildRegionSelect() {
+    var sel = document.getElementById('fReg'), have = new Set(S.rows.map(function (d) { return d.region; }));
+    var opts = REGIONS.concat(['Other']).filter(function (r) { return have.has(r); });
+    sel.innerHTML = '<option value="all">All regions</option>' + opts.map(function (r) { return '<option>' + esc(r) + '</option>'; }).join('');
+    sel.value = S.reg;
+  }
+  document.querySelectorAll('#fLead button').forEach(function (b) {
+    b.addEventListener('click', function () { S.lead = b.dataset.v; render(); });
+  });
+  document.getElementById('fRec').addEventListener('change', function (e) { S.rec = e.target.value; render(); });
+  document.getElementById('fReg').addEventListener('change', function (e) { S.reg = e.target.value; render(); });
+  document.querySelectorAll('#donutSeg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      S.donut = b.dataset.v;
+      document.querySelectorAll('#donutSeg button').forEach(function (o) { o.setAttribute('aria-pressed', o === b); });
+      renderRecs();
+    });
+  });
+  document.getElementById('countryClear').addEventListener('click', function () { S.country = null; render(); });
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    S.lead = 'all'; S.rec = 'all'; S.reg = 'all'; S.country = null; S.q = ''; document.getElementById('q').value = '';
+    document.getElementById('fRec').value = 'all'; document.getElementById('fReg').value = 'all'; stopPlay(); S.asOf = latest(); render();
+  });
+  document.getElementById('q').addEventListener('input', function (e) { S.q = e.target.value; renderFeed(); });
+  document.getElementById('refreshBtn').addEventListener('click', load);
+
+  function syncControls() {
+    document.querySelectorAll('#fLead button').forEach(function (o) { o.setAttribute('aria-pressed', o.dataset.v === S.lead); });
+    var chip = document.getElementById('countryChip');
+    chip.style.display = S.country ? 'inline-flex' : 'none';
+    document.getElementById('countryChipTxt').textContent = S.country || '';
+    var asOfTxt = S.asOf < latest() ? ' · viewing as of ' + fmtFull(S.asOf) : '';
+    document.getElementById('globeSub').textContent = 'Examples per country' + asOfTxt + ' · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter';
+  }
+
+  function render(fast) {
+    if (!S.rows.length && !S.loadedAt) return;
+    syncControls();
+    renderKPIs();
+    renderTimeline();
+    computeCounts();
+    drawGlobe();
+    renderRecs();
+    if (fast && Math.random() < .6) return; // during replay, refresh the lower panels less often
+    renderRegions();
+    renderTop();
+    renderMulti('srcBars', 'src');
+    renderMulti('popBars', 'pop');
+    renderFeed();
+  }
+
+  var rT; addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(function () { render(); }, 120); });
+  // ---------- start ----------
+  fetch(CONFIG.world).then(function (r) { return r.json(); }).then(function (topo) { setupGlobe(topo); drawGlobe(); })
+    .catch(function () { document.getElementById('globeSub').textContent = 'The world map could not be loaded.'; });
+  load();
+  setInterval(load, CONFIG.refreshMin * 6e4);
+  setInterval(function () { if (!S.demo && S.asOf >= latest() - 6e4) { S.asOf = latest(); renderKPIs(); } }, 6e4);
+})();
+</script>
+</body>
+</html>
