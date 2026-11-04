@@ -1,3 +1,4 @@
 .DS_Store
 dashboard/data/gain2026.csv
 __pycache__/
+dashboard/data/gain2026_meta.json

@@ -237,6 +237,11 @@ def main():
         w.writeheader()
         w.writerows(out)
     n_ex = sum(r["kind"] == "example" for r in out)
+    # when the data was taken from Kobo, so the page can say how fresh it is
+    import datetime as _dt
+    (OUT.parent / "gain2026_meta.json").write_text(json.dumps({
+        "pulled_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "responses": n_sub, "examples": n_ex}), encoding="utf-8")
     print(f"{n_ex} examples from {n_sub} responses -> {OUT.relative_to(HERE.parent)}")
 
 

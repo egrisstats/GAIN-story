@@ -54,7 +54,7 @@ jobs:
           KOBO_TOKEN: ${{ secrets.KOBO_TOKEN }}
         run: |
           python3 dashboard/tools/kobo_to_csv.py
-          if [ -f dashboard/data/gain2026.csv ]; then mv dashboard/data/gain2026.csv _site/dashboard/data/; fi
+          if [ -f dashboard/data/gain2026.csv ]; then mv dashboard/data/gain2026.csv dashboard/data/gain2026_meta.json _site/dashboard/data/; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

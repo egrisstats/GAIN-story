@@ -180,7 +180,7 @@ footer a { color: var(--ink-2); }
       <h1>GAIN 2026 · submissions tracker</h1>
       <div class="sub">Global Annual Implementation (GAIN) survey on the use of the IRRS, IRIS and IROSS · collection 3–22 November 2026</div>
     </div>
-    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading…</span><button class="btn" id="refreshBtn" type="button">Refresh</button></div>
+    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading…</span><button class="btn" id="refreshBtn" type="button" title="Look for a newer copy of the Kobo data">Check now</button></div>
   </header>
 
   <section class="snow" aria-label="Every GAIN 2026 example as a point of light">
@@ -439,6 +439,9 @@ footer a { color: var(--ink-2); }
       document.getElementById('demo').style.display = S.demo ? 'block' : 'none';
       document.getElementById('liveDot').className = 'dot' + (S.demo ? ' off' : '');
       document.getElementById('srcNote').textContent = 'Source: ' + res.url + (S.demo ? ' (simulated)' : '') + ' · ' + rows.length + ' example rows';
+      S.pulledAt = null;
+      if (!S.demo) fetch(res.url.replace(/\.csv(\?|$)/, '_meta.json$1') + (res.url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; }).then(function (m) { if (m && m.pulled_at) { S.pulledAt = new Date(m.pulled_at); setUpdated(); } }).catch(function () {});
       setUpdated();
       buildRegionSelect();
       render();
@@ -452,9 +455,16 @@ footer a { color: var(--ink-2); }
     var last = S.rows[S.rows.length - 1].t;
     return S.demo ? last : new Date(Math.max(last, Date.now()));
   }
+  // says how fresh the data really is: the page can only re-read the copy GitHub publishes from Kobo
   function setUpdated() {
-    document.getElementById('updated').textContent = (S.demo ? 'Demo · ' : 'Live · ') + 'read ' + d3.timeFormat('%H:%M')(S.loadedAt) +
-      ' · refreshes every ' + CONFIG.refreshMin + ' min';
+    var el = document.getElementById('updated'), dot = document.getElementById('liveDot');
+    if (S.demo) { el.textContent = 'Demo data · read ' + d3.timeFormat('%H:%M')(S.loadedAt); return; }
+    if (!S.pulledAt) { el.textContent = 'Kobo data · read ' + d3.timeFormat('%H:%M')(S.loadedAt); return; }
+    var mins = Math.max(0, Math.round((Date.now() - S.pulledAt) / 6e4));
+    var ago = mins < 1 ? 'just now' : mins < 60 ? mins + ' min ago' : Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min ago';
+    el.textContent = 'Kobo data as of ' + d3.timeFormat('%H:%M')(S.pulledAt) + ' (' + ago + ') · updated about every 15 min';
+    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes; GitHub takes a new copy from Kobo about every 15 minutes, sometimes later.';
+    dot.className = 'dot' + (mins > 45 ? ' off' : '');
   }
 
   // filters (asOf applies to everything except the timeline's own x-range)
@@ -1062,7 +1072,7 @@ footer a { color: var(--ink-2); }
   load();
   setInterval(load, CONFIG.refreshMin * 6e4);
   // live data: keep following the present unless the viewer has gone back in time on the timeline
-  setInterval(function () { if (!S.demo && !playTimer && S.asOf >= latest() - 3e5) { S.asOf = latest(); render(); } }, 6e4);
+  setInterval(function () { setUpdated(); if (!S.demo && !playTimer && S.asOf >= latest() - 3e5) { S.asOf = latest(); render(); } }, 6e4);
 })();
 </script>
 </body>
