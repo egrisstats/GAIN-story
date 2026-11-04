@@ -496,8 +496,8 @@ footer a { color: var(--ink-2); }
     if (!S.pulledAt) { el.textContent = 'Kobo data · read ' + d3.timeFormat('%H:%M')(S.loadedAt); return; }
     var mins = Math.max(0, Math.round((Date.now() - S.pulledAt) / 6e4));
     var ago = mins < 1 ? 'just now' : mins < 60 ? mins + ' min ago' : Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min ago';
-    el.textContent = 'Kobo data as of ' + d3.timeFormat('%H:%M')(S.pulledAt) + ' (' + ago + ') · updates within minutes of a new submission';
-    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes. Each new Kobo submission makes GitHub take a fresh copy within about a minute; a 15-minute schedule is the fallback.';
+    el.textContent = 'Kobo data as of ' + d3.timeFormat('%H:%M')(S.pulledAt) + ' (' + ago + ') · refreshes automatically';
+    el.title = 'The page re-checks for a newer copy every ' + CONFIG.refreshMin + ' minutes. GitHub takes a fresh copy from Kobo when a submission arrives (where Kobo is set to notify this site) and on a 15-minute schedule.';
     dot.className = 'dot' + (mins > 45 ? ' off' : '');
   }
 
