@@ -73,6 +73,8 @@ button, select, input { font: inherit; color: var(--ink); }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .seg button { background: transparent; border: 0; padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--ink-2); border-right: 1px solid var(--line); }
 #hist .yl { font-size: 10px; fill: var(--ink-2); }
+.flag { margin-top: 4px; font-size: 11px; color: #e3c3a0; line-height: 1.35; }
+#flagBtn[aria-pressed="true"] { background: var(--panel-2); color: #fff; box-shadow: inset 0 -2px 0 #e3c3a0; }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--panel-2); color: #fff; box-shadow: inset 0 -2px 0 var(--ink-2); }
 select { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font-size: 12px; }
@@ -272,7 +274,7 @@ footer a { color: var(--ink-2); }
           </div>
           <div class="legend" id="histLegend" style="margin-bottom:6px"></div>
           <div id="hist"></div>
-          <div class="sub" style="margin-top:6px">Responses by survey day; day 1 is the day each round opened. Past rounds from the GAIN 2023–2025 Kobo forms (arrival time only). Counts are responses, not examples, and ignore the filters.</div>
+          <div class="sub" style="margin-top:6px">Responses by survey day; day 1 is the day of each round's first submission. Past rounds from the GAIN 2023–2025 Kobo forms (arrival time only). Counts are responses, not examples, and ignore the filters.</div>
         </div>
         <div id="nowView">
         <div class="legend" style="margin-bottom:6px"><span><i class="sw" style="background:var(--country)"></i>Country-led</span><span><i class="sw" style="background:var(--inst)"></i>Institution-led</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
@@ -330,7 +332,10 @@ footer a { color: var(--ink-2); }
   <section class="panel" aria-labelledby="hFeed">
     <div class="ph">
       <div><h2 id="hFeed">Latest submissions</h2><div class="sub" id="feedSub"></div></div>
-      <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search submissions">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <button class="btn" type="button" id="flagBtn" aria-pressed="false" title="Examples that look like one reported in GAIN 2023–2025, or by another 2026 response">↺ Possible repeats</button>
+        <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search submissions">
+      </div>
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Submitted</th><th>Country</th><th>Organisation</th><th>Lead</th><th>Recommendations</th><th>Example</th></tr></thead>
@@ -457,7 +462,7 @@ footer a { color: var(--ink-2); }
         fixedRegion: !!given, i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
-        title: get(o, ['title', 'example_title']), rec: rec, codes: codes, recTxt: recTxt,
+        title: get(o, ['title', 'example_title']), before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), rec: rec, codes: codes, recTxt: recTxt,
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
       };
     }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
@@ -563,7 +568,7 @@ footer a { color: var(--ink-2); }
       { k: 'Examples', v: rows.length, s: pct(rows.length, CONFIG.bench) + ' of GAIN 2025 (' + CONFIG.bench + ')',
         bar: [[Math.min(1, rows.length / CONFIG.bench), '#cfe0f4']] },
       { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') +
-        (function () { var k = dayIdx(CONFIG.open, S.asOf || new Date()), p = !S.demo && pastAt('2025', k); return p ? '<br>GAIN 2025 had ' + p.c + ' by day ' + k : ''; })() },
+        (function () { var k = dayIdx(open26(), S.asOf || new Date()), p = !S.demo && pastAt('2025', k); return p ? '<br>GAIN 2025 had ' + p.c + ' by day ' + k : ''; })() },
       { k: 'Countries', v: ctry, s: 'with at least one example' },
       { k: 'Lead', v: nC + ' · ' + nI, s: '<span class="sw" style="background:var(--country)"></span>country · <span class="sw" style="background:var(--inst)"></span>institution',
         bar: rows.length ? [[nC / rows.length, LEAD.C.color], [nI / rows.length, LEAD.I.color]] : [] },
@@ -714,7 +719,7 @@ footer a { color: var(--ink-2); }
       if (seen[r.id]) return; seen[r.id] = 1;
       var k = d3.utcDay.count(x.domain()[0], r.t); if (byDay[k]) byDay[k][r.lead]++;
     });
-    byDay.forEach(function (b) { var p = S.demo ? null : pastAt('2025', dayIdx(CONFIG.open, b.d)); b.p = p ? p.n : null; });
+    byDay.forEach(function (b) { var p = S.demo ? null : pastAt('2025', dayIdx(open26(), b.d)); b.p = p ? p.n : null; });
     var y = d3.scaleLinear().domain([0, Math.max(4, d3.max(byDay, function (b) { return Math.max(b.C + b.I, b.p || 0); }))]).range([H - m.b, m.t]);
     var bw = Math.max(2, (x(days[1] || x.domain()[1]) - x(days[0])) - 4);
     var svg = d3.select(box).selectAll('svg').data([0]).join('svg').attr('width', W).attr('height', H).attr('role', 'img').attr('aria-label', 'New responses per day');
@@ -740,14 +745,16 @@ footer a { color: var(--ink-2); }
 
   // ---------- past rounds, by survey day ----------
   // day 1 = the day the round opened; submissions that came in before it (tests) count on day 1
+  // day 1 is the day of each round's first submission (2026: taken from the live data)
   var HIST = [
     { y: '2026', open: CONFIG.open, color: '#ffffff', w: 2.4, dash: null },
-    { y: '2025', open: new Date('2025-11-03T00:00:00Z'), color: '#8db8e3', w: 1.6, dash: null },
+    { y: '2025', open: new Date('2025-10-30T00:00:00Z'), color: '#8db8e3', w: 1.6, dash: null },
     { y: '2024', open: new Date('2024-11-18T00:00:00Z'), color: '#4cc3c9', w: 1.4, dash: '5 3' },
     { y: '2023', open: new Date('2023-09-20T00:00:00Z'), color: '#e3c3a0', w: 1.4, dash: '2 3' }
   ];
+  function open26() { return HIST[0].open = (!S.demo && S.rows.length) ? d3.utcDay.floor(S.rows[0].t) : CONFIG.open; }
   fetch('data/gain_history.json').then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (j) { if (j) { S.hist = j.rounds; render(); } }).catch(function () {});
+    .then(function (j) { if (j) { S.hist = j.rounds; HIST.forEach(function (h) { if (h.y !== '2026' && j.rounds[h.y]) h.open = new Date(j.rounds[h.y].first + 'T00:00:00Z'); }); render(); } }).catch(function () {});
   // a past round's responses on survey day k (n) and by then (c); null before the history has loaded
   function pastAt(year, k) {
     var rd = S.hist && S.hist[year], h = HIST.filter(function (q) { return q.y === year; })[0]; if (!rd || !h) return null;
@@ -757,7 +764,7 @@ footer a { color: var(--ink-2); }
   }
   function dayIdx(open, t) { return Math.max(1, d3.utcDay.count(open, t) + 1); }
   function histSeries() {
-    var winDays = dayIdx(CONFIG.open, CONFIG.deadline);
+    var winDays = dayIdx(open26(), CONFIG.deadline);
     var out = HIST.map(function (h) {
       var daily = {};
       if (h.y === '2026') {
@@ -823,7 +830,7 @@ footer a { color: var(--ink-2); }
       .on('mousemove', function (ev) {
         var k = Math.max(1, Math.min(maxK, Math.round(x.invert(d3.pointer(ev)[0]))));
         hl.attr('x1', x(k)).attr('x2', x(k)).attr('opacity', .5);
-        var html = '<b>Day ' + k + '</b> <span class="muted">(' + d3.utcFormat('%d %b')(d3.utcDay.offset(CONFIG.open, k - 1)) + ' in 2026)</span>';
+        var html = '<b>Day ' + k + '</b> <span class="muted">(' + d3.utcFormat('%d %b')(d3.utcDay.offset(open26(), k - 1)) + ' in 2026)</span>';
         series.forEach(function (s) {
           var p = s.pts[Math.min(k, s.pts.length) - 1];
           var after = k > s.pts.length;
@@ -1291,17 +1298,29 @@ footer a { color: var(--ink-2); }
   // ---------- feed ----------
   function renderFeed() {
     var q = S.q.toLowerCase();
-    var rows = current().filter(function (d) { return !q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0; }).slice().reverse();
+    var all = current(), nFlag = all.filter(flagged).length;
+    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d)); }).slice().reverse();
     var dayAgo = new Date(+S.asOf - 864e5);
-    document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + ' · newest first · highlighted: last 24 hours';
+    var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats (' + nFlag + ')'; fb.setAttribute('aria-pressed', !!S.flagOnly);
+    document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + ' · newest first · highlighted: last 24 hours';
     document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
       var rec = RECBY[d.rec];
       var recTags = d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i style="background:' + (RECBY[c] ? RECBY[c].color : rec.color) + '"></i>' + c + '</span>'; }).join('')
         : '<span class="tag"><i style="background:' + rec.color + '"></i>' + esc(d.recTxt || 'Not reported') + '</span>';
       return '<tr class="' + (d.t > dayAgo ? 'new' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
-        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + '</td></tr>';
+        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + flagTags(d) + '</td></tr>';
     }).join('') || '<tr><td colspan="6" class="empty">No submissions match.</td></tr>';
   }
+
+  // hints from the Kobo pull (tools/repeats.py): to check by hand, not decisions
+  function flagged(d) { return !!(d.before || d.dup); }
+  function flagTags(d) {
+    var h = '';
+    if (d.before) h += '<div class="flag" title="' + esc(d.before) + '">↺ Looks like ' + esc(d.before.split(' | ')[0]) + '</div>';
+    if (d.dup) h += '<div class="flag" title="' + esc(d.dup) + '">⧉ Similar to another 2026 response: ' + esc(d.dup.split(' | ')[0].replace(/^R-\w+: /, '')) + '</div>';
+    return h;
+  }
+  document.getElementById('flagBtn').addEventListener('click', function () { S.flagOnly = !S.flagOnly; renderFeed(); });
 
   // ---------- controls ----------
   function buildRegionSelect() {

@@ -44,7 +44,7 @@ PERSONAL = re.compile(r"(^|_)(name_?resp|respondent|focal|contact|e?mail|phone|t
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d ()./-]{7,}\d")
 COLUMNS = ["response_id", "submitted_at", "kind", "country", "organisation", "lead", "title",
-           "recommendations", "data_source", "population_groups"]
+           "recommendations", "data_source", "population_groups", "reported_before", "possible_duplicate"]
 
 
 def get(url):
@@ -116,6 +116,11 @@ def scrub(text):
     text = EMAIL.sub("[email removed]", text)
     # a phone number has 9+ digits; year ranges such as 2021-2025 (8 digits) stay
     return PHONE.sub(lambda m: "[phone removed]" if sum(c.isdigit() for c in m.group()) >= 9 else m.group(), text)
+
+
+def tidy_title(t):
+    """a title typed as Words+Joined+By+Plus (copied from a URL) reads as words"""
+    return t.replace("+", " ") if t and " " not in t and "+" in t else t
 
 
 def anon_id(s):
@@ -226,11 +231,18 @@ def main():
             out.append({**base, "kind": "example",
                         "lead": "Country-led" if country_led else "Institution-led",
                         "country": country,
-                        "title": text([ex], "title") or f"Example {i + 1}",
+                        "title": tidy_title(text([ex], "title")) or f"Example {i + 1}",
                         "recommendations": text([ex], "recommendations"),
                         "data_source": text([ex], "data_source"),
                         "population_groups": text([ex], "population_groups")})
     out.sort(key=lambda r: r["submitted_at"])
+    # hints for checking: looks like an example from GAIN 2023-2025, or one another 2026 response gave
+    try:
+        sys.path.insert(0, str(HERE / "tools"))
+        from repeats import Matcher
+        Matcher().tag(out)
+    except Exception as e:  # never block the publish over the hints
+        print("repeat check skipped:", e)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS, restval="")

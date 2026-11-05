@@ -152,3 +152,20 @@ To try the same thing elsewhere (claude.ai Dashboard, Power BI Copilot, etc.), a
 > (6) data sources and population groups; (7) a searchable feed of the latest submissions.
 > Global filters: lead, Recommendation, region, country. Colour-blind-safe colours, one consistent
 > colour per lead and per Recommendation across all charts, tooltips on every mark.
+
+## Possible repeats
+
+Each Kobo pull runs `tools/repeats.py`, which adds two columns to `gain2026.csv`:
+- `reported_before`: the example looks like one in GAIN 2023–2025 (`pipeline/data/gain_examples.csv`, the
+  analysis-ready roster): same country (or same organisation for regional/global examples) and titles
+  sharing most of their distinctive words. Rare words count more than common ones ("census", "survey",
+  "press release" count for little), and titles naming different years (Census 2015 vs Census 2026) are
+  taken as another round, not a repeat.
+- `possible_duplicate`: the same check against the examples of *other* 2026 responses.
+
+The page shows them under the title in *Latest submissions*, with a "Possible repeats" button that lists
+only those. They are hints to check by hand: a recurring training or an annual release can rightly be
+reported again. Run `python3 dashboard/tools/repeats.py <gain2026.csv> -v` to see matches and near misses.
+
+The day-by-day comparison counts day 1 from each round's first submission (2023: 20 Sep, 2024: 18 Nov,
+2025: 30 Oct; 2026: the first row of the live data).
