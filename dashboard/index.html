@@ -196,21 +196,21 @@ footer a { color: var(--ink-2); }
   <header>
     <div>
       <div class="eyebrow">EGRISS Secretariat · internal</div>
-      <h1>GAIN 2026 · submissions tracker</h1>
+      <h1>GAIN 2026 · response tracker</h1>
       <div class="sub">Global Annual Implementation (GAIN) survey on the use of the IRRS, IRIS and IROSS · collection 3–22 November 2026</div>
     </div>
-    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading…</span><button class="btn" id="refreshBtn" type="button" title="Look for a newer copy of the Kobo data">Check now</button></div>
+    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading the latest Kobo data…</span><button class="btn" id="refreshBtn" type="button" title="Look for a newer copy of the Kobo data">Check now</button></div>
   </header>
 
   <section class="snow" aria-label="Every GAIN 2026 example as a point of light">
     <canvas id="snowCv"></canvas>
     <div class="over">
       <div class="big" id="snowN">–</div>
-      <div class="cap" id="snowCap">Every point of light is a GAIN 2026 example; the faint ones are still to come to match GAIN 2025.</div>
+      <div class="cap" id="snowCap">Each light is a GAIN 2026 example. The faint ones show how far there is to go to match GAIN 2025.</div>
       <div class="keys">
         <span><i class="k" style="background:var(--country);box-shadow:0 0 6px var(--country)"></i>Country-led</span>
         <span><i class="k" style="background:var(--inst);box-shadow:0 0 6px var(--inst)"></i>Institution-led</span>
-        <span><i class="k" style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using, or don’t know</span>
+        <span><i class="k" style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using the Recommendations, or don’t know</span>
       </div>
     </div>
   </section>
@@ -244,14 +244,14 @@ footer a { color: var(--ink-2); }
   <div class="grid">
     <section class="panel" aria-labelledby="hGlobe">
       <div class="ph">
-        <div><h2 id="hGlobe">Where submissions come from</h2><div class="sub" id="globeSub">Examples per country · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter</div></div>
+        <div><h2 id="hGlobe">Where examples come from</h2><div class="sub" id="globeSub">Examples per country · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter</div></div>
         <span class="seg" id="projSeg">
           <button type="button" data-v="globe" aria-pressed="true">Globe</button>
           <button type="button" data-v="flat" aria-pressed="false">Map</button>
         </span>
       </div>
       <div id="globeBox">
-        <svg id="globe" role="img" aria-label="Globe of countries with GAIN 2026 submissions"></svg>
+        <svg id="globe" role="img" aria-label="Globe of countries with GAIN 2026 examples"></svg>
         <div class="globe-ui">
           <div class="ramp"><div>Examples per country</div><div class="rbar" id="rampBar"></div><div class="rl"><span>1</span><span id="rampMax">–</span></div>
             <div style="margin-top:6px"><span class="sw" style="background:var(--accent);border-radius:50%"></span>New in the last 24 hours</div></div>
@@ -263,7 +263,7 @@ footer a { color: var(--ink-2); }
     <div class="right-col">
       <section class="panel" aria-labelledby="hTime">
         <div class="ph">
-          <div><h2 id="hTime">Timeline of submissions</h2><div class="sub" id="timeSub">Cumulative examples by lead · click the chart to see the round as of that day</div></div>
+          <div><h2 id="hTime">Examples over time</h2><div class="sub" id="timeSub">Cumulative examples by lead · click the chart to see the round as of that day</div></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="seg" id="tlView"><button type="button" data-v="now" aria-pressed="true">This round</button><button type="button" data-v="past" aria-pressed="false">vs 2023–2025</button></span>
             <span id="nowCtl" style="display:flex;gap:6px"><button class="btn" type="button" id="playBtn">▶ Replay</button><button class="btn" type="button" id="nowBtn">Latest</button></span>
@@ -276,7 +276,7 @@ footer a { color: var(--ink-2); }
           </div>
           <div class="legend" id="histLegend" style="margin-bottom:6px"></div>
           <div id="hist"></div>
-          <div class="sub" style="margin-top:6px">Responses by survey day; day 1 is each round's first submission after launch (20 Sep 2023, 18 Nov 2024, 3 Nov 2025, 3 Nov 2026); test submissions before it count on day 1. Past rounds from the GAIN 2023–2025 Kobo forms (arrival time only). Counts are responses, not examples, and ignore the filters.</div>
+          <div class="sub" style="margin-top:6px">Responses by survey day. Day 1 is each round’s first submission after launch; earlier test submissions count on day 1. Filters don’t apply here.</div>
         </div>
         <div id="nowView">
         <div class="legend" style="margin-bottom:6px"><span><i class="sw" style="background:var(--country)"></i>Country-led</span><span><i class="sw" style="background:var(--inst)"></i>Institution-led</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
@@ -305,7 +305,7 @@ footer a { color: var(--ink-2); }
   <div class="grid3">
     <section class="panel" aria-labelledby="hReg">
       <div class="ph"><div><h2 id="hReg">Country-led and institution-led, by region</h2><div class="sub">Each dot is an example · click a region to filter</div></div></div>
-      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using / don’t know</span></div>
+      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using the Recommendations, or don’t know</span></div>
       <div id="regBars" class="hbars"></div>
     </section>
     <section class="panel" aria-labelledby="hCty">
@@ -321,22 +321,22 @@ footer a { color: var(--ink-2); }
   <div class="grid2">
     <section class="panel" aria-labelledby="hSrc">
       <div class="ph"><div><h2 id="hSrc">Data sources and tools</h2><div class="sub">Each dot is an example; one can report more than one source</div></div></div>
-      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using / don’t know</span></div>
+      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using the Recommendations, or don’t know</span></div>
       <div id="srcBars" class="hbars"></div>
     </section>
     <section class="panel" aria-labelledby="hPop">
       <div class="ph"><div><h2 id="hPop">Population groups covered</h2><div class="sub">Each dot is an example; one can cover more than one group</div></div></div>
-      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using / don’t know</span></div>
+      <div class="dotkey"><span><i style="background:var(--country);box-shadow:0 0 5px var(--country)"></i>Country-led</span><span><i style="background:var(--inst);box-shadow:0 0 5px var(--inst)"></i>Institution-led</span><span><i style="box-shadow:inset 0 0 0 1.5px #cfe0f4"></i>Ring: not using the Recommendations, or don’t know</span></div>
       <div id="popBars" class="hbars"></div>
     </section>
   </div>
 
   <section class="panel" aria-labelledby="hFeed">
     <div class="ph">
-      <div><h2 id="hFeed">Latest submissions</h2><div class="sub" id="feedSub"></div></div>
+      <div><h2 id="hFeed">Latest examples</h2><div class="sub" id="feedSub"></div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <button class="btn" type="button" id="flagBtn" aria-pressed="false" title="Examples that look like one reported in GAIN 2023–2025, or by another 2026 response">↺ Possible repeats</button>
-        <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search submissions">
+        <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search examples">
       </div>
     </div>
     <div class="tbl-wrap"><table>
@@ -521,7 +521,7 @@ footer a { color: var(--ink-2); }
       buildRegionSelect();
       render();
     }).catch(function (e) {
-      document.getElementById('updated').textContent = 'Could not read the data feed (' + e.message + ')';
+      document.getElementById('updated').textContent = 'Couldn’t load the latest data. Both copies of the site are unreachable right now. Try Check now in a minute.'; document.getElementById('updated').title = e.message;
       document.getElementById('liveDot').className = 'dot off';
     });
   }
@@ -572,10 +572,10 @@ footer a { color: var(--ink-2); }
       { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') +
         (function () { var k = dayIdx(open26(), S.asOf || new Date()), p = !S.demo && pastAt('2025', k); return p ? '<br>GAIN 2025 had ' + p.c + ' by day ' + k : ''; })() },
       { k: 'Countries', v: ctry, s: 'with at least one example' },
-      { k: 'Lead', v: nC + ' · ' + nI, s: '<span class="sw" style="background:var(--country)"></span>country · <span class="sw" style="background:var(--inst)"></span>institution',
+      { k: 'Country · institution', v: nC + ' · ' + nI, s: '<span class="sw" style="background:var(--country)"></span>country-led · <span class="sw" style="background:var(--inst)"></span>institution-led',
         bar: rows.length ? [[nC / rows.length, LEAD.C.color], [nI / rows.length, LEAD.I.color]] : [] },
       { k: 'Using the Recommendations', v: pct(using, rows.length), s: using + ' of ' + rows.length + ' examples' },
-      { k: left > 0 ? 'Days to deadline' : 'Collection', v: left > 0 ? left : 'Closed', s: 'deadline 22 November 2026' }
+      { k: left > 0 ? 'Days to deadline' : 'Collection', v: left > 0 ? left : 'Closed', s: left > 0 ? 'deadline 22 November 2026' : 'collection closed on 22 November 2026' }
     ];
     document.getElementById('kpis').innerHTML = tiles.map(function (t) {
       var bar = t.bar ? '<div class="bar">' + t.bar.map(function (b) { return '<span style="width:' + (b[0] * 100) + '%;background:' + b[1] + '"></span>'; }).join('') + '</div>' : '';
@@ -596,8 +596,8 @@ footer a { color: var(--ink-2); }
     snow.ghosts = Math.max(0, CONFIG.bench - rows.length);
     document.getElementById('snowN').innerHTML = rows.length + '<small>' + (rows.length === 1 ? 'example' : 'examples') + ' counted so far</small>';
     document.getElementById('snowCap').textContent = rows.length >= CONFIG.bench
-      ? 'Every point of light is a GAIN 2026 example: already more than the ' + CONFIG.bench + ' of GAIN 2025.'
-      : 'Every point of light is a GAIN 2026 example; the ' + snow.ghosts + ' faint ones are still to come to match GAIN 2025 (' + CONFIG.bench + ').';
+      ? 'Each light is a GAIN 2026 example: already more than the ' + CONFIG.bench + ' of GAIN 2025.'
+      : 'Each light is a GAIN 2026 example. The ' + snow.ghosts + ' faint ones show how far there is to go to match GAIN 2025 (' + CONFIG.bench + ').';
   }
   function snowPos(seed, W, H, time) {
     var h = function (k) { return hash(seed, k); }, span = H + 30, spd = 0.006 + h(3) * 0.012;
@@ -1282,11 +1282,11 @@ footer a { color: var(--ink-2); }
     var rows = current();
     var cty = topBy(rows.filter(function (d) { return d.lead === 'C' && d.mn; }), function (d) { return d.mn; }, 10);
     dotrows('ctyBars', cty.map(function (e) {
-      return { label: e[0], key: e[0], rows: e[1], note: new Set(e[1].map(function (d) { return d.org; })).size + ' institution(s) · click to filter' };
+      return { label: e[0], key: e[0], rows: e[1], note: (function (n) { return n + (n === 1 ? ' institution' : ' institutions'); })(new Set(e[1].map(function (d) { return d.org; })).size) + ' · click to filter' };
     }), { click: function (it) { S.country = S.country === it.key ? null : it.key; render(); } });
     var inst = topBy(rows.filter(function (d) { return d.lead === 'I'; }), function (d) { return shortOrg(d.org) || 'Not named'; }, 10);
     dotrows('instBars', inst.map(function (e) {
-      return { label: e[0], rows: e[1], note: new Set(e[1].map(function (d) { return d.country || 'Regional / global'; })).size + ' countries or regional' };
+      return { label: e[0], rows: e[1], note: (function (n) { return n + (n === 1 ? ' country' : ' countries') + ', or regional or global'; })(new Set(e[1].map(function (d) { return d.country || 'Regional / global'; })).size) };
     }));
   }
   function shortOrg(o) { var m = String(o).match(/\(([A-Z][A-Za-z&\-]{1,12})\)\s*$/); return m ? m[1] : o; }
@@ -1304,7 +1304,7 @@ footer a { color: var(--ink-2); }
     var all = current(), nFlag = all.filter(flagged).length, nOpen = all.filter(function (d) { return flagged(d) && !reviewOf(d); }).length;
     var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d) || reviewOf(d)); }).slice().reverse();
     var dayAgo = new Date(+S.asOf - 864e5);
-    var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats (' + nFlag + (nOpen ? ', ' + nOpen + ' to check' : '') + ')'; fb.setAttribute('aria-pressed', !!S.flagOnly);
+    var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats: ' + nFlag + (nOpen ? ' · ' + nOpen + ' to check' : ''); fb.setAttribute('aria-pressed', !!S.flagOnly);
     document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + ' · newest first · highlighted: last 24 hours';
     document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
       var rec = RECBY[d.rec];
@@ -1312,7 +1312,7 @@ footer a { color: var(--ink-2); }
         : '<span class="tag"><i style="background:' + rec.color + '"></i>' + esc(d.recTxt || 'Not reported') + '</span>';
       return '<tr class="' + (d.t > dayAgo ? 'new' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
         '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + flagTags(d) + '</td></tr>';
-    }).join('') || '<tr><td colspan="6" class="empty">No submissions match.</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">No examples match your search or filters. Use Reset filters to see them all.</td></tr>';
   }
 
   // hints from the Kobo pull (tools/repeats.py), and the team's decisions on them (data/repeat_review.csv)
@@ -1333,20 +1333,25 @@ footer a { color: var(--ink-2); }
   }
   function reviewOf(d) { return S.review[reviewKey(d.id, d.title)]; }
   function flagged(d) { return !!(d.before || d.dup); }
+  // 'GAIN 2025 ex196: title' -> a GAIN 2025 example: “title”, with the internal id kept on hover
+  function pastRef(s) {
+    var m = String(s).match(/^GAIN (\d{4}) (\S+): ([\s\S]*)$/);
+    return m ? '<span title="' + esc(m[2]) + '">a GAIN ' + m[1] + ' example: “' + esc(m[3]) + '”</span>' : esc(s);
+  }
   function flagTags(d) {
     var rv = reviewOf(d), h = '';
     var dec = rv && DECISION[rv.decision];
     if (dec) h += '<div class="flag ' + (rv.decision === 'not_repeat' ? 'ok' : '') + '"><b>' + (rv.decision === 'not_repeat' ? '✓ ' : '↺ ') + dec[0] + '</b> · ' + dec[1] +
       (rv.note ? ' · ' + esc(rv.note) : '') + (rv.reviewed_on ? ' <span class="muted">(checked ' + esc(rv.reviewed_on) + ')</span>' : '') + '</div>';
     if (flagged(d)) {
-      var what = d.before ? d.before.split(' | ')[0] : 'another 2026 response: ' + d.dup.split(' | ')[0].replace(/^R-\w+: /, '');
+      var what = d.before ? pastRef(d.before.split(' | ')[0]) : 'another 2026 response: “' + esc(d.dup.split(' | ')[0].replace(/^R-\w+: /, '')) + '”';
       var sg = DECISION[d.suggested];
-      if (!dec) h += '<div class="flag"><b>↺ Possible repeat</b> of ' + esc(what) + (sg ? ' · suggested: <b>' + sg[0] + '</b>' : '') + ' <span class="muted">· not checked yet</span></div>';
-      if (d.why) h += '<div class="why">Why: ' + esc(d.why) + (d.before && d.before.indexOf(' | ') > 0 ? ' · also like ' + esc(d.before.split(' | ')[1]) : '') + '</div>';
-      if (d.caveat) h += '<div class="why">Years' + (d.phase ? ' and stage (2026: ' + esc(d.phase) + ')' : '') + ': ' + esc(d.caveat) + '</div>';
+      if (!dec) h += '<div class="flag"><b>↺ May repeat</b> ' + what + (sg ? ' · Suggested: <b>' + sg[0] + '</b>' : '') + ' <span class="muted">· Not checked yet</span></div>';
+      if (d.why) h += '<div class="why">Why: ' + esc(d.why) + (d.before && d.before.indexOf(' | ') > 0 ? ' · also like ' + pastRef(d.before.split(' | ')[1]) : '') + '</div>';
+      if (d.caveat) h += '<div class="why">Timing: ' + (d.phase ? '2026 says <i>' + esc(d.phase) + '</i> · ' : '') + esc(d.caveat) + '</div>';
     } else if (!dec && d.checked !== '' && d.checked != null) {
       var n = +d.checked, place = d.country || d.org;
-      h += '<div class="why ok">✓ No match ' + (n ? 'among the ' + n + ' GAIN 2023–2025 example' + (n > 1 ? 's' : '') + ' from ' + esc(place) : '· no GAIN 2023–2025 examples from ' + esc(place)) + '</div>';
+      h += '<div class="why ok">✓ No earlier match: ' + (n ? 'compared with the ' + n + ' GAIN 2023–2025 example' + (n > 1 ? 's' : '') + ' from ' + esc(place) : esc(place) + ' had no GAIN 2023–2025 examples') + '</div>';
     }
     return h;
   }
@@ -1409,7 +1414,7 @@ footer a { color: var(--ink-2); }
   var rT; addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(function () { render(); }, 120); });
   // ---------- start ----------
   fetch(CONFIG.world).then(function (r) { return r.json(); }).then(function (topo) { setupGlobe(topo); drawGlobe(); })
-    .catch(function () { document.getElementById('globeSub').textContent = 'The world map could not be loaded.'; });
+    .catch(function () { document.getElementById('globeSub').textContent = 'The map didn’t load. Reload the page to try again. Everything else is still up to date.'; });
   load(); loadReview();
   setInterval(function () { load(); loadReview(); }, CONFIG.refreshMin * 6e4);
   // live data: keep following the present unless the viewer has gone back in time on the timeline

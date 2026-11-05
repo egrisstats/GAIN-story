@@ -111,9 +111,9 @@ class Matcher:
         """plain-language reason for a flag: where, how close, which words"""
         shared = sorted(r["_w"] & w2, key=lambda w: -self.idf(w))
         org = re.search(r"\(([A-Z]{2,10})\)", r["organisation"] or "")
-        place = f"same country ({r['country']})" if r["_c"] else f"same organisation ({org.group(1) if org else r['organisation'][:40]})"
+        place = "same country" if r["_c"] else f"same organisation ({org.group(1) if org else r['organisation'][:40]})"
         small = min(len(r["_w"]), len(w2))
-        bits = [place, f"{len(shared)} of {small} key title words also in the {what} title ({', '.join(shared[:6])})"]
+        bits = [f"{place}, and {len(shared)} of {small} key words in the title match the {what} one ({', '.join(shared[:6])})"]
         if re.search(r"\bplanned\b", title2, re.I): bits.append("reported then as planned")
         if re.search(r"\bongoing\b", title2, re.I): bits.append("reported then as ongoing")
         return " · ".join(bits)
@@ -126,7 +126,7 @@ class Matcher:
         """rows: dicts with response_id, country, organisation, title, kind. Adds
         reported_before     the matching GAIN 2023-2025 example(s), 'GAIN 2025 ex232: title'
         possible_duplicate  the matching example(s) of other 2026 responses
-        repeat_reason       why the first match was flagged (place, % match, shared words)
+        repeat_reason       why the first match was flagged (place, shared title words)
         repeat_checked      how many past examples from the same country/organisation were compared
         (text, empty when nothing found)."""
         ex = [r for r in rows if r.get("kind") == "example"]
