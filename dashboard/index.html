@@ -464,7 +464,7 @@ footer a { color: var(--ink-2); }
         fixedRegion: !!given, i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
-        title: get(o, ['title', 'example_title']), before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
+        title: get(o, ['title', 'example_title']), before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), caveat: get(o, ['repeat_caveat']), suggested: get(o, ['repeat_suggested']), phase: get(o, ['phase']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
       };
     }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
@@ -1340,8 +1340,10 @@ footer a { color: var(--ink-2); }
       (rv.note ? ' · ' + esc(rv.note) : '') + (rv.reviewed_on ? ' <span class="muted">(checked ' + esc(rv.reviewed_on) + ')</span>' : '') + '</div>';
     if (flagged(d)) {
       var what = d.before ? d.before.split(' | ')[0] : 'another 2026 response: ' + d.dup.split(' | ')[0].replace(/^R-\w+: /, '');
-      if (!dec) h += '<div class="flag"><b>↺ Possible repeat</b> of ' + esc(what) + ' <span class="muted">· not checked yet</span></div>';
+      var sg = DECISION[d.suggested];
+      if (!dec) h += '<div class="flag"><b>↺ Possible repeat</b> of ' + esc(what) + (sg ? ' · suggested: <b>' + sg[0] + '</b>' : '') + ' <span class="muted">· not checked yet</span></div>';
       if (d.why) h += '<div class="why">Why: ' + esc(d.why) + (d.before && d.before.indexOf(' | ') > 0 ? ' · also like ' + esc(d.before.split(' | ')[1]) : '') + '</div>';
+      if (d.caveat) h += '<div class="why">Years' + (d.phase ? ' and stage (2026: ' + esc(d.phase) + ')' : '') + ': ' + esc(d.caveat) + '</div>';
     } else if (!dec && d.checked !== '' && d.checked != null) {
       var n = +d.checked, place = d.country || d.org;
       h += '<div class="why ok">✓ No match ' + (n ? 'among the ' + n + ' GAIN 2023–2025 example' + (n > 1 ? 's' : '') + ' from ' + esc(place) : '· no GAIN 2023–2025 examples from ' + esc(place)) + '</div>';

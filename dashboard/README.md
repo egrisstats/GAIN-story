@@ -168,6 +168,21 @@ words are shared, whether the earlier one was reported as planned), and `repeat_
 past examples from that country were compared, so unflagged examples read "No match among the 9 GAIN
 2023–2025 examples from Kenya".
 
+**Years and stage.** `repeat_caveat` reads the years and stages: GAIN <year> reports that year's work, so
+a match in GAIN 2025 is last year's round. It says, and `repeat_suggested` proposes, one of: *update* (the
+earlier one was reported as planned or ongoing, the 2026 title says it was published or disseminated, or
+both titles name the same or adjacent years), *new_round* (a recurring activity such as a training,
+press release or annual statistic, or last reported more than a year ago), or *repeat* (reported in GAIN
+2025 with nothing pointing to a new stage, or given by two 2026 responses). The 2026 stage comes from
+PRO06 (design/planning, implementation, completed, ongoing). The page shows the suggestion until a decision
+is recorded.
+
+**It runs by itself.** All of this happens inside the Kobo pull (`tools/kobo_to_csv.py` calls
+`tools/repeats.py`), which runs on every submission (Kobo notifies GitHub) and on every publish, so new
+examples are checked within minutes. Nothing needs to be run by hand. The only manual step is recording
+decisions in `data/repeat_review.csv`. If the analysis-ready roster gets a `phase` column, the check uses
+the earlier stage too.
+
 **Decisions.** `data/repeat_review.csv` records what the team concluded, one row per checked example:
 `response_id` and the first words of the title (`title_start`) as shown on the page, `decision`, `note`,
 `reviewed_on`. Decisions: `repeat` (same example reported again), `update` (follow-up: new stage or

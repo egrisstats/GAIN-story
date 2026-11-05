@@ -44,8 +44,8 @@ PERSONAL = re.compile(r"(^|_)(name_?resp|respondent|focal|contact|e?mail|phone|t
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d ()./-]{7,}\d")
 COLUMNS = ["response_id", "submitted_at", "kind", "country", "organisation", "lead", "title",
-           "recommendations", "data_source", "population_groups", "reported_before", "possible_duplicate",
-           "repeat_reason", "repeat_checked"]
+           "recommendations", "data_source", "population_groups", "phase", "reported_before", "possible_duplicate",
+           "repeat_reason", "repeat_caveat", "repeat_suggested", "repeat_checked"]
 
 
 def get(url):
@@ -235,7 +235,8 @@ def main():
                         "title": tidy_title(text([ex], "title")) or f"Example {i + 1}",
                         "recommendations": text([ex], "recommendations"),
                         "data_source": text([ex], "data_source"),
-                        "population_groups": text([ex], "population_groups")})
+                        "population_groups": text([ex], "population_groups"),
+                        "phase": text([ex], "phase") if "phase" in F else ""})
     out.sort(key=lambda r: r["submitted_at"])
     # hints for checking: looks like an example from GAIN 2023-2025, or one another 2026 response gave
     try:

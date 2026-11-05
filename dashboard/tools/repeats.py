@@ -40,6 +40,49 @@ def key(s):
     return re.sub(r"[^a-z]", "", (s or "").lower())
 
 
+RECURRING = re.compile(r"\b(training|course|workshop|webinar|annual|yearly|press release|bulletin|yearbook|"
+                       r"world refugee day|statistical release|quarterly|monthly)\b", re.I)
+EARLY = re.compile(r"\b(planned|planning|design|to be|will be|upcoming|preparation|preparations)\b", re.I)
+OUTPUT = re.compile(r"\b(disseminated|dissemination|published|publication of|released|launched|documented|finali[sz]ed|completed)\b", re.I)
+UNDERWAY = re.compile(r"\b(ongoing|implementation|in progress|underway)\b", re.I)
+
+
+def caveat(new_title, new_phase, past, also):
+    """What the years and stages suggest, in words, and a suggested decision.
+    GAIN <year> reports work of that year, so GAIN 2025 = activities of 2025."""
+    yrs = sorted({past["year"]} | {a["year"] for a in also})
+    when = " and ".join(f"GAIN {y}" for y in yrs)
+    ny, py = years(new_title), years(past["title"])
+    past_phase = past.get("phase", "") + " " + past["title"]
+    stage = f" as {new_phase.lower()}" if new_phase else " again"
+    if EARLY.search(past_phase) and past["year"] == max(yrs):
+        extra = f" (also reported in GAIN {', '.join(y for y in yrs if y != past['year'])})" if len(yrs) > 1 else ""
+        return (f"GAIN {past['year']} reported it as planned{extra}; 2026 reports it{stage}: likely the planned "
+                "activity now carried out, so an update rather than a new example", "update")
+    out = OUTPUT.search(new_title)
+    if out and not RECURRING.search(new_title):
+        return (f"reported in {when}; the 2026 title says it was {out.group(0).lower()}: a new output of the same activity, "
+                "so an update", "update")
+    if RECURRING.search(new_title) or RECURRING.search(past["title"]):
+        kind = (RECURRING.search(new_title) or RECURRING.search(past["title"])).group(0).lower()
+        if len(yrs) > 1 or past["year"] not in ("2025",):
+            return (f"a recurring activity ({kind}) also reported in {when}: probably this year's edition, "
+                    "unless the 2026 entry describes the same event", "new_round")
+    if EARLY.search(past_phase):
+        return (f"{when} reported it as planned; 2026 reports it" + (f" as {new_phase.lower()}" if new_phase else " again") +
+                ": likely the same activity moving forward, so an update rather than a new example", "update")
+    if UNDERWAY.search(past_phase):
+        return (f"{when} reported it as ongoing; 2026 reports it" + (f" as {new_phase.lower()}" if new_phase else " again") +
+                ": likely the next stage of the same activity", "update")
+    if ny and py and any(abs(a - b) <= 1 for a in ny for b in py):
+        span = "/".join(str(y) for y in sorted(ny | py))
+        return (f"both titles refer to {span}: the same activity reported in two rounds, check what is new in 2026", "update")
+    if past["year"] == "2025":
+        return ("reported in the last round (GAIN 2025): check whether anything new happened in 2026 "
+                "(a new stage, publication or round)", "repeat")
+    return (f"last reported in {when}, more than a year ago: may be a new round of the same activity", "new_round")
+
+
 class Matcher:
     def __init__(self, path=PAST):
         self.past = []
@@ -47,7 +90,8 @@ class Matcher:
             with open(path, newline="", encoding="utf-8") as f:
                 for r in csv.DictReader(f):
                     self.past.append({"id": r["ex_id"], "year": r.get("gain_year", ""), "country": key(r["country"]),
-                                      "org": key(r["organisation"])[:14], "title": r["title"], "w": words(r["title"], r["country"])})
+                                      "org": key(r["organisation"])[:14], "title": r["title"], "w": words(r["title"], r["country"]),
+                                      "phase": r.get("phase", "")})
         n = max(1, len(self.past))
         df = {}
         for p in self.past:
@@ -92,6 +136,8 @@ class Matcher:
             hits = [(s, p) for s, p in hits if s >= PAST_MIN][:2]
             r["reported_before"] = " | ".join(f"GAIN {p['year']} {p['id']}: {p['title'][:110]}" for s, p in hits)
             r["repeat_reason"] = self.why(r, hits[0][1]["w"], hits[0][1]["title"], f"GAIN {hits[0][1]['year']}") if hits else ""
+            if hits:
+                r["repeat_caveat"], r["repeat_suggested"] = caveat(r["title"], r.get("phase", ""), hits[0][1], [p for _, p in hits[1:]])
         for i, a in enumerate(ex):
             dup = []
             for j, b in enumerate(ex):
@@ -102,9 +148,12 @@ class Matcher:
             a["possible_duplicate"] = " | ".join(d for d, _ in dup[:2])
             if dup and not a["repeat_reason"]:
                 a["repeat_reason"] = self.why(a, dup[0][1]["_w"], dup[0][1]["title"], "another 2026 response")
+                a["repeat_caveat"] = "two 2026 responses describe it: perhaps two organisations reporting the same activity (count it once)"
+                a["repeat_suggested"] = "repeat"
         for r in rows:
             for k in ("_w", "_c", "_o"): r.pop(k, None)
-            for k in ("reported_before", "possible_duplicate", "repeat_reason", "repeat_checked"): r.setdefault(k, "")
+            for k in ("reported_before", "possible_duplicate", "repeat_reason", "repeat_caveat", "repeat_suggested", "repeat_checked"):
+                r.setdefault(k, "")
         return rows
 
 
@@ -118,6 +167,7 @@ if __name__ == "__main__":  # python3 repeats.py some_gain2026.csv  -> prints wh
             if r["reported_before"]: print("    before: " + r["reported_before"])
             if r["possible_duplicate"]: print("    2026:   " + r["possible_duplicate"])
             print("    why:    " + r["repeat_reason"])
+            print(f"    years:  {r['repeat_caveat']}  -> suggested: {r['repeat_suggested']}")
     # near misses, to calibrate
     if "-v" in sys.argv:
         print("\nnear misses:")
