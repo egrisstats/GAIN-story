@@ -60,32 +60,51 @@ class Matcher:
         tot = sum(self.idf(w) for w in small)
         return sum(self.idf(w) for w in small if w in big) / tot if tot else 0.0
 
+    def why(self, r, w2, title2, what):
+        """plain-language reason for a flag: where, how close, which words"""
+        shared = sorted(r["_w"] & w2, key=lambda w: -self.idf(w))
+        org = re.search(r"\(([A-Z]{2,10})\)", r["organisation"] or "")
+        place = f"same country ({r['country']})" if r["_c"] else f"same organisation ({org.group(1) if org else r['organisation'][:40]})"
+        small = min(len(r["_w"]), len(w2))
+        bits = [place, f"{len(shared)} of {small} key title words also in the {what} title ({', '.join(shared[:6])})"]
+        if re.search(r"\bplanned\b", title2, re.I): bits.append("reported then as planned")
+        if re.search(r"\bongoing\b", title2, re.I): bits.append("reported then as ongoing")
+        return " · ".join(bits)
+
     @staticmethod
     def same_place(c1, o1, c2, o2):
         return (c1 and c1 == c2) or (not c1 and not c2 and o1 and o1 == o2)
 
     def tag(self, rows):
-        """rows: dicts with response_id, country, organisation, title, kind. Adds 'reported_before' and
-        'possible_duplicate' (text, empty when nothing found)."""
+        """rows: dicts with response_id, country, organisation, title, kind. Adds
+        reported_before     the matching GAIN 2023-2025 example(s), 'GAIN 2025 ex232: title'
+        possible_duplicate  the matching example(s) of other 2026 responses
+        repeat_reason       why the first match was flagged (place, % match, shared words)
+        repeat_checked      how many past examples from the same country/organisation were compared
+        (text, empty when nothing found)."""
         ex = [r for r in rows if r.get("kind") == "example"]
         for r in ex:
             r["_w"], r["_c"], r["_o"] = words(r["title"], r["country"]), key(r["country"]), key(r["organisation"])[:14]
-            hits = sorted(((self.sim(r["_w"], p["w"]), p) for p in self.past
-                           if self.same_place(r["_c"], r["_o"], p["country"], p["org"]) and not other_edition(r["title"], p["title"])),
+            here = [p for p in self.past if self.same_place(r["_c"], r["_o"], p["country"], p["org"])]
+            r["repeat_checked"] = str(len(here))
+            hits = sorted(((self.sim(r["_w"], p["w"]), p) for p in here if not other_edition(r["title"], p["title"])),
                           key=lambda x: -x[0])
             hits = [(s, p) for s, p in hits if s >= PAST_MIN][:2]
-            r["reported_before"] = " | ".join(f"GAIN {p['year']}: {p['title'][:110]}" for s, p in hits)
+            r["reported_before"] = " | ".join(f"GAIN {p['year']} {p['id']}: {p['title'][:110]}" for s, p in hits)
+            r["repeat_reason"] = self.why(r, hits[0][1]["w"], hits[0][1]["title"], f"GAIN {hits[0][1]['year']}") if hits else ""
         for i, a in enumerate(ex):
             dup = []
             for j, b in enumerate(ex):
                 if i == j or a["response_id"] == b["response_id"]: continue  # one response listing several products is fine
                 if self.same_place(a["_c"], a["_o"], b["_c"], b["_o"]) and self.sim(a["_w"], b["_w"]) >= NOW_MIN \
                         and not other_edition(a["title"], b["title"]):
-                    dup.append(f"{b['response_id']}: {b['title'][:110]}")
-            a["possible_duplicate"] = " | ".join(dup[:2])
+                    dup.append((f"{b['response_id']}: {b['title'][:110]}", b))
+            a["possible_duplicate"] = " | ".join(d for d, _ in dup[:2])
+            if dup and not a["repeat_reason"]:
+                a["repeat_reason"] = self.why(a, dup[0][1]["_w"], dup[0][1]["title"], "another 2026 response")
         for r in rows:
             for k in ("_w", "_c", "_o"): r.pop(k, None)
-            r.setdefault("reported_before", ""); r.setdefault("possible_duplicate", "")
+            for k in ("reported_before", "possible_duplicate", "repeat_reason", "repeat_checked"): r.setdefault(k, "")
         return rows
 
 
@@ -98,6 +117,7 @@ if __name__ == "__main__":  # python3 repeats.py some_gain2026.csv  -> prints wh
             print(f"- {r['country'] or r['organisation']}: {r['title'][:90]}")
             if r["reported_before"]: print("    before: " + r["reported_before"])
             if r["possible_duplicate"]: print("    2026:   " + r["possible_duplicate"])
+            print("    why:    " + r["repeat_reason"])
     # near misses, to calibrate
     if "-v" in sys.argv:
         print("\nnear misses:")

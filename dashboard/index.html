@@ -74,6 +74,8 @@ button, select, input { font: inherit; color: var(--ink); }
 .seg button { background: transparent; border: 0; padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--ink-2); border-right: 1px solid var(--line); }
 #hist .yl { font-size: 10px; fill: var(--ink-2); }
 .flag { margin-top: 4px; font-size: 11px; color: #e3c3a0; line-height: 1.35; }
+.flag.ok, .why.ok { color: #8fd0b0; }
+.why { margin-top: 2px; font-size: 10.5px; color: var(--ink-3); line-height: 1.35; }
 #flagBtn[aria-pressed="true"] { background: var(--panel-2); color: #fff; box-shadow: inset 0 -2px 0 #e3c3a0; }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--panel-2); color: #fff; box-shadow: inset 0 -2px 0 var(--ink-2); }
@@ -274,7 +276,7 @@ footer a { color: var(--ink-2); }
           </div>
           <div class="legend" id="histLegend" style="margin-bottom:6px"></div>
           <div id="hist"></div>
-          <div class="sub" style="margin-top:6px">Responses by survey day; day 1 is the day of each round's first submission. Past rounds from the GAIN 2023–2025 Kobo forms (arrival time only). Counts are responses, not examples, and ignore the filters.</div>
+          <div class="sub" style="margin-top:6px">Responses by survey day; day 1 is each round's first submission after launch (20 Sep 2023, 18 Nov 2024, 3 Nov 2025, 3 Nov 2026); test submissions before it count on day 1. Past rounds from the GAIN 2023–2025 Kobo forms (arrival time only). Counts are responses, not examples, and ignore the filters.</div>
         </div>
         <div id="nowView">
         <div class="legend" style="margin-bottom:6px"><span><i class="sw" style="background:var(--country)"></i>Country-led</span><span><i class="sw" style="background:var(--inst)"></i>Institution-led</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
@@ -462,7 +464,7 @@ footer a { color: var(--ink-2); }
         fixedRegion: !!given, i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
-        title: get(o, ['title', 'example_title']), before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), rec: rec, codes: codes, recTxt: recTxt,
+        title: get(o, ['title', 'example_title']), before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
       };
     }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
@@ -745,16 +747,17 @@ footer a { color: var(--ink-2); }
 
   // ---------- past rounds, by survey day ----------
   // day 1 = the day the round opened; submissions that came in before it (tests) count on day 1
-  // day 1 is the day of each round's first submission (2026: taken from the live data)
+  // day 1 is the day of each round's first submission once it had launched; earlier ones were tests
+  // (launch emails: GAIN 2025 opened 3 Nov 2025; 2026 on 3 Nov 2026) and count on day 1
   var HIST = [
     { y: '2026', open: CONFIG.open, color: '#ffffff', w: 2.4, dash: null },
-    { y: '2025', open: new Date('2025-10-30T00:00:00Z'), color: '#8db8e3', w: 1.6, dash: null },
+    { y: '2025', open: new Date('2025-11-03T00:00:00Z'), color: '#8db8e3', w: 1.6, dash: null },
     { y: '2024', open: new Date('2024-11-18T00:00:00Z'), color: '#4cc3c9', w: 1.4, dash: '5 3' },
     { y: '2023', open: new Date('2023-09-20T00:00:00Z'), color: '#e3c3a0', w: 1.4, dash: '2 3' }
   ];
-  function open26() { return HIST[0].open = (!S.demo && S.rows.length) ? d3.utcDay.floor(S.rows[0].t) : CONFIG.open; }
+  function open26() { return CONFIG.open; }
   fetch('data/gain_history.json').then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (j) { if (j) { S.hist = j.rounds; HIST.forEach(function (h) { if (h.y !== '2026' && j.rounds[h.y]) h.open = new Date(j.rounds[h.y].first + 'T00:00:00Z'); }); render(); } }).catch(function () {});
+    .then(function (j) { if (j) { S.hist = j.rounds; render(); } }).catch(function () {});
   // a past round's responses on survey day k (n) and by then (c); null before the history has loaded
   function pastAt(year, k) {
     var rd = S.hist && S.hist[year], h = HIST.filter(function (q) { return q.y === year; })[0]; if (!rd || !h) return null;
@@ -1298,10 +1301,10 @@ footer a { color: var(--ink-2); }
   // ---------- feed ----------
   function renderFeed() {
     var q = S.q.toLowerCase();
-    var all = current(), nFlag = all.filter(flagged).length;
-    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d)); }).slice().reverse();
+    var all = current(), nFlag = all.filter(flagged).length, nOpen = all.filter(function (d) { return flagged(d) && !reviewOf(d); }).length;
+    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d) || reviewOf(d)); }).slice().reverse();
     var dayAgo = new Date(+S.asOf - 864e5);
-    var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats (' + nFlag + ')'; fb.setAttribute('aria-pressed', !!S.flagOnly);
+    var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats (' + nFlag + (nOpen ? ', ' + nOpen + ' to check' : '') + ')'; fb.setAttribute('aria-pressed', !!S.flagOnly);
     document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + ' · newest first · highlighted: last 24 hours';
     document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
       var rec = RECBY[d.rec];
@@ -1312,12 +1315,37 @@ footer a { color: var(--ink-2); }
     }).join('') || '<tr><td colspan="6" class="empty">No submissions match.</td></tr>';
   }
 
-  // hints from the Kobo pull (tools/repeats.py): to check by hand, not decisions
+  // hints from the Kobo pull (tools/repeats.py), and the team's decisions on them (data/repeat_review.csv)
+  var DECISION = {
+    repeat: ['Repeat', 'same example reported again'],
+    update: ['Update', 'follow-up of an earlier example (new stage or output)'],
+    new_round: ['New round', 'another edition of a recurring activity'],
+    not_repeat: ['Not a repeat', 'checked: a different example']
+  };
+  S.review = {};
+  function reviewKey(id, title) { return id + '|' + String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 40); }
+  function loadReview() {
+    fetchTable('data/repeat_review.csv').then(function (rows) {
+      S.review = {};
+      rows.forEach(function (r) { if (r.response_id && r.decision) S.review[reviewKey(r.response_id, r.title_start)] = r; });
+      renderFeed();
+    }).catch(function () {});
+  }
+  function reviewOf(d) { return S.review[reviewKey(d.id, d.title)]; }
   function flagged(d) { return !!(d.before || d.dup); }
   function flagTags(d) {
-    var h = '';
-    if (d.before) h += '<div class="flag" title="' + esc(d.before) + '">↺ Looks like ' + esc(d.before.split(' | ')[0]) + '</div>';
-    if (d.dup) h += '<div class="flag" title="' + esc(d.dup) + '">⧉ Similar to another 2026 response: ' + esc(d.dup.split(' | ')[0].replace(/^R-\w+: /, '')) + '</div>';
+    var rv = reviewOf(d), h = '';
+    var dec = rv && DECISION[rv.decision];
+    if (dec) h += '<div class="flag ' + (rv.decision === 'not_repeat' ? 'ok' : '') + '"><b>' + (rv.decision === 'not_repeat' ? '✓ ' : '↺ ') + dec[0] + '</b> · ' + dec[1] +
+      (rv.note ? ' · ' + esc(rv.note) : '') + (rv.reviewed_on ? ' <span class="muted">(checked ' + esc(rv.reviewed_on) + ')</span>' : '') + '</div>';
+    if (flagged(d)) {
+      var what = d.before ? d.before.split(' | ')[0] : 'another 2026 response: ' + d.dup.split(' | ')[0].replace(/^R-\w+: /, '');
+      if (!dec) h += '<div class="flag"><b>↺ Possible repeat</b> of ' + esc(what) + ' <span class="muted">· not checked yet</span></div>';
+      if (d.why) h += '<div class="why">Why: ' + esc(d.why) + (d.before && d.before.indexOf(' | ') > 0 ? ' · also like ' + esc(d.before.split(' | ')[1]) : '') + '</div>';
+    } else if (!dec && d.checked !== '' && d.checked != null) {
+      var n = +d.checked, place = d.country || d.org;
+      h += '<div class="why ok">✓ No match ' + (n ? 'among the ' + n + ' GAIN 2023–2025 example' + (n > 1 ? 's' : '') + ' from ' + esc(place) : '· no GAIN 2023–2025 examples from ' + esc(place)) + '</div>';
+    }
     return h;
   }
   document.getElementById('flagBtn').addEventListener('click', function () { S.flagOnly = !S.flagOnly; renderFeed(); });
@@ -1380,8 +1408,8 @@ footer a { color: var(--ink-2); }
   // ---------- start ----------
   fetch(CONFIG.world).then(function (r) { return r.json(); }).then(function (topo) { setupGlobe(topo); drawGlobe(); })
     .catch(function () { document.getElementById('globeSub').textContent = 'The world map could not be loaded.'; });
-  load();
-  setInterval(load, CONFIG.refreshMin * 6e4);
+  load(); loadReview();
+  setInterval(function () { load(); loadReview(); }, CONFIG.refreshMin * 6e4);
   // live data: keep following the present unless the viewer has gone back in time on the timeline
   setInterval(function () { setUpdated(); if (!S.demo && !playTimer && S.asOf >= latest() - 3e5) { S.asOf = latest(); render(); } }, 6e4);
 })();

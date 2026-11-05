@@ -44,7 +44,8 @@ PERSONAL = re.compile(r"(^|_)(name_?resp|respondent|focal|contact|e?mail|phone|t
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d ()./-]{7,}\d")
 COLUMNS = ["response_id", "submitted_at", "kind", "country", "organisation", "lead", "title",
-           "recommendations", "data_source", "population_groups", "reported_before", "possible_duplicate"]
+           "recommendations", "data_source", "population_groups", "reported_before", "possible_duplicate",
+           "repeat_reason", "repeat_checked"]
 
 
 def get(url):

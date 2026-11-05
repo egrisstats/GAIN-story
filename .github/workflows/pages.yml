@@ -50,7 +50,7 @@ jobs:
           mkdir -p _site/dashboard/data _site/dashboard/assets
           cp dashboard/index.html _site/dashboard/
           cp -r dashboard/assets/recs _site/dashboard/assets/
-          cp dashboard/data/gain2026_DEMO.csv dashboard/data/gain_history.json _site/dashboard/data/
+          cp dashboard/data/gain2026_DEMO.csv dashboard/data/gain_history.json dashboard/data/repeat_review.csv _site/dashboard/data/
       - name: Pull GAIN 2026 submissions from Kobo (no respondent details)
         # without the KOBO_TOKEN secret, or before kobo_config.json is filled in, this skips and the tracker shows demo data
         env:

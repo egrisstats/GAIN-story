@@ -163,9 +163,22 @@ Each Kobo pull runs `tools/repeats.py`, which adds two columns to `gain2026.csv`
   taken as another round, not a repeat.
 - `possible_duplicate`: the same check against the examples of *other* 2026 responses.
 
-The page shows them under the title in *Latest submissions*, with a "Possible repeats" button that lists
-only those. They are hints to check by hand: a recurring training or an annual release can rightly be
+A third column, `repeat_reason`, says why in plain words (same country or organisation, which key title
+words are shared, whether the earlier one was reported as planned), and `repeat_checked` gives how many
+past examples from that country were compared, so unflagged examples read "No match among the 9 GAIN
+2023–2025 examples from Kenya".
+
+**Decisions.** `data/repeat_review.csv` records what the team concluded, one row per checked example:
+`response_id` and the first words of the title (`title_start`) as shown on the page, `decision`, `note`,
+`reviewed_on`. Decisions: `repeat` (same example reported again), `update` (follow-up: new stage or
+output of an earlier example), `new_round` (another edition of a recurring activity), `not_repeat`
+(checked: a different example). Edit it on GitHub in both copies, or ask Claude to; the page reads it on
+every refresh and shows the decision in place of "not checked yet".
+
+The page shows all this under the title in *Latest submissions*, with a "Possible repeats" button that
+lists only those (and anything with a decision). They are hints to check by hand: a recurring training or an annual release can rightly be
 reported again. Run `python3 dashboard/tools/repeats.py <gain2026.csv> -v` to see matches and near misses.
 
-The day-by-day comparison counts day 1 from each round's first submission (2023: 20 Sep, 2024: 18 Nov,
-2025: 30 Oct; 2026: the first row of the live data).
+The day-by-day comparison counts day 1 from each round's first submission after launch: 20 Sep 2023,
+18 Nov 2024, 3 Nov 2025 (the launch email; two test submissions came on 30 Oct) and 3 Nov 2026 (tests on
+29 Oct). Test submissions before day 1 count on day 1.
