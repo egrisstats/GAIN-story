@@ -55,6 +55,9 @@ def caveat(new_title, new_phase, past, also):
     ny, py = years(new_title), years(past["title"])
     past_phase = past.get("phase", "") + " " + past["title"]
     stage = f" as {new_phase.lower()}" if new_phase else " again"
+    if EARLY.search(past_phase) and past["year"] == max(yrs) and EARLY.search(new_phase or ""):
+        return (f"GAIN {past['year']} reported it as planned and 2026 still reports it at the {new_phase.lower()} stage: "
+                "the same plan reported again, so a repeat (count it once)", "repeat")
     if EARLY.search(past_phase) and past["year"] == max(yrs):
         extra = f" (also reported in GAIN {', '.join(y for y in yrs if y != past['year'])})" if len(yrs) > 1 else ""
         return (f"GAIN {past['year']} reported it as planned{extra}; 2026 reports it{stage}: likely the planned "
