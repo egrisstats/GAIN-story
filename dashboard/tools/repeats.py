@@ -36,6 +36,19 @@ def other_edition(t1, t2):
     return bool(y1 and y2) and all(abs(a - b) > 1 for a in y1 for b in y2)
 
 
+# one-off national operations: the same one in the same country is usually the same example, even when the
+# titles share no other word ("2024 Population Census of Georgia" ~ GAIN 2024 "Census collects information on refugees")
+ANCHOR = re.compile(r"\b(census|household budget survey|labou?r force survey|demographic and health survey|dhs|mics)\b", re.I)
+
+
+def same_operation(t_new, t_past, past_year):
+    """same kind of one-off operation, and the 2026 title's year (if any) is within a year of the past round or its title"""
+    a, b = ANCHOR.search(t_new or ""), ANCHOR.search(t_past or "")
+    if not a or not b or a.group(1).lower()[:6] != b.group(1).lower()[:6]: return False
+    ny, py = years(t_new), years(t_past) or ({int(past_year)} if str(past_year).isdigit() else set())
+    return bool(ny and py) and any(abs(x - y) <= 1 for x in ny for y in py)
+
+
 def key(s):
     return re.sub(r"[^a-z]", "", (s or "").lower())
 
@@ -62,6 +75,17 @@ def caveat(new_title, new_phase, past, also):
         extra = f" (also reported in GAIN {', '.join(y for y in yrs if y != past['year'])})" if len(yrs) > 1 else ""
         return (f"GAIN {past['year']} reported it as planned{extra}; 2026 reports it{stage}: likely the planned "
                 "activity now carried out, so an update rather than a new example", "update")
+    op = ANCHOR.search(new_title)
+    if op and same_operation(new_title, past["title"], past["year"]):
+        what = op.group(1).lower()
+        if OUTPUT.search(new_title):
+            return (f"the same {what} as GAIN {past['year']}; the 2026 title reports an output of it: an update", "update")
+        ahead = [y for y in (ny | py) if y > int(past["year"])]
+        if ahead:
+            return (f"GAIN {past['year']} reported the {'/'.join(str(y) for y in sorted(ny | py))} {what} ahead of time; 2026 reports it"
+                    + (f" as {new_phase.lower()}" if new_phase else " again") + ": the same operation moving forward, so an update", "update")
+        return (f"the same {what} as GAIN {past['year']} (a one-off operation, not a new round): count it once, "
+                f"unless 2026 reports a new stage such as results or a publication", "repeat")
     out = OUTPUT.search(new_title)
     if out and not RECURRING.search(new_title):
         return (f"reported in {when}; the 2026 title says it was {out.group(0).lower()}: a new output of the same activity, "
@@ -113,7 +137,11 @@ class Matcher:
         org = re.search(r"\(([A-Z]{2,10})\)", r["organisation"] or "")
         place = "same country" if r["_c"] else f"same organisation ({org.group(1) if org else r['organisation'][:40]})"
         small = min(len(r["_w"]), len(w2))
-        bits = [f"{place}, and {len(shared)} of {small} key words in the title match the {what} one ({', '.join(shared[:6])})"]
+        op = ANCHOR.search(r["title"])
+        if op and ANCHOR.search(title2) and len(shared) < 2:
+            bits = [f"{place}, and both describe the same {op.group(1).lower()} round (the 2026 title's year matches the {what} round)"]
+        else:
+            bits = [f"{place}, and {len(shared)} of {small} key words in the title match the {what} one ({', '.join(shared[:6])})"]
         if re.search(r"\bplanned\b", title2, re.I): bits.append("reported then as planned")
         if re.search(r"\bongoing\b", title2, re.I): bits.append("reported then as ongoing")
         return " · ".join(bits)
@@ -136,7 +164,7 @@ class Matcher:
             r["repeat_checked"] = str(len(here))
             hits = sorted(((self.sim(r["_w"], p["w"]), p) for p in here if not other_edition(r["title"], p["title"])),
                           key=lambda x: -x[0])
-            hits = [(s, p) for s, p in hits if s >= PAST_MIN][:2]
+            hits = [(s, p) for s, p in hits if s >= PAST_MIN or same_operation(r["title"], p["title"], p["year"])][:2]
             r["reported_before"] = " | ".join(f"GAIN {p['year']} {p['id']}: {p['title'][:110]}" for s, p in hits)
             r["repeat_reason"] = self.why(r, hits[0][1]["w"], hits[0][1]["title"], f"GAIN {hits[0][1]['year']}") if hits else ""
             if hits:
