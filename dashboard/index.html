@@ -92,6 +92,11 @@ button, select, input { font: inherit; color: var(--ink); }
 #hist .yl { font-size: var(--fs-xs); fill: var(--ink-2); }
 .flag { margin-top: 4px; font-size: var(--fs-s); color: var(--warn); line-height: 1.35; }
 .flag.ok, .why.ok { color: var(--good); }
+.afigs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.afigs > div { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-m); padding: 8px 10px; min-width: 0; }
+.afigs b { display: block; font: 600 var(--fs-xl)/1.1 "IBM Plex Sans", sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; }
+.afigs span { font-size: var(--fs-s); color: var(--ink-3); }
+#alignBtn[aria-pressed="true"] { box-shadow: inset 0 -2px 0 var(--good); }
 .why { margin-top: 2px; font-size: var(--fs-xs); color: var(--ink-3); line-height: 1.35; }
 .btn[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink-2); }
 .btn:disabled { opacity: .5; cursor: default; }
@@ -312,6 +317,7 @@ footer a { color: var(--ink-2); }
         <div class="legend" id="recLegend" style="margin-top:4px"></div>
         <div class="covers" id="recCovers"></div>
         <div class="sub" id="recNote" style="margin-top:6px"></div>
+        <div class="afigs" id="alignFigs" aria-label="Use of the recommendations before and after the Secretariat’s review"></div>
       </section>
     </div>
   </div>
@@ -349,6 +355,7 @@ footer a { color: var(--ink-2); }
     <div class="ph">
       <div><h2 id="hFeed">Latest examples</h2><div class="sub" id="feedSub"></div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <button class="btn" type="button" id="alignBtn" aria-pressed="false" title="Examples where the respondent said No or Don’t know to the recommendations, and what the Secretariat’s review decided">Answers to review</button>
         <button class="btn" type="button" id="flagBtn" aria-pressed="false" title="Examples that look like one reported in GAIN 2023–2025, or by another 2026 response">↺ Possible repeats</button>
         <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search examples">
       </div>
@@ -476,6 +483,8 @@ footer a { color: var(--ink-2); }
       var recTxt = String(get(o, ['recommendations', 'recommendations_used', 'use_of_recommendations']));
       var codes = ['IRRS', 'IRIS', 'IROSS'].filter(function (k) { return new RegExp('\\b' + k + '\\b', 'i').test(recTxt); });
       var rec = codes.length > 1 ? 'Mixed' : codes.length === 1 ? codes[0] : /undetermined|unspecified|not specified/i.test(recTxt) ? 'Undetermined' : 'None';
+      // said No or Don't know: enters the Secretariat's alignment review (alignment/spec/decision_tree.json)
+      var review = !codes.length && /none of these|not used|don.?t know|do not know/i.test(recTxt) ? (/know/i.test(recTxt) ? 'dk' : 'no') : '';
       var country = String(get(o, ['country', 'country_name'])).trim();
       var mn = country ? mapName(country) : '';
       var given = get(o, ['region']), region = given || regionOf(mn);
@@ -483,7 +492,7 @@ footer a { color: var(--ink-2); }
         fixedRegion: !!given, i: i, kind: String(get(o, ['kind']) || 'example').toLowerCase() === 'response' ? 'response' : 'example',
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
-        title: get(o, ['title', 'example_title']), before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), caveat: get(o, ['repeat_caveat']), suggested: get(o, ['repeat_suggested']), phase: get(o, ['phase']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
+        title: get(o, ['title', 'example_title']), review: review, before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), caveat: get(o, ['repeat_caveat']), suggested: get(o, ['repeat_suggested']), phase: get(o, ['phase']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
       };
     }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
@@ -1035,6 +1044,13 @@ footer a { color: var(--ink-2); }
       : '<span class="muted">Dots:</span>' + ORD.map(function (k) { return '<span><i class="sw" style="background:' + RECBY[k].color + '"></i>' + (k === 'Mixed' ? 'Mixed use (dot split)' : RECBY[k].name.replace(' alone', '')) + '</span>'; }).join('') +
         '<span class="muted">Inner ring: who led the example</span>';
     document.getElementById('recLegend').innerHTML = legend;
+    // use as reported, after the Secretariat's review (edited and notified), and alignment (also recorded as aligned)
+    var rev = all.filter(function (d) { return d.review; }), oc = function (o) { return rev.filter(function (d) { var r = alignOf(d); return r && r.outcome === o; }).length; };
+    var nEd = oc('edit'), nAl = oc('aligned'), nOpen = rev.filter(function (d) { return !alignOf(d); }).length;
+    document.getElementById('alignFigs').innerHTML = all.length ? [['Use as reported', N, 'named a recommendation'], ['After review', N + nEd, nEd + ' edited and notified'],
+      ['Alignment', N + nEd + nAl, nAl + ' recorded as aligned']].map(function (f) {
+      return '<div><span>' + f[0] + '</span><b>' + pct(f[1], all.length) + '</b><span>' + f[1] + ' of ' + all.length + ' · ' + f[2] + '</span></div>';
+    }).join('') + (rev.length ? '<span class="sub" style="grid-column:1/-1">' + rev.length + ' examples said No or Don’t know and go to the Secretariat’s review' + (nOpen ? '; ' + nOpen + ' not reviewed yet' : '') + '.</span>' : '') : '';
     var nC = list.filter(function (d) { return d.lead === 'C'; }).length, nI = N - nC;
     var cAll = all.filter(function (d) { return d.lead === 'C'; }), iAll = all.filter(function (d) { return d.lead === 'I'; });
     document.getElementById('recNote').textContent = (all.length ? N + ' of ' + all.length + ' examples (' + pct(N, all.length) + ') use the Recommendations; ' + none + ' do not or don’t know. ' +
@@ -1293,16 +1309,18 @@ footer a { color: var(--ink-2); }
   function renderFeed() {
     var q = S.q.toLowerCase();
     var all = current(), nFlag = all.filter(flagged).length, nOpen = all.filter(function (d) { return flagged(d) && !reviewOf(d); }).length;
-    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d) || reviewOf(d)); }).slice().reverse();
+    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d) || reviewOf(d)) && (!S.alignOnly || d.review); }).slice().reverse();
     var dayAgo = new Date(+S.asOf - 864e5);
     var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats: ' + nFlag + (nOpen ? ' · ' + nOpen + ' to check' : ''); fb.setAttribute('aria-pressed', !!S.flagOnly);
-    document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + ' · newest first · highlighted: last 24 hours';
+    var nRev = all.filter(function (d) { return d.review; }), nDone = nRev.filter(alignOf).length, ab = document.getElementById('alignBtn');
+    ab.textContent = 'Answers to review: ' + nRev.length + (nRev.length ? ' · ' + nDone + ' reviewed' : ''); ab.setAttribute('aria-pressed', !!S.alignOnly);
+    document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + (S.alignOnly ? ' answered No or Don’t know' : '') + ' · newest first · highlighted: last 24 hours';
     document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
       var rec = RECBY[d.rec];
       var recTags = d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i class="sw" style="background:' + (RECBY[c] ? RECBY[c].color : rec.color) + '"></i>' + c + '</span>'; }).join('')
         : '<span class="tag"><i class="sw" style="background:' + rec.color + '"></i>' + esc(d.recTxt || 'Not reported') + '</span>';
       return '<tr class="' + (d.t > dayAgo ? 'new' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
-        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + flagTags(d) + '</td></tr>';
+        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + flagTags(d) + alignTag(d) + '</td></tr>';
     }).join('') || '<tr><td colspan="6" class="empty">No examples match your search or filters. Use Reset filters to see them all.</td></tr>';
   }
 
@@ -1323,6 +1341,24 @@ footer a { color: var(--ink-2); }
     }).catch(function () {});
   }
   function reviewOf(d) { return S.review[reviewKey(d.id, d.title)]; }
+  var ALIGN = { edit: 'Edit and notify', outreach: 'Send outreach', aligned: 'Recorded as aligned', keep: 'Answer kept', outscope: 'Not statistics: validity check',
+    deliberate: 'Answer kept: chose not to apply', nocat: 'Answer kept: no categories' };
+  S.align = {};
+  function loadAlign() {
+    fetchTable('data/alignment_review.csv').then(function (rows) {
+      S.align = {};
+      rows.forEach(function (r) { if (r.response_id && r.outcome) S.align[reviewKey(r.response_id, r.title_start)] = r; });
+      render();
+    }).catch(function () {});
+  }
+  function alignOf(d) { return S.align[reviewKey(d.id, d.title)]; }
+  function alignTag(d) {
+    if (!d.review) return '';
+    var a = alignOf(d), said = d.review === 'dk' ? 'Said Don’t know' : 'Said No';
+    if (!a) return '<div class="why">' + said + ' to the recommendations · in the Secretariat’s review, not reviewed yet</div>';
+    return '<div class="why' + (a.outcome === 'edit' ? ' ok' : '') + '">' + said + ' · reviewed: <b>' + esc(ALIGN[a.outcome] || a.outcome) + '</b>' + (a.score ? ' (' + esc(a.score) + ' points)' : '') + (a.reviewed_on ? ' <span class="muted">' + esc(a.reviewed_on) + '</span>' : '') + '</div>';
+  }
+  document.getElementById('alignBtn').addEventListener('click', function () { S.alignOnly = !S.alignOnly; renderFeed(); });
   function flagged(d) { return !!(d.before || d.dup); }
   // 'GAIN 2025 ex196: title' -> a GAIN 2025 example: “title”, with the internal id kept on hover
   function pastRef(s) {
@@ -1406,8 +1442,8 @@ footer a { color: var(--ink-2); }
   // ---------- start ----------
   fetch(CONFIG.world).then(function (r) { return r.json(); }).then(function (topo) { setupGlobe(topo); drawGlobe(); })
     .catch(function () { document.getElementById('globeSub').textContent = 'The map didn’t load. Reload the page to try again. Everything else is still up to date.'; });
-  load(); loadReview();
-  setInterval(function () { load(); loadReview(); }, CONFIG.refreshMin * 6e4);
+  load(); loadReview(); loadAlign();
+  setInterval(function () { load(); loadReview(); loadAlign(); }, CONFIG.refreshMin * 6e4);
   // live data: keep following the present unless the viewer has gone back in time on the timeline
   setInterval(function () { setUpdated(); if (!S.demo && !playTimer && S.asOf >= latest() - 3e5) { S.asOf = latest(); render(); } }, 6e4);
 })();

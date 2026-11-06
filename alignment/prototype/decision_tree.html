@@ -1,0 +1,368 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}</style></head><body><title>Alignment Decision Tree</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: navy header; setup strip (pick an example or describe a hypothetical one); then the walk-through
+   (one question at a time, answered path stays visible) beside a live map of the whole tree. EGRISS tokens. */
+:root {
+  --bg: #f7fafd; --surface: #ffffff; --sunk: #eef3fa; --line: #d9e2ef; --line-strong: #b9c7dc;
+  --ink: #1d2940; --strong: #14234c; --muted: #5a6884; --blue: #3b71b9; --teal: #4cc3c9;
+  --navy: #14234c; --navy-ink: #ffffff; --navy-muted: #b9c7dc; --focus: rgba(59,113,185,.35);
+  --map-node: #ffffff; --map-text: #5a6884; --map-edge: #c9d4e4; --path: #2a9aa0; --path-text: #14234c;
+  --change-bg: #d6f2f3; --change-bd: #2a9aa0; --change-fg: #0b4a4e;
+  --accept-bg: #dde8f5; --accept-bd: #3b71b9; --accept-fg: #14234c;
+  --ask-bg: #f8ebd2; --ask-bd: #b9821a; --ask-fg: #5e3f06;
+  --none-bg: #eef1f5; --none-bd: #c4cdd9; --none-fg: #4a5672;
+  --head: "Obvia", "Figtree", system-ui, sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  --r-sm: 2px; --r-md: 6px; --r-lg: 10px; --shadow: 0 1px 3px rgba(20,35,76,.08), 0 1px 2px rgba(20,35,76,.06);
+  --ease: cubic-bezier(.2,0,.1,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b1530; --surface: #12204a; --sunk: #0e1b3d; --line: #263866; --line-strong: #3a5085;
+  --ink: #dfe7f3; --strong: #f3f6fb; --muted: #9fb0cc; --blue: #8db8e3; --navy: #0e1b3d; --focus: rgba(141,184,227,.45);
+  --map-node: #12204a; --map-text: #9fb0cc; --map-edge: #2e4272; --path: #4cc3c9; --path-text: #f3f6fb;
+  --change-bg: #10464a; --change-bd: #4cc3c9; --change-fg: #d6f6f7; --accept-bg: #1d3a6b; --accept-bd: #8db8e3; --accept-fg: #e3edf9;
+  --ask-bg: #4a3610; --ask-bd: #e0a93b; --ask-fg: #fbe9c4; --none-bg: #1a2850; --none-bd: #3a5085; --none-fg: #b9c7dc;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b1530; --surface: #12204a; --sunk: #0e1b3d; --line: #263866; --line-strong: #3a5085;
+  --ink: #dfe7f3; --strong: #f3f6fb; --muted: #9fb0cc; --blue: #8db8e3; --navy: #0e1b3d; --focus: rgba(141,184,227,.45);
+  --map-node: #12204a; --map-text: #9fb0cc; --map-edge: #2e4272; --path: #4cc3c9; --path-text: #f3f6fb;
+  --change-bg: #10464a; --change-bd: #4cc3c9; --change-fg: #d6f6f7; --accept-bg: #1d3a6b; --accept-bd: #8db8e3; --accept-fg: #e3edf9;
+  --ask-bg: #4a3610; --ask-bd: #e0a93b; --ask-fg: #fbe9c4; --none-bg: #1a2850; --none-bd: #3a5085; --none-fg: #b9c7dc;
+  color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--head); font-weight: 600; margin: 0; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
+.eyebrow { font: 500 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+
+.band { background: var(--navy); color: var(--navy-ink); }
+.band .wrap { padding-block: 30px 24px; display: grid; gap: 14px; }
+.band .eyebrow { color: var(--teal); }
+.band h1 { font-size: clamp(26px, 3.6vw, 38px); }
+.band .accent { width: 72px; height: 3px; background: linear-gradient(90deg, var(--teal), transparent); }
+.band p { margin: 0; color: var(--navy-muted); max-width: 76ch; }
+
+
+/* flowing tree */
+.controls { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 14px 16px; }
+.controls fieldset, .controls label { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--strong); min-width: 0; }
+.controls legend { padding: 0; margin-bottom: 6px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; font-size: 13.5px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 6px 10px; cursor: pointer; color: var(--ink); transition: background .15s var(--ease); }
+.seg input { accent-color: var(--blue); margin: 0; }
+.seg label:has(input:checked) { border-color: var(--strong); background: var(--strong); color: var(--surface); }
+.controls select { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-sm); padding: 7px 9px; font-size: 14px; font-weight: 400; }
+.controls .clear { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-sm); padding: 7px 12px; cursor: pointer; margin-left: auto; }
+
+.canvas-wrap { margin-block: 18px 40px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow-x: auto; }
+.canvas { position: relative; min-width: 760px; margin: 0 auto; max-width: 1040px; transition: height .35s var(--ease); }
+.canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.canvas .edge { fill: none; stroke: var(--map-edge); stroke-width: 1.8; transition: stroke .3s var(--ease), stroke-width .3s var(--ease); }
+.canvas .edge.on { stroke: var(--path); stroke-width: 3.2; }
+.canvas .elab { font: 600 11px var(--mono); fill: var(--map-text); }
+.canvas .elab.on { fill: var(--path-text); }
+
+.nd { position: absolute; width: var(--w); background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: var(--r-lg); padding: 12px 14px; display: grid; gap: 8px;
+      transition: top .4s var(--ease), left .4s var(--ease), opacity .3s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease); }
+.nd.enter { opacity: 0; }
+.nd.cur { border-color: var(--strong); box-shadow: 0 0 0 3px var(--focus); }
+.nd.done { border-color: var(--path); }
+.nd.later { opacity: .55; }
+.nd .hd { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 10px; align-items: start; }
+.nd .no { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12px/1 var(--mono); border: 2px solid var(--line-strong); color: var(--muted); background: var(--surface); }
+.nd.done .no { border-color: var(--path); color: var(--strong); }
+.nd.cur .no { background: var(--strong); border-color: var(--strong); color: var(--surface); }
+.nd .tt { font: 600 15px/1.3 var(--head); color: var(--strong); }
+.nd .tt small { display: block; font: 400 12.5px/1.4 var(--body); color: var(--muted); margin-top: 2px; }
+.why { all: unset; cursor: pointer; font: 600 11px/1 var(--mono); color: var(--blue); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 4px 6px; }
+.why:focus-visible { outline: 3px solid var(--focus); }
+.whybox { font-size: 12.5px; color: var(--muted); background: var(--sunk); border-radius: var(--r-md); padding: 8px 10px; display: grid; gap: 4px; }
+.whybox b { color: var(--strong); font-weight: 600; }
+.yn { display: flex; gap: 6px; flex-wrap: wrap; }
+.yn button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-sm); padding: 6px 16px; cursor: pointer; font-weight: 500; font-size: 13.5px; transition: all .15s var(--ease); }
+.yn button:hover { border-color: var(--strong); }
+.yn button[aria-pressed="true"] { background: var(--strong); color: var(--surface); border-color: var(--strong); }
+.nd select { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-sm); padding: 6px 8px; font-size: 14px; width: 100%; }
+.checks { display: grid; gap: 8px; }
+.ck { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 13.5px; }
+.ck .r { display: block; font: 500 11px/1.5 var(--mono); color: var(--blue); }
+.ck .yn button { padding: 4px 10px; font-size: 12.5px; }
+.plus { font-size: 12px; color: var(--muted); margin: 0; }
+.slider { display: grid; gap: 2px; font-size: 12.5px; }
+.slider input { width: 100%; accent-color: var(--path); }
+.slider output { font-family: var(--mono); color: var(--strong); }
+.rule { font-size: 12.5px; font-weight: 600; }
+
+.oc { position: absolute; width: var(--w); border: 1.5px solid; border-radius: var(--r-lg); padding: 10px 12px; display: grid; gap: 4px; font-size: 12.5px;
+      transition: top .4s var(--ease), left .4s var(--ease), opacity .3s var(--ease), box-shadow .25s var(--ease); }
+.oc b { font: 600 14px/1.25 var(--head); }
+.oc .ref { font: 500 11px/1.5 var(--mono); opacity: .9; }
+.oc.off { opacity: .35; }
+.oc.hit { box-shadow: 0 0 0 3px var(--path); opacity: 1; }
+.oc.enter { opacity: 0; }
+.o-change { background: var(--change-bg); border-color: var(--change-bd); color: var(--change-fg); }
+.o-accept { background: var(--accept-bg); border-color: var(--accept-bd); color: var(--accept-fg); }
+.o-ask { background: var(--ask-bg); border-color: var(--ask-bd); color: var(--ask-fg); }
+.o-none { background: var(--none-bg); border-color: var(--none-bd); color: var(--none-fg); }
+footer { color: var(--muted); font-size: 12px; padding-block: 0 36px; }
+@media (prefers-reduced-motion: reduce) { .nd, .oc, .canvas, .edge { transition: none !important; } }
+
+.reasons { display: grid; gap: 6px; }
+.reasons button { text-align: left; border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-sm); padding: 7px 10px; cursor: pointer; font-size: 13.5px; transition: all .15s var(--ease); }
+.reasons button:hover { border-color: var(--strong); }
+.reasons button[aria-pressed="true"] { background: var(--strong); color: var(--surface); border-color: var(--strong); }
+.grp { font: 600 11px/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.score { display: grid; gap: 6px; background: var(--sunk); border-radius: var(--r-md); padding: 10px 12px; }
+.slab { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.slab b { font: 500 18px var(--mono); color: var(--strong); }
+.sbar { position: relative; height: 10px; background: var(--surface); border-radius: var(--r-sm); }
+.sbar i { position: absolute; inset: 0 auto 0 0; background: var(--path); border-radius: var(--r-sm); transition: width .3s var(--ease); }
+.sbar .mk { position: absolute; top: -4px; bottom: -4px; width: 2px; }
+.sbar .mk.dk { background: var(--ask-bd); }
+.sbar .mk.no { background: var(--strong); }
+.score .note { font-size: 12px; color: var(--muted); }
+.oc ul { margin: 2px 0 0; padding-left: 16px; }
+</style>
+
+<header class="band">
+  <div class="wrap">
+    <div class="eyebrow">GAIN · Alignment review · Schema</div>
+    <h1>The decision tree</h1>
+    <div class="accent" aria-hidden="true"></div>
+    <p>How the Secretariat reviews an example where the respondent says the recommendations were not used, or does not know. We answer the questions ourselves from what the example shows, score the evidence, and edit when the score is high enough, then tell the respondent what we changed. A Don't know and a No go through the same steps; a No needs a higher score and a sign that the recommendations were used.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="controls">
+    <fieldset><legend>The respondent's answer</legend>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="ans" value="no" id="a-no" checked> PRO09 = 2 · No</label>
+        <label><input type="radio" name="ans" value="dk" id="a-dk"> PRO09 = 8 · Don't know</label>
+        <label><input type="radio" name="ans" value="dkw" id="a-dkw"> PRO10 = Z · Yes, don't know which</label>
+      </div></fieldset>
+    <label for="src">Kind of example<select id="src"></select></label>
+    <button type="button" class="clear" id="clear">Clear the answers</button>
+  </div>
+  <div class="canvas-wrap"><div class="canvas" id="canvas"><svg id="edges" aria-hidden="true"></svg></div></div>
+</main>
+<footer class="wrap">Thresholds: a Don't know is edited at 4 points; a No at 7 points including a sign of use. Below 7, a No with 4 or more points is recorded as aligned. Paragraphs from IRRS (2018), IRIS (2020) and IROSS (2023). EGRISS Secretariat.</footer>
+
+<script>
+const KINDS = {
+  admin: { name: "Administrative data or register", practice: [
+    ["The data reach the statistical office, by transfer or linkage", "IRRS 214 · IRIS 263 · IROSS 268"],
+    ["They are published as statistics", "IRRS 198 · IRIS 253"]] },
+  survey: { name: "Survey", practice: [
+    ["The sample reaches them: camps, reception centres, informal settlements, or oversampling where they live", "IRRS 181, 187 to 188 · IRIS 239 · IROSS 207"],
+    ["The statistical office is involved in the design", "IRRS 180 · IRIS 238"]] },
+  census: { name: "Census", practice: [
+    ["It covers camps, reception centres and collective accommodation", "IRRS 140 · IRIS 215 · IROSS 171"],
+    ["It asks the reason for the move, with a forced displacement option", "IRRS 132 to 133 · IRIS 213 to 214"]] },
+  integ: { name: "Data integration", practice: [
+    ["The linked source that holds the population is itself a register, survey or census that meets its checks", "see that source"],
+    ["Records are linked with an ID number or a documented matching method", "IRRS 243 to 252 · IRIS 284 to 290"]] },
+  strategy: { name: "Strategy or roadmap", practice: [
+    ["It involves the national statistical system", "IRRS 520, 541 to 543 · IRIS 343 to 345 · IROSS 326"]] },
+  guidance: { name: "Guidance or toolkit", practice: [
+    ["It is written for producers of statistics", "IRRS 609 · IRIS 386 · IROSS 370"]] },
+  nontrad: { name: "Non-traditional source", practice: [
+    ["It is used for a statistical purpose", "IRRS 241 · IRIS 265 to 270 · IROSS ch. 5 D"]] },
+  training: { name: "Workshop, training or meeting", event: true, practice: [] }
+};
+const DISTINCT = [
+  ["Uses the recommendation categories by name: asylum seekers, refugees, temporary protection, returnees, IDPs (including disaster), stateless people", "IRRS 88 to 92 · IRIS 74 to 75, 105 · IROSS 57"],
+  ["Identifies them the recommended way: citizenship, country of birth, year of arrival, reason for migration or displacement, or legal status in a register", "IRRS 131 to 134, 214 · IRIS 206, 241 · IROSS 164, 233"],
+  ["Produces the recommended statistics: counts by category, or indicators on living conditions, integration, solutions or the SDGs", "IRRS 114, ch. 5 · IRIS ch. 4 to 5 · IROSS ch. 4"]
+];
+const EVENT = [
+  ["The audience is statistical offices or a statistical body", "IRRS 609 · IRIS 386 · IROSS 361 to 375", 1]
+];
+const LINK = [
+  ["The same organisation reported use for this example, the same source, or another example in this submission", "", 2],
+  ["Built on an instrument that follows the recommendations, such as the UNHCR Forced Displacement Survey or a MICS or DHS displacement module", "", 2],
+  ["EGRISS or an EGRISS member supported it, or the description mentions the recommendations", "", 2]
+];
+const REASONS = [
+  ["none", "No reason given"],
+  ["other", "Follows another framework (national law, EU Regulation 862/2007, UN migration recommendations)"],
+  ["unaware", "Says they do not know the recommendations"],
+  ["deliberate", "Says the recommendations were deliberately not applied"]
+];
+const T = { dk: 4, no: 7 };
+const OUT = {
+  outscope: { cls: "o-none", label: "Keep the answer", text: "Not a statistics example. Flag it for the example validity check." },
+  deliberate: { cls: "o-none", label: "Keep the answer", text: "They chose not to apply the recommendations. We record the reason." },
+  outreach: { cls: "o-ask", label: "Keep the answer, send outreach", text: "They do not know the recommendations. We send the relevant one and offer training or e-learning, and count it as an awareness gap." },
+  nocat: { cls: "o-none", label: "Keep the answer", text: "The populations cannot be told apart as recommendation categories." },
+  edit: { cls: "o-change", label: "Edit and notify", text: "We record it as using the recommendation and email them what we changed and why, with paragraphs. They can tell us if it is wrong.",
+          fill: ["PRO09 to 1, PRO10 to the recommendation of the category identified", "PRO12 from the ticked items: framework, data sources, indicators", "review_source: Secretariat edit, notified"] },
+  aligned: { cls: "o-accept", label: "Keep the answer, record as aligned", text: "Not enough to edit, but it shows the recommendations in practice. It counts in the alignment figure, not in use." },
+  keep: { cls: "o-none", label: "Keep the answer", text: "Too little evidence either way." }
+};
+const WHY = {
+  q1: ["Title and description", "The recommendations are about producing statistics. Programme delivery goes to the validity check."],
+  q2: ["Description, and the awareness questions ACT03 and ACT04", "A stated reason changes what we do: a deliberate choice is respected, not knowing the recommendations is an outreach need, another framework is often aligned."],
+  q3: ["PRO08, corrected when it does not describe the example", "Some checks depend on the kind of source."],
+  q4: ["Population (PRO07) and description", "The recommendations rest on being able to separate these populations from other migrants and from nationals. This is the gate."],
+  q5: ["Description, source, partners, earlier GAIN rounds", "Distinctive markers of the recommendations count most, good practice for the source counts less, and evidence of use counts most. A No needs a higher score and at least one sign of use."]
+};
+
+let ans = "no", kind = "survey", A = {}, C = {}, openWhy = {};
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+
+function items() {
+  const K = KINDS[kind];
+  if (K.event) return [
+    { g: "Subject", t: "The topic covers refugee, IDP or statelessness statistics", r: "IRRS 609 · IRIS 386 · IROSS 361 to 375", p: 2, k: "e0" },
+    { g: "Audience", t: EVENT[0][0], r: EVENT[0][1], p: 1, k: "e1" },
+    ...LINK.map((l, i) => ({ g: "Signs of use", t: l[0], r: l[1], p: 2, k: "l" + i, link: true }))];
+  return [
+    ...DISTINCT.map((d, i) => ({ g: "Distinctive markers · 2 points each", t: d[0], r: d[1], p: 2, k: "d" + i })),
+    ...K.practice.map((d, i) => ({ g: "Good practice for this source · 1 point each", t: d[0], r: d[1], p: 1, k: "p" + i })),
+    ...LINK.map((l, i) => ({ g: "Signs of use · 2 points each", t: l[0], r: l[1], p: 2, k: "l" + i, link: true }))];
+}
+function score() {
+  let s = A.q2 === "other" ? 1 : 0, link = A.q2 === "other";
+  items().forEach(it => { if (C[it.k]) { s += it.p; if (it.link) link = true; } });
+  return { s, link };
+}
+function decide() {
+  const { s, link } = score(), t = ans === "no" ? T.no : T.dk;
+  if (s >= t && (ans !== "no" || link)) return "edit";
+  return s >= T.dk ? "aligned" : "keep";
+}
+
+function flow() {
+  const rows = [], q = (id, title, sub, o = {}) => rows.push({ id, title, sub, ...o });
+  q("q1", "About producing statistics?", "not cash, services or awareness", { exit: { on: false, to: "outscope", lab: "No" }, go: "Yes" });
+  q("q2", "What reason do they give, if any?", "in the description or the awareness questions", { kind: "reason", go: "No reason or another framework" });
+  q("q3", "Kind of example", "", { kind: "select", go: "" });
+  q("q4", KINDS[kind].event ? "About refugee, IDP or statelessness statistics?" : "Can the populations be told apart as recommendation categories?",
+    KINDS[kind].event ? "the topic of the event" : "refugees, asylum seekers, temporary protection, returnees, IDPs, stateless people",
+    { exit: { on: false, to: "nocat", lab: "No" }, go: "Yes" });
+  q("q5", "Score the evidence", "tick what applies", { kind: "score", split: ["edit", "aligned", "keep"] });
+  return rows;
+}
+function walk(rows) {
+  const st = {}; let hit = null; const taken = new Set();
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const later = () => { for (let j = i + 1; j < rows.length; j++) st[rows[j].id] = "later"; };
+    if (r.kind === "select") { st[r.id] = "done"; taken.add(r.id + ">next"); continue; }
+    if (r.kind === "reason") {
+      if (A.q2 === undefined) { st[r.id] = "cur"; later(); break; }
+      st[r.id] = "done";
+      if (A.q2 === "deliberate") { hit = "deliberate"; taken.add(r.id + ">deliberate"); later(); break; }
+      if (A.q2 === "unaware") { hit = "outreach"; taken.add(r.id + ">outreach"); later(); break; }
+      taken.add(r.id + ">next"); continue;
+    }
+    if (r.kind === "score") { st[r.id] = Object.keys(C).length ? "done" : "cur"; hit = Object.keys(C).length ? decide() : null; if (hit) taken.add(r.id + ">" + hit); break; }
+    const v = A[r.id];
+    if (v === undefined) { st[r.id] = "cur"; later(); break; }
+    st[r.id] = "done";
+    if (r.exit && v === r.exit.on) { hit = r.exit.to; taken.add(r.id + ">" + hit); later(); break; }
+    taken.add(r.id + ">next");
+  }
+  return { st, hit, taken };
+}
+
+const nodes = {}, outEls = {};
+function yn(key, val, set) { const d = el("div", "yn"); [["Yes", true], ["No", false]].forEach(([l, v]) => { const b = el("button", null, l); b.type = "button"; b.id = `b-${key}-${l.toLowerCase()}`; b.setAttribute("aria-pressed", val === v ? "true" : "false"); b.addEventListener("click", () => set(v)); d.append(b); }); return d; }
+function nodeEl(r, w) {
+  let n = nodes[r.id];
+  if (!n) { n = el("div", "nd enter"); n.id = "node-" + r.id; nodes[r.id] = n; document.getElementById("canvas").append(n); requestAnimationFrame(() => requestAnimationFrame(() => n.classList.remove("enter"))); }
+  n.textContent = "";
+  const hd = el("div", "hd"); hd.append(el("span", "no", String(r.n)));
+  const tt = el("div", "tt", r.title); if (r.sub && r.kind !== "select") tt.append(el("small", null, r.sub)); hd.append(tt);
+  const wb = el("button", "why", "Why?"); wb.type = "button"; wb.setAttribute("aria-expanded", openWhy[r.id] ? "true" : "false"); wb.addEventListener("click", () => { openWhy[r.id] = !openWhy[r.id]; render(); }); hd.append(wb);
+  n.append(hd);
+  if (openWhy[r.id] && WHY[r.id]) { const b = el("div", "whybox"); const a = el("span"); a.append(el("b", null, "Based on: "), document.createTextNode(WHY[r.id][0])); const c = el("span"); c.append(el("b", null, "Why: "), document.createTextNode(WHY[r.id][1])); b.append(a, c); n.append(b); }
+  if (r.kind === "select") {
+    const sel = el("select"); sel.id = "node-kind"; sel.setAttribute("aria-label", "Kind of example");
+    Object.entries(KINDS).forEach(([k, s]) => { const o = el("option", null, s.name); o.value = k; o.selected = k === kind; sel.append(o); });
+    sel.addEventListener("change", () => setKind(sel.value)); n.append(sel);
+  } else if (r.kind === "reason") {
+    const box = el("div", "reasons"); REASONS.forEach(([v, l]) => { const b = el("button", null, l); b.type = "button"; b.id = "r-" + v; b.setAttribute("aria-pressed", A.q2 === v ? "true" : "false"); b.addEventListener("click", () => { A.q2 = v; render(); }); box.append(b); }); n.append(box);
+  } else if (r.kind === "score") {
+    let g = null; const box = el("div", "checks");
+    items().forEach(it => {
+      if (it.g !== g) { g = it.g; box.append(el("div", "grp", g)); }
+      const row = el("div", "ck"); const t = el("span", null, it.t); if (it.r) t.append(el("span", "r", it.r));
+      row.append(t, yn(it.k, C[it.k], v => { C[it.k] = v; render(); })); box.append(row);
+    });
+    n.append(box);
+    const { s, link } = score(), t = ans === "no" ? T.no : T.dk, max = items().reduce((a, b) => a + b.p, 0) + 1;
+    const meter = el("div", "score"); const lab = el("div", "slab");
+    lab.append(el("b", null, `${s} points`), el("span", null, ans === "no" ? `Edit at ${T.no} or more, including a sign of use` : `Edit at ${T.dk} or more`));
+    const bar = el("div", "sbar"); const f = el("i"); f.style.width = `${Math.min(100, s / max * 100)}%`; const m1 = el("span", "mk dk"); m1.style.left = `${T.dk / max * 100}%`; m1.title = "Aligned, and the bar to edit a Don't know";
+    const m2 = el("span", "mk no"); m2.style.left = `${T.no / max * 100}%`; m2.title = "Bar to edit a No"; bar.append(f, m1, m2);
+    meter.append(lab, bar);
+    if (A.q2 === "other") meter.append(el("span", "note", "+1 point: follows a framework aligned with the recommendations (step 2)."));
+    if (ans === "no" && s >= T.no && !link) meter.append(el("span", "note", "Score reached, but a No also needs a sign of use."));
+    n.append(meter);
+  } else {
+    n.append(yn(r.id, A[r.id], v => { A[r.id] = v; if (r.id === "q1") { delete A.q2; } C = {}; if (r.id === "q1") delete A.q4; render(); }));
+  }
+  n.style.setProperty("--w", w + "px");
+  return n;
+}
+function setKind(v) { kind = v; delete A.q4; C = {}; document.getElementById("src").value = v; render(); }
+function outEl(key, w) {
+  const id = "out-" + key; let o = outEls[id];
+  if (!o) { o = el("div", "oc enter"); o.id = id; outEls[id] = o; document.getElementById("canvas").append(o); requestAnimationFrame(() => requestAnimationFrame(() => o.classList.remove("enter"))); }
+  const O = OUT[key]; o.className = "oc " + O.cls + (o.classList.contains("enter") ? " enter" : ""); o.textContent = "";
+  o.append(el("b", null, O.label), el("span", null, O.text));
+  if (O.fill) { const ul = el("ul"); O.fill.forEach(f => ul.append(el("li", null, f))); o.append(ul); }
+  o.style.setProperty("--w", w + "px"); return o;
+}
+
+function render() {
+  const rows = flow(); rows.forEach((r, i) => r.n = i + 1);
+  const w = walk(rows), canvas = document.getElementById("canvas");
+  const W = Math.max(760, Math.min(1040, canvas.parentElement.clientWidth));
+  const NW = Math.min(500, W * .56), OW = Math.min(260, W * .28), X = 24, OX = X + NW + 70, GAP = 46;
+  const pos = {}, opos = {}; let y = 24;
+  const sideOuts = new Set(["outscope", "nocat"]); if (A.q2 === "deliberate") sideOuts.add("deliberate"); if (A.q2 === "unaware") sideOuts.add("outreach");
+  const ends = ["edit", "aligned", "keep"];
+  Object.keys(outEls).forEach(k => { const key = k.slice(4); if (!sideOuts.has(key) && !ends.includes(key) && !["deliberate", "outreach"].includes(key)) { outEls[k].remove(); delete outEls[k]; } });
+  rows.forEach(r => { const n = nodeEl(r, NW); n.className = "nd " + (w.st[r.id] || "later") + (n.classList.contains("enter") ? " enter" : ""); n.style.left = X + "px"; n.style.top = y + "px"; pos[r.id] = { y, h: n.offsetHeight }; y += n.offsetHeight + GAP; });
+  // side exits
+  const side = [["q1", "outscope", "No"], ["q2", "deliberate", "Deliberate"], ["q2", "outreach", "Not aware"], ["q4", "nocat", "No"]];
+  const sideY = {};
+  side.forEach(([r, key, lab]) => { const o = outEl(key, OW); const p = pos[r]; let top = p.y + p.h / 2 - o.offsetHeight / 2; if (key === "deliberate") top = p.y - 6; if (key === "outreach") top = p.y + p.h - o.offsetHeight + 6;
+    o.style.left = OX + "px"; o.style.top = top + "px"; opos[r + ">" + key] = { y: top, h: o.offsetHeight, lab }; });
+  // end outcomes
+  const last = pos.q5, ey = last.y + last.h + GAP, ew = (NW - 32) / 3; let maxH = 0;
+  ends.forEach((e, i) => { const o = outEl(e, ew); const ex = X + i * (ew + 16); o.style.left = ex + "px"; o.style.top = ey + "px"; opos["q5>" + e] = { x: ex, y: ey, w: ew, h: o.offsetHeight }; maxH = Math.max(maxH, o.offsetHeight); });
+  canvas.style.height = (ey + maxH + 24) + "px";
+  Object.entries(outEls).forEach(([k, o]) => { const key = k.slice(4); o.classList.toggle("hit", w.hit === key); o.classList.toggle("off", !!w.hit && w.hit !== key); });
+  // edges
+  const svg = document.getElementById("edges"); svg.textContent = ""; const ns = "http://www.w3.org/2000/svg";
+  const path = (d, on, lab, lx, ly, anchor) => { const p = document.createElementNS(ns, "path"); p.setAttribute("d", d); p.setAttribute("class", "edge" + (on ? " on" : "")); svg.append(p);
+    if (lab) { const t = document.createElementNS(ns, "text"); t.setAttribute("x", lx); t.setAttribute("y", ly); t.setAttribute("class", "elab" + (on ? " on" : "")); t.setAttribute("text-anchor", anchor || "start"); t.textContent = lab; svg.append(t); } };
+  const cx = X + 40;
+  rows.forEach((r, i) => { if (i < rows.length - 1) { const p = pos[r.id], q = pos[rows[i + 1].id]; path(`M${cx} ${p.y + p.h} L${cx} ${q.y}`, w.taken.has(r.id + ">next"), r.go, cx + 8, p.y + p.h + GAP / 2 + 4); } });
+  side.forEach(([r, key]) => { const p = pos[r], o = opos[r + ">" + key]; const sy = p.y + p.h / 2, ty = o.y + o.h / 2;
+    path(`M${X + NW} ${sy} C${X + NW + 35} ${sy}, ${OX - 35} ${ty}, ${OX} ${ty}`, w.taken.has(r + ">" + key), o.lab, X + NW + 35, (sy + ty) / 2 - 6, "middle"); });
+  ends.forEach((e, i) => { const p = pos.q5, o = opos["q5>" + e], ex = o.x + o.w / 2;
+    const lab = e === "edit" ? (ans === "no" ? `${T.no}+ and use` : `${T.dk}+`) : e === "aligned" ? (ans === "no" ? `${T.dk} to ${T.no - 1}, or no use` : "") : `under ${T.dk}`;
+    path(`M${cx} ${p.y + p.h} C${cx} ${p.y + p.h + GAP / 2}, ${ex} ${p.y + p.h + GAP / 2}, ${ex} ${o.y}`, w.taken.has("q5>" + e), lab, ex + 6, o.y - 8, "start"); });
+}
+
+const SEL = document.getElementById("src");
+Object.entries(KINDS).forEach(([k, s]) => { const o = el("option", null, s.name); o.value = k; o.selected = k === kind; SEL.append(o); });
+SEL.addEventListener("change", () => setKind(SEL.value));
+document.querySelectorAll("input[name=ans]").forEach(r => r.addEventListener("change", () => { ans = r.value; render(); }));
+document.getElementById("clear").addEventListener("click", () => { A = {}; C = {}; render(); });
+addEventListener("resize", () => render());
+render();
+</script>
+</body></html>

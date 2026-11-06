@@ -1,0 +1,509 @@
+<title>GAIN Alignment Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a work queue on the left, the decision tree for one example on the right, like a case file
+   beside its checklist. Same family as the GAIN 2026 tracker: IBM Plex, navy and teal. */
+:root {
+  --bg: #f3f5fa; --panel: #ffffff; --panel-2: #eef1f8; --line: #d9deea; --ink: #14213d; --ink-2: #3c4a68; --ink-3: #6b7896;
+  --accent: #1f4f9c; --accent-ink: #ffffff; --sel: #e4ecfa;
+  --edit: #18806f; --outreach: #b26a00; --aligned: #3462b5; --keep: #6b7896;
+  --edit-bg: #e2f4ef; --outreach-bg: #fbefdc; --aligned-bg: #e5ecf9; --keep-bg: #eceff5;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --fs-xs: 11px; --fs-s: 12px; --fs-m: 13.5px; --fs-l: 15px; --fs-xl: 20px;
+  --r-s: 4px; --r-m: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0a1430; --panel: #0e1b3d; --panel-2: #13234b; --line: #22355f; --ink: #ffffff; --ink-2: #cfe0f4; --ink-3: #8b98b3;
+  --accent: #5b8fd9; --accent-ink: #0a1430; --sel: #17295a;
+  --edit: #5cc99a; --outreach: #f5b041; --aligned: #8db8e3; --keep: #8b98b3;
+  --edit-bg: #10352f; --outreach-bg: #3a2c12; --aligned-bg: #182c55; --keep-bg: #18264a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0a1430; --panel: #0e1b3d; --panel-2: #13234b; --line: #22355f; --ink: #ffffff; --ink-2: #cfe0f4; --ink-3: #8b98b3;
+  --accent: #5b8fd9; --accent-ink: #0a1430; --sel: #17295a;
+  --edit: #5cc99a; --outreach: #f5b041; --aligned: #8db8e3; --keep: #8b98b3;
+  --edit-bg: #10352f; --outreach-bg: #3a2c12; --aligned-bg: #182c55; --keep-bg: #18264a; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 var(--fs-m)/1.5 var(--sans); }
+.wrap { max-width: 1400px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
+h1 { font-size: var(--fs-xl); }
+h2 { font-size: var(--fs-l); }
+h3 { font-size: var(--fs-m); }
+.eyebrow { font: 500 var(--fs-xs)/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.muted { color: var(--ink-3); }
+.mono { font-family: var(--mono); }
+button, select, input, textarea { font: inherit; color: var(--ink); }
+.btn { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-s); padding: 6px 12px; cursor: pointer; font-size: var(--fs-s); }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; }
+header.top .sub { color: var(--ink-3); font-size: var(--fs-s); margin-top: 4px; max-width: 70ch; }
+.tabs { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-s); overflow: hidden; background: var(--panel); }
+.tabs button { border: 0; background: none; padding: 7px 14px; cursor: pointer; font-size: var(--fs-s); color: var(--ink-2); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+.counts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.count { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-m); padding: 8px 12px; min-width: 120px; }
+.count b { display: block; font: 600 var(--fs-xl)/1.1 var(--sans); font-variant-numeric: tabular-nums; }
+.count span { font-size: var(--fs-xs); color: var(--ink-3); }
+
+.pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 1px 8px; font-size: var(--fs-xs); font-weight: 500; white-space: nowrap; background: var(--keep-bg); color: var(--keep); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.edit { background: var(--edit-bg); color: var(--edit); }
+.pill.outreach { background: var(--outreach-bg); color: var(--outreach); }
+.pill.aligned { background: var(--aligned-bg); color: var(--aligned); }
+.pill.open { background: none; color: var(--ink-3); border: 1px dashed var(--line); }
+.pill.open::before { display: none; }
+.ans { font: 500 var(--fs-xs) var(--mono); color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--r-s); padding: 0 5px; white-space: nowrap; }
+
+.grid { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-m); min-width: 0; }
+.queue { position: sticky; top: env(safe-area-inset-top, 0px); max-height: calc(100vh - 24px); overflow: auto; }
+.qhead { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.qhead select { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-s); padding: 4px 6px; font-size: var(--fs-s); }
+.org { padding: 8px 12px 4px; font-size: var(--fs-xs); color: var(--ink-3); font-weight: 600; letter-spacing: .02em; border-top: 1px solid var(--line); }
+.org:first-of-type { border-top: 0; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; width: 100%; text-align: left; background: none; border: 0; border-left: 3px solid transparent; padding: 7px 12px 7px 9px; cursor: pointer; }
+.item:hover { background: var(--panel-2); }
+.item[aria-current="true"] { background: var(--sel); border-left-color: var(--accent); }
+.item .t { font-size: var(--fs-s); line-height: 1.35; overflow-wrap: anywhere; }
+.item .m { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+.detail { padding: 16px; display: grid; gap: 16px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 18px; }
+.fact .k { font: 500 var(--fs-xs) var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.fact .v { font-size: var(--fs-s); overflow-wrap: anywhere; }
+.desc { background: var(--panel-2); border-radius: var(--r-m); padding: 10px 12px; font-size: var(--fs-m); max-width: 90ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+.context { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.context ul { margin: 4px 0 0; padding-left: 18px; font-size: var(--fs-s); }
+.context li { margin: 2px 0; }
+
+.tree { display: grid; gap: 10px; }
+.step { border: 1px solid var(--line); border-radius: var(--r-m); padding: 12px; display: grid; gap: 8px; }
+.step.off { opacity: .45; }
+.step .q { display: flex; gap: 10px; align-items: baseline; }
+.step .n { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--ink-2); display: inline-grid; place-items: center; font: 500 var(--fs-xs) var(--mono); }
+.choice { display: flex; flex-wrap: wrap; gap: 6px; }
+.choice button { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-s); padding: 5px 12px; cursor: pointer; font-size: var(--fs-s); text-align: left; }
+.choice button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.choice.col { flex-direction: column; }
+.hint { font-size: var(--fs-xs); color: var(--ink-3); }
+.sugg { font-size: var(--fs-xs); color: var(--aligned); }
+.sugg b { font-weight: 600; }
+.step select { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-s); padding: 5px 8px; font-size: var(--fs-s); max-width: 100%; }
+.crit-group { font: 500 var(--fs-xs) var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-top: 6px; }
+.crit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; border-top: 1px solid var(--line); padding-top: 8px; }
+.crit .refs { font: 400 var(--fs-xs) var(--mono); color: var(--accent); }
+.crit .yn { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-s); overflow: hidden; }
+.crit .yn button { border: 0; background: var(--panel); padding: 4px 10px; cursor: pointer; font-size: var(--fs-xs); }
+.crit .yn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.result { border-radius: var(--r-m); padding: 12px 14px; display: grid; gap: 8px; background: var(--keep-bg); border: 1px solid var(--line); }
+.result.edit { background: var(--edit-bg); border-color: var(--edit); }
+.result.outreach { background: var(--outreach-bg); border-color: var(--outreach); }
+.result.aligned { background: var(--aligned-bg); border-color: var(--aligned); }
+.bar { position: relative; height: 8px; border-radius: 4px; background: var(--line); overflow: visible; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
+.bar u { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); }
+.scoreline { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: var(--fs-s); }
+.scoreline b { font: 600 var(--fs-l) var(--mono); }
+textarea { width: 100%; min-height: 64px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-s); padding: 8px; font-size: var(--fs-s); resize: vertical; }
+.save { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.status { font-size: var(--fs-s); color: var(--ink-3); }
+.note { background: var(--outreach-bg); color: var(--ink); border: 1px solid var(--outreach); border-radius: var(--r-m); padding: 10px 12px; font-size: var(--fs-s); margin-bottom: 14px; }
+.empty { padding: 28px 18px; color: var(--ink-3); font-size: var(--fs-m); display: grid; gap: 6px; }
+.empty b { color: var(--ink); }
+
+.mails { display: grid; gap: 14px; }
+.mail { padding: 14px; display: grid; gap: 10px; }
+.mail pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--fs-m)/1.55 var(--sans); background: var(--panel-2); border-radius: var(--r-m); padding: 12px; }
+.mail .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.fig { padding: 14px; }
+.fig b { display: block; font: 600 30px/1.1 var(--sans); font-variant-numeric: tabular-nums; }
+.fig span { font-size: var(--fs-s); color: var(--ink-3); }
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-s); }
+th { text-align: left; font: 500 var(--fs-xs) var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl { overflow-x: auto; }
+@media (max-width: 860px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .queue { position: static; max-height: 320px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">EGRISS Secretariat · GAIN 2026</div>
+      <h1>Alignment review</h1>
+      <div class="sub" id="sub">Examples where the respondent said the recommendations were not used, or did not know. Walk the decision tree for each one; suggested answers come from the description and earlier rounds, and every one needs your confirmation.</div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Views">
+      <button role="tab" id="tab-queue" aria-selected="true" data-view="queue">Review</button>
+      <button role="tab" id="tab-mails" aria-selected="false" data-view="mails">Email drafts</button>
+      <button role="tab" id="tab-sum" aria-selected="false" data-view="sum">Summary</button>
+    </div>
+  </header>
+  <div class="note" id="note" hidden></div>
+  <div class="counts" id="counts"></div>
+
+  <section id="view-queue" class="grid">
+    <nav class="panel queue" aria-label="Examples to review">
+      <div class="qhead">
+        <h2>Queue</h2>
+        <label class="hint">Show <select id="qfilter">
+          <option value="open">Not reviewed</option>
+          <option value="all">All</option>
+          <option value="edit">Edit and notify</option>
+          <option value="outreach">Send outreach</option>
+          <option value="aligned">Recorded as aligned</option>
+          <option value="keep">Answer kept</option>
+        </select></label>
+      </div>
+      <div id="qlist"><div class="empty"><b>Loading the review queue…</b><span>The examples to review appear here once the store answers.</span></div></div>
+    </nav>
+    <article class="panel" id="detail" aria-live="polite">
+      <div class="empty"><b>Pick an example from the queue.</b><span>Its description, the organisation's other answers and the decision tree open here.</span></div>
+    </article>
+  </section>
+
+  <section id="view-mails" hidden>
+    <div class="mails" id="mails"></div>
+  </section>
+
+  <section id="view-sum" hidden>
+    <div class="figs" id="figs"></div>
+    <div class="panel" style="margin-top:14px"><div class="tbl" id="sumtbl"></div></div>
+  </section>
+</div>
+
+<script>
+/*RULES*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var RECS = {
+    IRRS: { name: 'International Recommendations on Refugee Statistics', url: 'https://egrisstats.org/recommendations/international-recommendations-on-refugee-statistics-irrs/' },
+    IRIS: { name: 'International Recommendations on IDP Statistics', url: 'https://egrisstats.org/recommendations/international-recommendations-on-idp-statistics-iris/' },
+    IROSS: { name: 'International Recommendations on Statelessness Statistics', url: 'https://egrisstats.org/recommendations/international-recommendations-on-statelessness-statistics-iross/' }
+  };
+  var OUT = {
+    edit: { label: 'Edit and notify', cls: 'edit' }, outreach: { label: 'Send outreach', cls: 'outreach' },
+    aligned: { label: 'Recorded as aligned', cls: 'aligned' }, keep: { label: 'Answer kept', cls: 'keep' },
+    outscope: { label: 'Not statistics: validity check', cls: 'keep' }, deliberate: { label: 'Answer kept: chose not to apply', cls: 'keep' },
+    nocat: { label: 'Answer kept: no categories', cls: 'keep' }
+  };
+  var ANS = { no: 'No', dk: 'Don’t know', dkw: 'PRO10 = Z' };
+  var S = { spec: null, queue: {}, dec: {}, meta: null, sel: null, view: 'queue', filter: 'open', draft: null, db: null, user: null, me: null, names: {}, readOnly: false, loaded: false };
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function outcomeOf(k) { var d = S.dec[k]; return d && d.outcome ? d.outcome : null; }
+  function bucket(o) { return !o ? 'open' : (o === 'edit' || o === 'outreach' || o === 'aligned') ? o : 'keep'; }
+  function pill(o) { if (!o) return '<span class="pill open">Not reviewed</span>'; var x = OUT[o]; return '<span class="pill ' + x.cls + '">' + esc(x.label) + '</span>'; }
+  function note(msg) { var n = $('note'); n.textContent = msg || ''; n.hidden = !msg; }
+
+  // ---------- data ----------
+  fetch('decision_tree.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (s) { S.spec = s; render(); })
+    .catch(function () { note('The decision tree (decision_tree.json) didn’t load, so the form can’t be shown. Reload the page; if it persists, ask Claude to republish the review page.'); });
+
+  var timer = setTimeout(function () { if (!S.loaded) { note('The review store hasn’t answered yet. The queue will appear as soon as it does; if nothing shows after a minute, check your connection.'); } }, 10000);
+  Promise.resolve(window.claude && window.claude.use ? Promise.all([window.claude.use('db'), window.claude.use('user')]) : [null, null]).then(function (r) {
+    S.db = r[0]; S.user = r[1];
+    if (!S.db) { clearTimeout(timer); note('This view can’t reach the review store. Open the page signed in to claude.ai with access shared by the Secretariat.'); $('qlist').innerHTML = '<div class="empty"><b>No access to the review store.</b><span>Ask the page owner to share it with you as a Contributor.</span></div>'; return; }
+    if (S.user) {
+      S.user.id().then(function (id) { S.me = id; });
+      var cw = S.user.can ? S.user.can('data.write') : null;
+      Promise.resolve(cw).then(function (v) { if (v === false) { S.readOnly = true; render(); } });
+    }
+    S.db.collection('queue').onSnapshot(function (snap) {
+      var q = {}; snap.docs.forEach(function (d) { q[d.id] = d.data(); }); S.queue = q;
+      if (!snap.metadata.fromCache) { S.loaded = true; clearTimeout(timer); note(''); }
+      render();
+    }, function (e) { clearTimeout(timer); note('The queue stopped updating (' + e.code + '). Reload the page to reconnect.'); });
+    S.db.collection('decisions').onSnapshot(function (snap) {
+      var d = {}; snap.docs.forEach(function (x) { d[x.id] = x.data(); }); S.dec = d; resolveNames(); render();
+    }, function (e) { note('Saved decisions stopped updating (' + e.code + '). Reload the page to reconnect.'); });
+    S.db.doc('meta/run').onSnapshot(function (d) { S.meta = d.exists ? d.data() : null; renderHead(); }, function () {});
+  });
+  function resolveNames() {
+    if (!S.user || !S.user.profiles) return;
+    var ids = Object.keys(S.dec).map(function (k) { return S.dec[k].reviewer; }).filter(Boolean);
+    if (!ids.length) return;
+    S.user.profiles(ids).then(function (ps) { ids.forEach(function (id) { S.names[id] = (ps[id] && ps[id].name) || 'A reviewer'; }); render(); }).catch(function () {});
+  }
+
+  // ---------- rendering ----------
+  function keys() {
+    return Object.keys(S.queue).sort(function (a, b) {
+      var A = S.queue[a], B = S.queue[b];
+      return (A.organisation || '').localeCompare(B.organisation || '') || (A.title || '').localeCompare(B.title || '');
+    });
+  }
+  function renderHead() {
+    var ks = keys(), c = { open: 0, edit: 0, outreach: 0, aligned: 0, keep: 0 };
+    ks.forEach(function (k) { c[bucket(outcomeOf(k))]++; });
+    var m = S.meta;
+    $('counts').innerHTML = [
+      ['In the review', ks.length, m ? 'of ' + m.examples + ' GAIN 2026 examples' : ''],
+      ['Not reviewed', c.open, ''], ['Edit and notify', c.edit, ''], ['Send outreach', c.outreach, ''],
+      ['Recorded as aligned', c.aligned, ''], ['Answer kept', c.keep, '']
+    ].map(function (x) { return '<div class="count"><b>' + x[1] + '</b><span>' + esc(x[0]) + (x[2] ? ' · ' + esc(x[2]) : '') + '</span></div>'; }).join('');
+    if (m && m.pulled_at) $('sub').textContent = 'Examples where the respondent said the recommendations were not used, or did not know. Queue taken from Kobo on ' +
+      new Date(m.pulled_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '. Suggested answers come from the description and earlier rounds; every one needs your confirmation.';
+  }
+  function render() {
+    renderHead();
+    ['queue', 'mails', 'sum'].forEach(function (v) { $('view-' + v).hidden = S.view !== v; });
+    if (S.view === 'queue') { renderQueue(); renderDetail(); }
+    if (S.view === 'mails') renderMails();
+    if (S.view === 'sum') renderSum();
+  }
+  function renderQueue() {
+    var ks = keys(), f = S.filter;
+    if (!S.loaded && !ks.length) return;
+    var shown = ks.filter(function (k) { return f === 'all' || bucket(outcomeOf(k)) === f; });
+    if (!ks.length) { $('qlist').innerHTML = '<div class="empty"><b>No examples to review yet.</b><span>The queue fills when Claude loads this year’s No and Don’t know answers from Kobo.</span></div>'; return; }
+    if (!shown.length) { $('qlist').innerHTML = '<div class="empty"><b>Nothing here.</b><span>No example matches this filter. Choose All to see every example in the review.</span></div>'; return; }
+    var html = '', org = null;
+    shown.forEach(function (k) {
+      var q = S.queue[k];
+      if (q.organisation !== org) { org = q.organisation; html += '<div class="org">' + esc(org || 'Organisation not named') + '</div>'; }
+      html += '<button class="item" data-k="' + esc(k) + '" aria-current="' + (S.sel === k) + '"><span class="t">' + esc(q.title) + '</span><span class="ans">' + esc(ANS[q.answer] || q.answer) +
+        '</span><span class="m">' + pill(outcomeOf(k)) + (q.country ? '<span class="hint">' + esc(q.country) + '</span>' : '') + '</span></button>';
+    });
+    $('qlist').innerHTML = html;
+  }
+  function blankDraft(q) { return { q1: null, q2: null, kind: null, q4: null, ticks: [], populations: (q.suggest && q.suggest.populations) || '', note: '' }; }
+  function select(k) {
+    S.sel = k;
+    var d = S.dec[k], q = S.queue[k];
+    S.draft = d && d.answers ? JSON.parse(JSON.stringify(d.answers)) : blankDraft(q);
+    if (S.draft.note == null) S.draft.note = (d && d.note) || '';
+    render();
+    var el = $('detail'); if (el.getBoundingClientRect().top < 0) el.scrollIntoView({ block: 'start' });
+  }
+  function sg(name) { var q = S.queue[S.sel]; return q && q.suggest ? q.suggest[name] : null; }
+  function suggLine(name, labelFn) {
+    var s = sg(name); if (!s) return '';
+    return '<div class="sugg">Suggested: <b>' + esc(labelFn(s.value)) + '</b> · ' + esc(s.why) + '</div>';
+  }
+  function yesNo(step, val) {
+    return '<div class="choice"><button data-set="' + step + '" data-v="true" aria-pressed="' + (val === true) + '">Yes</button><button data-set="' + step + '" data-v="false" aria-pressed="' + (val === false) + '">No</button></div>';
+  }
+  function renderDetail() {
+    var k = S.sel, q = S.queue[k], el = $('detail');
+    if (!q) { el.innerHTML = '<div class="empty"><b>Pick an example from the queue.</b><span>Its description, the organisation’s other answers and the decision tree open here.</span></div>'; return; }
+    var spec = S.spec, a = S.draft, saved = S.dec[k];
+    var facts = [['Organisation', q.organisation], ['Country', q.country || 'Regional or global'], ['Answer', (ANS[q.answer] || q.answer) + (q.answer_text ? ' (' + q.answer_text + ')' : '')],
+      ['Source (PRO08)', [q.source, q.sources_more].filter(Boolean).join('; ')], ['Population (PRO07)', q.population], ['Phase (PRO06)', q.phase], ['Partners (PRO18)', q.partners]];
+    var h = '<div><div class="eyebrow">' + esc(q.organisation || '') + '</div><h2 style="margin-top:4px">' + esc(q.title) + '</h2></div>';
+    h += '<div class="facts">' + facts.map(function (f) { return '<div class="fact"><div class="k">' + esc(f[0]) + '</div><div class="v">' + (f[1] ? esc(f[1]) : '<span class="muted">Not given</span>') + '</div></div>'; }).join('') + '</div>';
+    h += '<div><div class="eyebrow" style="margin-bottom:6px">Description (PRO13)</div><div class="desc">' + (q.description ? esc(q.description) : '<span class="muted">No description given.</span>') + '</div></div>';
+    var sib = (q.siblings || []).map(function (s) { return '<li>' + esc(s.title) + ' <span class="muted">· ' + esc(s.recommendations || 'no answer') + '</span></li>'; }).join('');
+    var pri = (q.prior || []).map(function (p) { return '<li>GAIN ' + esc(p.year) + ': ' + esc(p.title) + ' <span class="muted">· ' + (p.uses === 'yes' ? 'used the recommendations' : 'not used or don’t know') + '</span></li>'; }).join('');
+    h += '<div class="context"><div><h3>Its other examples this year</h3>' + (sib ? '<ul>' + sib + '</ul>' : '<div class="hint">None in this submission.</div>') + '</div>' +
+      '<div><h3>Earlier GAIN rounds</h3>' + (pri ? '<ul>' + pri + '</ul>' : '<div class="hint">No examples from this organisation in GAIN 2021 to 2025.</div>') + '</div>' +
+      (q.known_publications ? '<div><h3>Publications they know (ACT04)</h3><div class="hint">' + esc(q.known_publications) + '</div></div>' : '') + '</div>';
+    if (!spec) { el.innerHTML = '<div class="detail">' + h + '<div class="empty">Loading the decision tree…</div></div>'; return; }
+    var res = window.AlignmentRules.decide(spec, { answer: q.answer, q1: a.q1, q2: a.q2 || (a.q1 ? 'none' : null), kind: a.kind, q4: a.q4, ticks: a.ticks, populations: a.populations });
+    var reached = { q2: a.q1 === true, q3: a.q1 === true && spec.steps[1].options[a.q2 || 'none'].then === 'continue' };
+    reached.q4 = reached.q3 && !!a.kind; reached.q5 = reached.q4 && a.q4 === true;
+    var st = spec.steps, t = '<div class="tree"><div class="row" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h3>Decision tree</h3>' +
+      (q.suggest ? '<button class="btn" id="useSugg">Fill in the suggestions</button>' : '') + '</div>';
+    t += '<div class="step"><div class="q"><span class="n">1</span><div><b>About producing statistics?</b><div class="hint">' + esc(st[0].question) + '</div></div></div>' + yesNo('q1', a.q1) + suggLine('q1', function (v) { return v ? 'Yes' : 'No'; }) + '</div>';
+    var o2 = st[1].options;
+    t += '<div class="step' + (reached.q2 ? '' : ' off') + '"><div class="q"><span class="n">2</span><div><b>What reason do they give, if any?</b><div class="hint">In the description or the awareness questions.</div></div></div><div class="choice col">' +
+      Object.keys(o2).map(function (r) { return '<button data-set="q2" data-v="' + r + '" aria-pressed="' + ((a.q2 || (reached.q2 ? 'none' : '')) === r) + '"' + (reached.q2 ? '' : ' disabled') + '>' + esc(o2[r].label) + (o2[r].points ? ' <span class="hint">+' + o2[r].points + ' point, counts as a sign of use</span>' : '') + '</button>'; }).join('') +
+      '</div>' + suggLine('q2', function (v) { return o2[v] ? o2[v].label : v; }) + '</div>';
+    t += '<div class="step' + (reached.q3 ? '' : ' off') + '"><div class="q"><span class="n">3</span><div><b>Kind of example</b><div class="hint">' + esc(st[2].note || '') + '</div></div></div><select id="kind"' + (reached.q3 ? '' : ' disabled') + '><option value="">Choose…</option>' +
+      Object.keys(spec.kinds).map(function (kk) { return '<option value="' + kk + '"' + (a.kind === kk ? ' selected' : '') + '>' + esc(spec.kinds[kk].name) + '</option>'; }).join('') + '</select>' + suggLine('kind', function (v) { return spec.kinds[v] ? spec.kinds[v].name : v; }) + '</div>';
+    t += '<div class="step' + (reached.q4 ? '' : ' off') + '"><div class="q"><span class="n">4</span><div><b>Can the populations be told apart as recommendation categories?</b><div class="hint">' + esc(st[3].question) + '</div></div></div>' + (reached.q4 ? yesNo('q4', a.q4) : '') +
+      suggLine('q4', function (v) { return v ? 'Yes' : 'No'; }) + (reached.q4 ? '<label class="hint">Categories found: <select id="pops"><option value="">Choose…</option>' +
+      [['R', 'Refugees, asylum seekers, temporary protection, returnees (IRRS)'], ['I', 'IDPs (IRIS)'], ['S', 'Stateless people (IROSS)'], ['RI', 'IRRS and IRIS'], ['RS', 'IRRS and IROSS'], ['IS', 'IRIS and IROSS'], ['RIS', 'All three']]
+        .map(function (p) { return '<option value="' + p[0] + '"' + (a.populations === p[0] ? ' selected' : '') + '>' + esc(p[1]) + '</option>'; }).join('') + '</select></label>' : '') + '</div>';
+    if (reached.q5) {
+      var crit = window.AlignmentRules.criteriaFor(spec, a.kind), sugT = {};
+      ((q.suggest && q.suggest.ticks) || []).forEach(function (x) { sugT[x.id] = x.why; });
+      var groups = { distinctive: 'Distinctive markers · ' + spec.criteria.distinctive.points + ' points each', practice: 'Good practice for this source · ' + spec.criteria.practice.points + ' point each',
+        event: 'The event', use: 'Signs of use · ' + spec.criteria.use.points + ' points each' }, last = null, c5 = '';
+      crit.forEach(function (c) {
+        if (c.group !== last) { last = c.group; c5 += '<div class="crit-group">' + esc(groups[c.group]) + '</div>'; }
+        var on = a.ticks.indexOf(c.id) >= 0;
+        c5 += '<div class="crit"><div><div>' + esc(c.text) + (c.group === 'event' ? ' <span class="hint">(' + c.points + ')</span>' : '') + '</div>' + (c.refs ? '<div class="refs">' + esc(c.refs) + '</div>' : '') +
+          (sugT[c.id] ? '<div class="sugg">Suggested · ' + esc(sugT[c.id]) + '</div>' : '') + '</div><span class="yn"><button data-tick="' + c.id + '" data-v="1" aria-pressed="' + on + '">Yes</button><button data-tick="' + c.id + '" data-v="0" aria-pressed="' + !on + '">No</button></span></div>';
+      });
+      t += '<div class="step"><div class="q"><span class="n">5</span><div><b>Score the evidence</b><div class="hint">Tick what the example shows.</div></div></div>' + c5 + '</div>';
+    }
+    t += '</div>';
+    // result
+    var r = '';
+    if (res.outcome) {
+      var x = OUT[res.outcome], need = res.need, max = need ? Math.max(need + 3, res.score || 0) : 0;
+      r = '<div class="result ' + x.cls + '"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="pill ' + x.cls + '">' + esc(x.label) + '</span><span class="hint">' + esc(spec.outcomes[res.outcome].detail) + '</span></div>';
+      if (res.score != null) {
+        var bar = q.answer === 'no' ? 'Edit at ' + need + ' or more, including a sign of use' : 'Edit at ' + need + ' or more';
+        r += '<div class="scoreline"><span><b>' + res.score + '</b> points' + (q.answer === 'no' ? (res.use_sign ? ' · sign of use ticked' : ' · no sign of use yet') : '') + '</span><span class="hint">' + esc(bar) + '; ' + spec.thresholds.aligned_min + ' or more records it as aligned</span></div>' +
+          '<div class="bar" aria-hidden="true"><i style="width:' + Math.min(100, 100 * res.score / max) + '%"></i><u style="left:' + (100 * need / max) + '%"></u></div>';
+      }
+      if (res.fill) r += '<div class="hint">Fields to fill: PRO09_reviewed = 1 · PRO10_reviewed = ' + esc(res.fill.PRO10_reviewed || 'choose the categories in step 4') + ' · PRO12_reviewed = ' + esc(res.fill.PRO12_reviewed.join('; ') || 'none') + ' · review_source = ' + esc(res.fill.review_source) + '. PRO09 as reported stays unchanged.</div>';
+      r += '</div>';
+    } else {
+      r = '<div class="result"><span class="hint">Answer step ' + ({ q1: 1, q3: 3, q4: 4 }[res.step] || '') + ' to see the outcome.</span></div>';
+    }
+    var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) : 'Not saved yet';
+    var save = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>' +
+      '<div class="save"><button class="btn primary" id="saveBtn"' + (res.outcome && !S.readOnly ? '' : ' disabled') + '>Save decision</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Clear the decision</button>' : '') +
+      '<span class="status" id="saveStatus">' + esc(S.readOnly ? 'You can read this review but not save decisions.' : who) + '</span></div>';
+    el.innerHTML = '<div class="detail">' + h + t + r + save + '</div>';
+  }
+
+  // ---------- emails ----------
+  function refsFor(refs, acrs) {
+    return String(refs || '').split(' · ').filter(function (p) { return acrs.some(function (x) { return p.indexOf(x + ' ') === 0; }); })
+      .map(function (p) { return p.replace(/^(IRRS|IRIS|IROSS) /, function (m, x) { return x + ' paragraph' + (/[ ,]|to/.test(p.slice(m.length)) ? 's ' : ' '); }); }).join(', ');
+  }
+  function acronyms(pops) { return String(pops || '').split('').map(function (p) { return window.AlignmentRules.REC_BY_POP[p]; }).filter(Boolean); }
+  function renderMails() {
+    var by = {};
+    keys().forEach(function (k) { var o = outcomeOf(k); if (o === 'edit' || o === 'outreach') { var q = S.queue[k]; (by[q.organisation] = by[q.organisation] || []).push(k); } });
+    var orgs = Object.keys(by).sort();
+    if (!orgs.length) { $('mails').innerHTML = '<div class="panel empty"><b>No drafts yet.</b><span>A draft appears here for each organisation with at least one example saved as Edit and notify or Send outreach. One email covers all of its examples.</span></div>'; return; }
+    $('mails').innerHTML = orgs.map(function (org, i) {
+      var ks = by[org], edits = ks.filter(function (k) { return outcomeOf(k) === 'edit'; }), outs = ks.filter(function (k) { return outcomeOf(k) === 'outreach'; });
+      var parts = [];
+      if (edits.length) parts.push(editMail(org, edits));
+      if (outs.length) parts.push(outreachMail(org, outs));
+      var sent = ks.every(function (k) { return S.dec[k].notified_on; });
+      return '<section class="panel mail"><div class="row"><div><div class="eyebrow">' + ks.length + ' example' + (ks.length > 1 ? 's' : '') + '</div><h2>' + esc(org) + '</h2></div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (sent ? '<span class="pill edit">Sent ' + esc(S.dec[ks[0]].notified_on) + '</span>' : '') +
+        '<button class="btn" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
+        parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') +
+        (edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + '</section>';
+    }).join('');
+  }
+  function editMail(org, ks) {
+    var spec = S.spec, allAcr = {}, body = [];
+    var anyNo = ks.some(function (k) { return S.queue[k].answer === 'no'; });
+    ks.forEach(function (k) {
+      var q = S.queue[k], d = S.dec[k], a = d.answers, acr = acronyms(a.populations);
+      acr.forEach(function (x) { allAcr[x] = 1; });
+      var crit = window.AlignmentRules.criteriaFor(spec, a.kind).filter(function (c) { return a.ticks.indexOf(c.id) >= 0 && !c.use; });
+      var why = crit.map(function (c) { var r = refsFor(c.refs, acr); return c.text.charAt(0).toLowerCase() + c.text.slice(1) + (r ? ' (' + r + ')' : ''); });
+      var p = q.title + ': [one sentence on what the example does, in the respondent’s terms]. This reflects the ' + (acr.join(' and ') || '[acronym]') + (why.length ? ' in ' + listJoin(why) : '') + '.';
+      if (q.answer === 'no') {
+        var use = window.AlignmentRules.criteriaFor(spec, a.kind).filter(function (c) { return a.ticks.indexOf(c.id) >= 0 && c.use; })[0];
+        var sig = use ? (use.id === 'l0' ? 'Your other example or earlier submission on the same data was reported as using the ' + (acr.join(' and ') || '[acronym]') + '.' :
+          use.id === 'l1' ? 'It is built on an instrument that follows the recommendations.' : 'It was supported by EGRISS or an EGRISS member.') : (a.q2 === 'other' ? 'It follows a framework that draws on the recommendations.' : '');
+        if (sig) p += ' ' + sig;
+      }
+      body.push(p);
+    });
+    var names = Object.keys(allAcr).map(function (x) { return RECS[x].name + ' (' + x + ')'; });
+    return 'Subject: GAIN 2026: an update to your submission\n\nDear [Name],\n\nThank you for ' + org + '’s GAIN 2026 submission. ' +
+      (anyNo ? 'You indicated that the recommendations were not used. Looking at the example' + (ks.length > 1 ? 's' : '') + ', we believe ' + (ks.length > 1 ? 'they draw' : 'it does draw') + ' on them, so we have recorded ' + (ks.length > 1 ? 'them' : 'it') + ' as such. ' : '') +
+      'Reviewing your examples, we have recorded the following as using the ' + (listJoin(names) || '[recommendation full name]') + ':\n\n' + body.join('\n\n') +
+      '\n\nIf this does not reflect your work, just reply and we will restore your original answer.\n\nWith thanks,\n[names], EGRISS Secretariat';
+  }
+  function outreachMail(org, ks) {
+    var acr = {}; ks.forEach(function (k) { acronyms(S.dec[k].answers.populations || (S.queue[k].suggest || {}).populations).forEach(function (x) { acr[x] = 1; }); });
+    var A = Object.keys(acr); if (!A.length) A = ['IRRS'];
+    var titles = ks.map(function (k) { return S.queue[k].title; });
+    return 'Subject: GAIN 2026: the EGRISS recommendations for your work on ' + titles[0] + '\n\nDear [Name],\n\nThank you for ' + org + '’s GAIN 2026 submission. You mentioned you are not familiar with the EGRISS recommendations. For work like ' + listJoin(titles) +
+      ', the ' + listJoin(A) + ' may be useful, in particular [chapter or paragraphs]. ' + A.map(function (x) { return RECS[x].name + ': ' + RECS[x].url; }).join(' ') +
+      '\n\nThe e-learning course [link] gives a short introduction, and we would be glad to set up a call.\n\nWith thanks,\n[names], EGRISS Secretariat';
+  }
+  function listJoin(a) { return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+
+  // ---------- summary ----------
+  function renderSum() {
+    var ks = keys(), c = {};
+    ks.forEach(function (k) { var o = outcomeOf(k) || 'open'; c[o] = (c[o] || 0) + 1; });
+    var m = S.meta || {}, total = m.examples || 0, inRev = ks.length, using = total - inRev;
+    var pct = function (n) { return total ? Math.round(100 * n / total) + '%' : '0%'; };
+    var after = using + (c.edit || 0), aligned = after + (c.aligned || 0);
+    $('figs').innerHTML = [['Use as reported', using, 'examples whose respondent named a recommendation'], ['Use after review', after, 'adds ' + (c.edit || 0) + ' edited and notified'], ['Alignment', aligned, 'adds ' + (c.aligned || 0) + ' recorded as aligned']]
+      .map(function (f) { return '<div class="panel fig"><span>' + esc(f[0]) + '</span><b>' + pct(f[1]) + '</b><span>' + f[1] + ' of ' + total + ' examples · ' + esc(f[2]) + '</span></div>'; }).join('');
+    var rows = [['Not reviewed', c.open || 0]].concat(Object.keys(OUT).map(function (o) { return [OUT[o].label, c[o] || 0]; }));
+    $('sumtbl').innerHTML = '<table><thead><tr><th>Outcome</th><th>Examples</th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td class="mono">' + r[1] + '</td></tr>'; }).join('') + '</tbody></table>' +
+      '<p class="hint" style="padding:0 8px 8px">Use as reported counts the examples outside this review, where the respondent named a recommendation. Secretariat-filled PRO12 stays out of any elements-used table unless the respondent confirmed it.</p>';
+  }
+
+  // ---------- events ----------
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.view) { S.view = b.dataset.view; document.querySelectorAll('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t === b); }); render(); return; }
+    if (b.dataset.k) { select(b.dataset.k); return; }
+    if (b.dataset.set && S.draft) {
+      var v = b.dataset.v === 'true' ? true : b.dataset.v === 'false' ? false : b.dataset.v;
+      S.draft[b.dataset.set] = v; renderDetail(); return;
+    }
+    if (b.dataset.tick && S.draft) {
+      var i = S.draft.ticks.indexOf(b.dataset.tick);
+      if (b.dataset.v === '1' && i < 0) S.draft.ticks.push(b.dataset.tick);
+      if (b.dataset.v === '0' && i >= 0) S.draft.ticks.splice(i, 1);
+      renderDetail(); return;
+    }
+    if (b.id === 'useSugg' && S.draft) {
+      var s = S.queue[S.sel].suggest || {};
+      ['q1', 'q2', 'kind', 'q4'].forEach(function (n) { if (s[n] && S.draft[n] == null) S.draft[n] = s[n].value; });
+      if (s.populations && !S.draft.populations) S.draft.populations = s.populations;
+      var ok = S.draft.kind ? window.AlignmentRules.criteriaFor(S.spec, S.draft.kind).map(function (c) { return c.id; }) : [];
+      (s.ticks || []).forEach(function (t) { if (ok.indexOf(t.id) >= 0 && S.draft.ticks.indexOf(t.id) < 0) S.draft.ticks.push(t.id); });
+      renderDetail(); return;
+    }
+    if (b.id === 'saveBtn') { save(); return; }
+    if (b.id === 'clearBtn') { clearDecision(); return; }
+    if (b.dataset.copy != null) {
+      var txt = Array.prototype.map.call(document.querySelectorAll('[data-mail="' + b.dataset.copy + '"]'), function (p) { return p.textContent; }).join('\n\n');
+      navigator.clipboard.writeText(txt).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy draft'; }, 1500); })
+        .catch(function () { var r = document.createRange(); r.selectNodeContents(document.querySelector('[data-mail="' + b.dataset.copy + '"]')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected: press Ctrl or Cmd + C'; });
+      return;
+    }
+    if (b.dataset.sent) { markSent(b.dataset.sent.split('|')); return; }
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'qfilter') { S.filter = e.target.value; renderQueue(); }
+    if (e.target.id === 'kind' && S.draft) { S.draft.kind = e.target.value || null; var ok = S.draft.kind ? window.AlignmentRules.criteriaFor(S.spec, S.draft.kind).map(function (c) { return c.id; }) : []; S.draft.ticks = S.draft.ticks.filter(function (t) { return ok.indexOf(t) >= 0; }); renderDetail(); }
+    if (e.target.id === 'pops' && S.draft) { S.draft.populations = e.target.value; renderDetail(); }
+  });
+  document.addEventListener('input', function (e) { if (e.target.id === 'dnote' && S.draft) S.draft.note = e.target.value; });
+
+  var saving = false;
+  function save() {
+    if (saving || !S.db || !S.sel) return;
+    var q = S.queue[S.sel], a = S.draft;
+    var res = window.AlignmentRules.decide(S.spec, { answer: q.answer, q1: a.q1, q2: a.q2 || 'none', kind: a.kind, q4: a.q4, ticks: a.ticks, populations: a.populations });
+    if (!res.outcome) return;
+    var prev = S.dec[S.sel] || {};
+    var doc = { key: S.sel, response_id: q.response_id, title_start: q.title_start, answer: q.answer, outcome: res.outcome, score: res.score, use_sign: res.use_sign,
+      answers: { q1: a.q1, q2: a.q2 || 'none', kind: a.kind, q4: a.q4, ticks: a.ticks.slice(), populations: a.populations || '' }, note: a.note || '',
+      fill: res.fill || null, reviewer: S.me || null, saved_at: new Date().toISOString(), spec_version: S.spec.version || null,
+      notified_on: prev.notified_on || null, objection: prev.objection || null };
+    saving = true; $('saveStatus').textContent = 'Saving…';
+    S.db.collection('decisions').doc(S.sel).set(doc).then(function () { saving = false; $('saveStatus').textContent = 'Saved: ' + OUT[res.outcome].label; })
+      .catch(function (e) { saving = false; if (e.code === 'invalid_argument') { S.readOnly = true; renderDetail(); } $('saveStatus').textContent = 'Not saved (' + e.code + '). ' + (e.code === 'invalid_argument' ? 'Your access lets you read the review but not save to it.' : 'Try again in a moment.'); });
+  }
+  function clearDecision() {
+    if (saving || !S.db || !S.sel) return;
+    saving = true;
+    S.db.collection('decisions').doc(S.sel).delete().then(function () { saving = false; S.draft = blankDraft(S.queue[S.sel]); renderDetail(); })
+      .catch(function (e) { saving = false; $('saveStatus').textContent = 'Not cleared (' + e.code + ').'; });
+  }
+  function markSent(ks) {
+    if (!S.db) return;
+    var today = new Date().toISOString().slice(0, 10), unset = ks.every(function (k) { return S.dec[k].notified_on; });
+    ks.reduce(function (p, k) { return p.then(function () { return S.db.collection('decisions').doc(k).update({ notified_on: unset ? null : today }); }); }, Promise.resolve())
+      .catch(function (e) { note('The sent date wasn’t saved (' + e.code + '). Try again in a moment.'); });
+  }
+})();
+</script>

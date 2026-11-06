@@ -1,0 +1,310 @@
+{
+  "version": "0.1.0",
+  "applies_to": "Examples where PRO09 = 2 (No), PRO09 = 8 (Don't know) or PRO10 = Z (Yes, but don't know which). Examples that name a recommendation are kept as reported.",
+  "answers": {
+    "no": "PRO09 = 2",
+    "dk": "PRO09 = 8",
+    "dkw": "PRO10 = Z"
+  },
+  "steps": [
+    {
+      "id": "q1",
+      "question": "Is the example about producing statistics, rather than delivering a programme such as cash, services or awareness?",
+      "type": "yes_no",
+      "based_on": [
+        "PRO02A",
+        "PRO13"
+      ],
+      "if_no": "outscope"
+    },
+    {
+      "id": "q2",
+      "question": "What reason does the respondent give, if any?",
+      "type": "choice",
+      "based_on": [
+        "PRO13",
+        "ACT03",
+        "ACT04"
+      ],
+      "options": {
+        "none": {
+          "label": "No reason given",
+          "then": "continue"
+        },
+        "other": {
+          "label": "Follows another framework (national law, EU Regulation 862/2007, UN migration recommendations)",
+          "then": "continue",
+          "points": 1
+        },
+        "unaware": {
+          "label": "Says they do not know the recommendations",
+          "then": "outreach"
+        },
+        "deliberate": {
+          "label": "Says the recommendations were deliberately not applied",
+          "then": "deliberate"
+        }
+      }
+    },
+    {
+      "id": "q3",
+      "question": "What kind of example is it?",
+      "type": "kind",
+      "based_on": [
+        "PRO08"
+      ],
+      "note": "Correct PRO08 when it does not describe the example, for example a training reported as administrative data."
+    },
+    {
+      "id": "q4",
+      "question": "Can the populations be told apart as recommendation categories (refugees, asylum seekers, temporary protection, returnees, IDPs including disaster, stateless people)? For events: is the topic refugee, IDP or statelessness statistics?",
+      "type": "yes_no",
+      "based_on": [
+        "PRO07",
+        "PRO13"
+      ],
+      "if_no": "nocat"
+    },
+    {
+      "id": "q5",
+      "question": "Score the evidence",
+      "type": "score"
+    }
+  ],
+  "kinds": {
+    "admin": {
+      "name": "Administrative data or register",
+      "pro08": [
+        "Administrative data"
+      ],
+      "practice": [
+        [
+          "The data reach the statistical office, by transfer or linkage",
+          "IRRS 214 · IRIS 263 · IROSS 268"
+        ],
+        [
+          "They are published as statistics",
+          "IRRS 198 · IRIS 253"
+        ]
+      ]
+    },
+    "survey": {
+      "name": "Survey",
+      "pro08": [
+        "Survey"
+      ],
+      "practice": [
+        [
+          "The sample reaches them: camps, reception centres, informal settlements, or oversampling where they live",
+          "IRRS 181, 187 to 188 · IRIS 239 · IROSS 207"
+        ],
+        [
+          "The statistical office is involved in the design",
+          "IRRS 180 · IRIS 238"
+        ]
+      ]
+    },
+    "census": {
+      "name": "Census",
+      "pro08": [
+        "Census"
+      ],
+      "practice": [
+        [
+          "It covers camps, reception centres and collective accommodation",
+          "IRRS 140 · IRIS 215 · IROSS 171"
+        ],
+        [
+          "It asks the reason for the move, with a forced displacement option",
+          "IRRS 132 to 133 · IRIS 213 to 214"
+        ]
+      ]
+    },
+    "integ": {
+      "name": "Data integration",
+      "pro08": [
+        "Data integration"
+      ],
+      "practice": [
+        [
+          "The linked source that holds the population is itself a register, survey or census that meets its checks",
+          "see that source"
+        ],
+        [
+          "Records are linked with an ID number or a documented matching method",
+          "IRRS 243 to 252 · IRIS 284 to 290"
+        ]
+      ]
+    },
+    "strategy": {
+      "name": "Strategy or roadmap",
+      "pro08": [
+        "Strategy"
+      ],
+      "practice": [
+        [
+          "It involves the national statistical system",
+          "IRRS 520, 541 to 543 · IRIS 343 to 345 · IROSS 326"
+        ]
+      ]
+    },
+    "guidance": {
+      "name": "Guidance or toolkit",
+      "pro08": [
+        "Guidance/toolkit"
+      ],
+      "practice": [
+        [
+          "It is written for producers of statistics",
+          "IRRS 609 · IRIS 386 · IROSS 370"
+        ]
+      ]
+    },
+    "nontrad": {
+      "name": "Non-traditional source",
+      "pro08": [
+        "Non-traditional"
+      ],
+      "practice": [
+        [
+          "It is used for a statistical purpose",
+          "IRRS 241 · IRIS 265 to 270 · IROSS ch. 5 D"
+        ]
+      ]
+    },
+    "training": {
+      "name": "Workshop, training or meeting",
+      "pro08": [
+        "Workshop/training"
+      ],
+      "event": true,
+      "practice": []
+    }
+  },
+  "criteria": {
+    "distinctive": {
+      "points": 2,
+      "applies": "all kinds except events",
+      "items": [
+        {
+          "id": "d0",
+          "text": "Uses the recommendation categories by name: asylum seekers, refugees, temporary protection, returnees, IDPs (including disaster), stateless people",
+          "refs": "IRRS 88 to 92 · IRIS 74 to 75, 105 · IROSS 57",
+          "pro12": "Statistical framework/population group"
+        },
+        {
+          "id": "d1",
+          "text": "Identifies them the recommended way: citizenship, country of birth, year of arrival, reason for migration or displacement, or legal status in a register",
+          "refs": "IRRS 131 to 134, 214 · IRIS 206, 241 · IROSS 164, 233",
+          "pro12": "Recommendations on data sources"
+        },
+        {
+          "id": "d2",
+          "text": "Produces the recommended statistics: counts by category, or indicators on living conditions, integration, solutions or the SDGs",
+          "refs": "IRRS 114, ch. 5 · IRIS ch. 4 to 5 · IROSS ch. 4",
+          "pro12": "Indicator selection"
+        }
+      ]
+    },
+    "practice": {
+      "points": 1,
+      "applies": "the list under the kind",
+      "pro12": "Recommendations on data sources"
+    },
+    "event": {
+      "applies": "events only",
+      "items": [
+        {
+          "id": "e0",
+          "text": "The topic covers refugee, IDP or statelessness statistics",
+          "points": 2,
+          "refs": "IRRS 609 · IRIS 386 · IROSS 361 to 375"
+        },
+        {
+          "id": "e1",
+          "text": "The audience is statistical offices or a statistical body",
+          "points": 1,
+          "refs": "IRRS 609 · IRIS 386 · IROSS 361 to 375"
+        }
+      ]
+    },
+    "use": {
+      "points": 2,
+      "applies": "all kinds",
+      "items": [
+        {
+          "id": "l0",
+          "text": "The same organisation reported use for this example, the same source, or another example in this submission"
+        },
+        {
+          "id": "l1",
+          "text": "Built on an instrument that follows the recommendations, such as the UNHCR Forced Displacement Survey or a MICS or DHS displacement module"
+        },
+        {
+          "id": "l2",
+          "text": "EGRISS or an EGRISS member supported it, or the description mentions the recommendations"
+        }
+      ]
+    }
+  },
+  "thresholds": {
+    "dk": 4,
+    "dkw": 4,
+    "no": 7,
+    "no_requires_use_sign": true,
+    "aligned_min": 4,
+    "note": "q2 = other adds 1 point and counts as a sign of use for a No."
+  },
+  "outcomes": {
+    "outscope": {
+      "label": "Keep the answer",
+      "detail": "Not a statistics example. Flag for the example validity check."
+    },
+    "deliberate": {
+      "label": "Keep the answer",
+      "detail": "They chose not to apply the recommendations. Record the reason."
+    },
+    "outreach": {
+      "label": "Keep the answer, send outreach",
+      "detail": "Send the relevant recommendation, offer training or e-learning, count as an awareness gap."
+    },
+    "nocat": {
+      "label": "Keep the answer",
+      "detail": "The populations cannot be told apart as recommendation categories."
+    },
+    "edit": {
+      "label": "Edit and notify",
+      "detail": "Record as using the recommendation and email what changed and why, with paragraphs. They can reply if it is wrong.",
+      "fill": {
+        "PRO09": 1,
+        "PRO10": "recommendation of the category identified (refugees, asylum seekers, temporary protection, returnees: IRRS; IDPs: IRIS; stateless: IROSS)",
+        "PRO12": "from ticked criteria",
+        "PRO11": "from the kind of example",
+        "review_source": "Secretariat edit, notified"
+      }
+    },
+    "aligned": {
+      "label": "Keep the answer, record as aligned",
+      "detail": "Counts in the alignment figure, not in use."
+    },
+    "keep": {
+      "label": "Keep the answer",
+      "detail": "Too little evidence either way."
+    }
+  },
+  "recording": {
+    "never_overwrite": "PRO09 as reported is kept; changes go to PRO09_reviewed",
+    "fields": [
+      "PRO09_reviewed",
+      "PRO10_reviewed",
+      "PRO12_reviewed",
+      "review_outcome",
+      "review_score",
+      "review_reason",
+      "review_source",
+      "review_notified_on",
+      "review_objection"
+    ],
+    "reporting": "Report use as reported, use after review, and alignment separately. Exclude Secretariat-filled PRO12 from the elements-used table unless the respondent confirmed."
+  }
+}

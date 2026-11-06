@@ -197,3 +197,29 @@ reported again. Run `python3 dashboard/tools/repeats.py <gain2026.csv> -v` to se
 The day-by-day comparison counts day 1 from each round's first submission after launch: 20 Sep 2023,
 18 Nov 2024, 3 Nov 2025 (the launch email; two test submissions came on 30 Oct) and 3 Nov 2026 (tests on
 29 Oct). Test submissions before day 1 count on day 1.
+
+## Alignment review (No and Don't know answers)
+
+Examples whose respondent said the recommendations were not used, or did not know, go to the
+Secretariat's alignment review. The rules are in `alignment/spec/decision_tree.json` (thresholds,
+points, criteria and paragraph references); `alignment/src/alignment_rules.py` and `.js` implement
+them, and both pass the 15 cases in `alignment/tests` (`python3 alignment/tests/test_rules.py`,
+`node alignment/tests/test_rules.js`).
+
+The work happens in two places, because the review needs the respondents' descriptions and partners
+and both repositories are public:
+
+- **Private reviewer page** (claude.ai, shared only with the Secretariat): the queue grouped by
+  organisation, the decision tree for each example with suggested answers and the reason for each,
+  saved decisions with reviewer and date, email drafts per organisation, and the summary figures.
+  Built from `alignment/review/review.html` (`python3 alignment/review/build.py <out.html>` inlines the
+  rules). The queue is loaded by `dashboard/tools/alignment_queue.py`, which reads Kobo and writes a
+  JSON file **outside** this repository (it refuses a path inside it); Claude loads that file into the
+  page's store. Ask Claude to "refresh the review queue" when new No or Don't know answers come in.
+- **Public tracker**: the "Answers to review" button in Latest examples, a line on each such example,
+  and three figures under the recommendations chart (use as reported, after review, alignment).
+  It reads only `dashboard/data/alignment_review.csv`: response id, title start, outcome, score and
+  date, never a description. Ask Claude to "sync the review decisions" to update it from the page.
+
+Suggestions are hints, never decisions: every tick is confirmed by the reviewer, PRO09 as reported is
+never overwritten, and decisions go to the `*_reviewed` and `review_*` fields at the close of collection.
