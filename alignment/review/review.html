@@ -26,6 +26,7 @@
   --edit: #5cc99a; --outreach: #f5b041; --aligned: #8db8e3; --keep: #8b98b3;
   --edit-bg: #10352f; --outreach-bg: #3a2c12; --aligned-bg: #182c55; --keep-bg: #18264a; color-scheme: dark }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font: 400 var(--fs-m)/1.5 var(--sans); }
 .wrap { max-width: 1400px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
@@ -170,6 +171,21 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
   .grid { grid-template-columns: minmax(0, 1fr); }
   .queue { position: static; max-height: 320px; }
 }
+/* the outcome stays in view while the reviewer ticks the criteria */
+.dock { position: sticky; bottom: 0; z-index: 2; margin: 0 -16px -16px; padding: 10px 16px 12px; background: var(--panel); border-top: 1px solid var(--line); border-radius: 0 0 var(--r-m) var(--r-m); display: grid; gap: 8px; box-shadow: 0 -8px 16px -12px rgba(0,0,0,.5); }
+.dock .result { padding: 8px 12px; }
+.result details summary { cursor: pointer; font-size: var(--fs-xs); color: var(--ink-3); }
+.choice button[aria-pressed="true"] .hint { color: inherit; opacity: .85; }
+.crit .yn button[data-v="0"][aria-pressed="true"] { background: var(--panel-2); color: var(--ink-2); }
+.choice button, .crit .yn button { min-height: 32px; }
+@media (pointer: coarse) { .choice button, .crit .yn button, .btn, .item { min-height: 44px; } .crit .yn button { min-width: 48px; } }
+.item .ans { align-self: start; }
+#sumflow { padding: 14px 16px; }
+@media (max-width: 860px) {
+  .counts { flex-wrap: nowrap; overflow-x: auto; gap: 6px; }
+  .count { min-width: 0; flex: none; padding: 6px 10px; }
+  .count b { font-size: var(--fs-l); display: inline; margin-right: 4px; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -186,7 +202,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
       <button role="tab" id="tab-sum" aria-selected="false" data-view="sum">Summary</button>
     </div>
   </header>
-  <div class="steps" aria-label="The decision tree, in five steps"><span><b>1</b>Producing statistics?</span><i>→</i><span><b>2</b>Reason given?</span><i>→</i><span><b>3</b>Kind of example</span><i>→</i><span><b>4</b>Recommendation categories?</span><i>→</i><span><b>5</b>Score the evidence</span></div>
+  <div class="steps" aria-label="The decision tree, in five steps"><span><b>1</b>Producing statistics?</span><i>→</i><span><b>2</b>What reason?</span><i>→</i><span><b>3</b>Kind of example</span><i>→</i><span><b>4</b>Recommendation categories?</span><i>→</i><span><b>5</b>Score the evidence</span></div>
   <details class="dtree"><summary>See the decision tree</summary><div class="tbox">
 <svg viewBox="0 0 680 556" role="img" aria-label="The alignment decision tree: five steps from a No or Don’t know answer to an outcome" xmlns="http://www.w3.org/2000/svg">
 <defs><marker id="tarr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="tah"/></marker></defs>
@@ -228,7 +244,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
 <path d="M320,452 H360 V478 H394" class="ta" marker-end="url(#tarr)"/>
 <path d="M320,452 H360 V526 H394" class="ta" marker-end="url(#tarr)"/>
 <g class="to o-edit"><rect x="396" y="410" width="268" height="40" rx="6" class="tob"/><rect x="396" y="410" width="4" height="40" rx="2" class="tos"/><text x="410" y="427" class="tot">Edit and notify</text><text x="410" y="442" class="ts">Don’t know: 4+ points · No: 7+ and a sign of use</text></g>
-<g class="to o-al"><rect x="396" y="458" width="268" height="40" rx="6" class="tob"/><rect x="396" y="458" width="4" height="40" rx="2" class="tos"/><text x="410" y="475" class="tot">Record as aligned</text><text x="410" y="490" class="ts">4+ points, below that bar</text></g>
+<g class="to o-al"><rect x="396" y="458" width="268" height="40" rx="6" class="tob"/><rect x="396" y="458" width="4" height="40" rx="2" class="tos"/><text x="410" y="475" class="tot">Recorded as aligned</text><text x="410" y="490" class="ts">4+ points, below that bar</text></g>
 <g class="to o-keep"><rect x="396" y="506" width="268" height="40" rx="6" class="tob"/><rect x="396" y="506" width="4" height="40" rx="2" class="tos"/><text x="410" y="523" class="tot">Keep the answer</text><text x="410" y="538" class="ts">Under 4 points: too little evidence</text></g>
 </svg>
 </div></details>
@@ -311,7 +327,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
       render();
     }, function (e) { clearTimeout(timer); note('The queue stopped updating (' + e.code + '). Reload the page to reconnect.'); });
     S.db.collection('decisions').onSnapshot(function (snap) {
-      var d = {}; snap.docs.forEach(function (x) { d[x.id] = x.data(); }); S.dec = d; resolveNames(); render();
+      var d = {}; snap.docs.forEach(function (x) { d[x.id] = x.data(); }); S.dec = d; S.decLoaded = true; resolveNames(); render();
     }, function (e) { note('Saved decisions stopped updating (' + e.code + '). Reload the page to reconnect.'); });
     S.db.doc('meta/run').onSnapshot(function (d) { S.meta = d.exists ? d.data() : null; renderHead(); }, function () {});
   });
@@ -347,11 +363,16 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
     if (S.view === 'queue') { renderQueue(); renderDetail(); }
     if (S.view === 'mails') renderMails();
     if (S.view === 'sum') renderSum();
+    // open the first example not reviewed yet, once the queue, the decisions and the tree are all in
+    if (!S.sel && S.view === 'queue' && S.loaded && S.decLoaded && S.spec) {
+      var first = keys().filter(function (k) { return !outcomeOf(k); })[0] || keys()[0];
+      if (first) select(first);
+    }
   }
   function renderQueue() {
     var ks = keys(), f = S.filter;
     if (!S.loaded && !ks.length) return;
-    var shown = ks.filter(function (k) { return f === 'all' || bucket(outcomeOf(k)) === f; });
+    var shown = ks.filter(function (k) { return f === 'all' || k === S.sel || bucket(outcomeOf(k)) === f; });
     if (!ks.length) { $('qlist').innerHTML = '<div class="empty"><b>No examples to review yet.</b><span>The queue fills when Claude loads this year’s No and Don’t know answers from Kobo.</span></div>'; return; }
     if (!shown.length) { $('qlist').innerHTML = '<div class="empty"><b>Nothing here.</b><span>No example matches this filter. Choose All to see every example in the review.</span></div>'; return; }
     var html = '', org = null;
@@ -364,13 +385,13 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
     $('qlist').innerHTML = html;
   }
   function blankDraft(q) { return { q1: null, q2: null, kind: null, q4: null, ticks: [], populations: (q.suggest && q.suggest.populations) || '', note: '' }; }
-  function select(k) {
+  function select(k, opts) {
     S.sel = k;
     var d = S.dec[k], q = S.queue[k];
     S.draft = d && d.answers ? JSON.parse(JSON.stringify(d.answers)) : blankDraft(q);
     if (S.draft.note == null) S.draft.note = (d && d.note) || '';
     render();
-    var el = $('detail'); if (el.getBoundingClientRect().top < 0) el.scrollIntoView({ block: 'start' });
+    var el = $('detail'), top = el.getBoundingClientRect().top; if (top < 0 || (opts && opts.scroll && top > innerHeight * 0.6)) el.scrollIntoView({ block: 'start' });
   }
   function sg(name) { var q = S.queue[S.sel]; return q && q.suggest ? q.suggest[name] : null; }
   function suggLine(name, labelFn) {
@@ -402,7 +423,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
       (q.suggest ? '<button class="btn" id="useSugg">Fill in the suggestions</button>' : '') + '</div>';
     t += '<div class="step"><div class="q"><span class="n">1</span><div><b>About producing statistics?</b><div class="hint">' + esc(st[0].question) + '</div></div></div>' + yesNo('q1', a.q1) + suggLine('q1', function (v) { return v ? 'Yes' : 'No'; }) + '</div>';
     var o2 = st[1].options;
-    t += '<div class="step' + (reached.q2 ? '' : ' off') + '"><div class="q"><span class="n">2</span><div><b>What reason do they give, if any?</b><div class="hint">In the description or the awareness questions.</div></div></div><div class="choice col">' +
+    t += '<div class="step' + (reached.q2 ? '' : ' off') + '"><div class="q"><span class="n">2</span><div><b>What reason do they give?</b><div class="hint">In the description or the awareness questions.</div></div></div><div class="choice col">' +
       Object.keys(o2).map(function (r) { return '<button data-set="q2" data-v="' + r + '" aria-pressed="' + ((a.q2 || (reached.q2 ? 'none' : '')) === r) + '"' + (reached.q2 ? '' : ' disabled') + '>' + esc(o2[r].label) + (o2[r].points ? ' <span class="hint">+' + o2[r].points + ' point, counts as a sign of use</span>' : '') + '</button>'; }).join('') +
       '</div>' + suggLine('q2', function (v) { return o2[v] ? o2[v].label : v; }) + '</div>';
     t += '<div class="step' + (reached.q3 ? '' : ' off') + '"><div class="q"><span class="n">3</span><div><b>Kind of example</b><div class="hint">' + esc(st[2].note || '') + '</div></div></div><select id="kind"' + (reached.q3 ? '' : ' disabled') + '><option value="">Choose…</option>' +
@@ -435,16 +456,23 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
         r += '<div class="scoreline"><span><b>' + res.score + '</b> points' + (q.answer === 'no' ? (res.use_sign ? ' · sign of use ticked' : ' · no sign of use yet') : '') + '</span><span class="hint">' + esc(bar) + '; ' + spec.thresholds.aligned_min + ' or more records it as aligned</span></div>' +
           '<div class="bar" aria-hidden="true"><i style="width:' + Math.min(100, 100 * res.score / max) + '%"></i><u style="left:' + (100 * need / max) + '%"></u></div>';
       }
-      if (res.fill) r += '<div class="hint">Fields to fill: PRO09_reviewed = 1 · PRO10_reviewed = ' + esc(res.fill.PRO10_reviewed || 'choose the categories in step 4') + ' · PRO12_reviewed = ' + esc(res.fill.PRO12_reviewed.join('; ') || 'none') + ' · review_source = ' + esc(res.fill.review_source) + '. PRO09 as reported stays unchanged.</div>';
+      if (res.fill) r += '<details><summary>Fields this fills</summary><div class="hint">PRO09_reviewed = 1 · PRO10_reviewed = ' + esc(res.fill.PRO10_reviewed || 'choose the categories in step 4') + ' · PRO12_reviewed = ' + esc(res.fill.PRO12_reviewed.join('; ') || 'none') + ' · review_source = ' + esc(res.fill.review_source) + '. PRO09 as reported stays unchanged.</div></details>';
       r += '</div>';
     } else {
       r = '<div class="result"><span class="hint">Answer step ' + ({ q1: 1, q3: 3, q4: 4 }[res.step] || '') + ' to see the outcome.</span></div>';
     }
     var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) : 'Not saved yet';
-    var save = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>' +
-      '<div class="save"><button class="btn primary" id="saveBtn"' + (res.outcome && !S.readOnly ? '' : ' disabled') + '>Save decision</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Clear the decision</button>' : '') +
+    var nxt = nextOpen(k), can = !!res.outcome && !S.readOnly;
+    var noteBox = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>';
+    var save = '<div class="save"><button class="btn primary" id="saveNext"' + (can && nxt ? '' : ' disabled') + ' title="' + (nxt ? 'Save, then open the next example not reviewed yet' : 'No other example is waiting') + '">Save and go to next</button>' +
+      '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Clear the decision</button>' : '') +
       '<span class="status" id="saveStatus">' + esc(S.readOnly ? 'You can read this review but not save decisions.' : who) + '</span></div>';
-    el.innerHTML = '<div class="detail">' + h + t + r + save + '</div>';
+    el.innerHTML = '<div class="detail">' + h + t + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
+  }
+  // the next example not reviewed yet, in queue order after k, wrapping round
+  function nextOpen(k) {
+    var all = keys(), i = all.indexOf(k);
+    return all.slice(i + 1).concat(all.slice(0, Math.max(i, 0))).filter(function (x) { return x !== k && !outcomeOf(x); })[0] || null;
   }
 
   // ---------- emails ----------
@@ -466,7 +494,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
       var sent = ks.every(function (k) { return S.dec[k].notified_on; });
       return '<section class="panel mail"><div class="row"><div><div class="eyebrow">' + ks.length + ' example' + (ks.length > 1 ? 's' : '') + '</div><h2>' + esc(org) + '</h2></div>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (sent ? '<span class="pill edit">Sent ' + esc(S.dec[ks[0]].notified_on) + '</span>' : '') +
-        '<button class="btn" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
+        '<button class="btn primary" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
         parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') +
         (edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + '</section>';
     }).join('');
@@ -532,7 +560,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
   document.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.view) { S.view = b.dataset.view; document.querySelectorAll('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t === b); }); render(); return; }
-    if (b.dataset.k) { select(b.dataset.k); return; }
+    if (b.dataset.k) { select(b.dataset.k, { scroll: true }); return; }
     if (b.dataset.set && S.draft) {
       var v = b.dataset.v === 'true' ? true : b.dataset.v === 'false' ? false : b.dataset.v;
       S.draft[b.dataset.set] = v; renderDetail(); return;
@@ -552,6 +580,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
       renderDetail(); return;
     }
     if (b.id === 'saveBtn') { save(); return; }
+    if (b.id === 'saveNext') { var nx = nextOpen(S.sel); save(function () { if (nx) select(nx, { scroll: false }), $('detail').scrollIntoView({ block: 'start' }); }); return; }
     if (b.id === 'clearBtn') { clearDecision(); return; }
     if (b.dataset.copy != null) {
       var txt = Array.prototype.map.call(document.querySelectorAll('[data-mail="' + b.dataset.copy + '"]'), function (p) { return p.textContent; }).join('\n\n');
@@ -569,7 +598,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
   document.addEventListener('input', function (e) { if (e.target.id === 'dnote' && S.draft) S.draft.note = e.target.value; });
 
   var saving = false;
-  function save() {
+  function save(then) {
     if (saving || !S.db || !S.sel) return;
     var q = S.queue[S.sel], a = S.draft;
     var res = window.AlignmentRules.decide(S.spec, { answer: q.answer, q1: a.q1, q2: a.q2 || 'none', kind: a.kind, q4: a.q4, ticks: a.ticks, populations: a.populations });
@@ -580,7 +609,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
       fill: res.fill || null, reviewer: S.me || null, saved_at: new Date().toISOString(), spec_version: S.spec.version || null,
       notified_on: prev.notified_on || null, objection: prev.objection || null };
     saving = true; $('saveStatus').textContent = 'Saving…';
-    S.db.collection('decisions').doc(S.sel).set(doc).then(function () { saving = false; $('saveStatus').textContent = 'Saved: ' + OUT[res.outcome].label; })
+    S.db.collection('decisions').doc(S.sel).set(doc).then(function () { saving = false; $('saveStatus').textContent = 'Saved: ' + OUT[res.outcome].label; if (then) then(); })
       .catch(function (e) { saving = false; if (e.code === 'invalid_argument') { S.readOnly = true; renderDetail(); } $('saveStatus').textContent = 'Not saved (' + e.code + '). ' + (e.code === 'invalid_argument' ? 'Your access lets you read the review but not save to it.' : 'Try again in a moment.'); });
   }
   function clearDecision() {

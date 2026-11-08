@@ -66,7 +66,7 @@ node(420, 64, "5", "Score the evidence",
 side(452, [430, 478, 526])
 outcome(410, "o-edit", "Edit and notify",
         f"Don’t know: {t['dk']}+ points · No: {t['no']}+ and a sign of use")
-outcome(458, "o-al", "Record as aligned", f"{t['aligned_min']}+ points, below that bar")
+outcome(458, "o-al", "Recorded as aligned", f"{t['aligned_min']}+ points, below that bar")
 outcome(506, "o-keep", "Keep the answer", f"Under {t['aligned_min']} points: too little evidence")
 add('</svg>')
 
