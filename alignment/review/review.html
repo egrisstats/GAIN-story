@@ -238,6 +238,31 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 .mail { padding: 16px; display: grid; gap: 10px; }
 .mail pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--fs-m)/1.55 var(--sans); background: var(--panel-2); border-radius: var(--r-m); padding: 12px; }
 .why textarea { min-height: 170px; font-size: var(--fs-s); line-height: 1.5; }
+.overp { padding: 16px; }
+.tblwrap { overflow-x: auto; }
+.otbl { width: 100%; border-collapse: collapse; font-size: var(--fs-s); min-width: 1100px; }
+.otbl th { text-align: left; font: 600 var(--fs-xs) var(--sans); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); padding: 8px; border-bottom: 2px solid var(--line); vertical-align: bottom; background: var(--panel); position: sticky; top: 0; }
+.otbl td { padding: 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+.otbl tr.row { cursor: pointer; }
+.otbl tr.row:hover td { background: var(--panel-2); }
+.otbl .t { font-weight: 600; color: var(--ink); max-width: 320px; }
+.rc { display: inline-block; font: 600 var(--fs-xs) var(--mono); border-radius: var(--r-s); padding: 1px 6px; margin: 1px 3px 1px 0; white-space: nowrap; background: var(--keep-bg); color: var(--ink-2); }
+.rc.IRRS { background: #e6eef9; color: #1f4a8f; } .rc.IRIS { background: #e3f4f5; color: #0b4f53; } .rc.IROSS { background: #f6ecdf; color: #7a4b16; } .rc.Mixed { background: #ece6f6; color: #4b3a7a; }
+:root[data-theme="dark"] .rc.IRRS, :root[data-theme="dark"] .rc.IRIS, :root[data-theme="dark"] .rc.IROSS, :root[data-theme="dark"] .rc.Mixed { background: var(--panel-2); color: var(--ink); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rc.IRRS, :root:not([data-theme="light"]) .rc.IRIS, :root:not([data-theme="light"]) .rc.IROSS, :root:not([data-theme="light"]) .rc.Mixed { background: var(--panel-2); color: var(--ink); } }
+.rc.no { background: none; border: 1px dashed var(--line); color: var(--ink-3); font-weight: 500; }
+.mbar { display: flex; height: 10px; border-radius: 3px; overflow: hidden; background: var(--grid); min-width: 120px; margin: 3px 0; }
+.mbar i { display: block; height: 100%; }
+.cty { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.cty .card h3 { font-size: var(--fs-m); }
+.docs { display: grid; gap: 8px; }
+.doc { border: 1px solid var(--line); border-radius: var(--r-m); padding: 8px 10px; }
+.doc summary { cursor: pointer; font-size: var(--fs-s); font-weight: 600; color: var(--ink); }
+.doc .src { font: 500 var(--fs-xs) var(--mono); color: var(--ink-3); margin-left: 6px; }
+.doc dl { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 3px 10px; margin: 8px 0 0; font-size: var(--fs-xs); }
+.doc dt { color: var(--ink-3); font-weight: 600; }
+.doc dd { margin: 0; color: var(--ink-2); }
+.wsum { margin: 0; padding-left: 18px; font-size: var(--fs-s); display: grid; gap: 3px; }
 .mnotes { border-top: 1px solid var(--line); padding-top: 8px; }
 .mnotes summary { cursor: pointer; font-size: var(--fs-s); font-weight: 600; color: var(--ink-2); }
 .mail .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
@@ -269,6 +294,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     <div class="mark"><span class="logo"><i aria-hidden="true"></i>EGRISS</span><span class="tag">GAIN 2026<br>Alignment review</span></div>
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-queue" aria-selected="true" data-view="queue">Review</button>
+      <button role="tab" id="tab-over" aria-selected="false" data-view="over">Overview</button>
       <button role="tab" id="tab-mails" aria-selected="false" data-view="mails">Emails to send</button>
       <button role="tab" id="tab-sum" aria-selected="false" data-view="sum">Results</button>
     </nav>
@@ -315,6 +341,14 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         <div class="empty"><b>Pick an example from the queue or the tube.</b><span>Its evidence and the questions open here.</span></div>
       </article>
     </div>
+  </section>
+
+  <section id="view-over" hidden>
+    <div class="panel overp"><div class="ph"><div><h2>All examples in the review, and what was used before</h2>
+      <div class="sub">One row per example: what they answered, which recommendations the same organisation and the same country used in earlier GAIN rounds, how similar examples in the region were answered, and what the documents online show. Click a row to open it.</div></div>
+      <label class="hint">Show <select id="ofilter"><option value="all">All</option><option value="open">To review</option><option value="done">Reviewed</option></select></label></div>
+      <div class="tblwrap" id="overtbl"></div></div>
+    <div class="panel overp" style="margin-top:16px"><div class="ph"><div><h2>By country</h2><div class="sub">GAIN 2021 to 2026 examples from each country in the review, by the recommendation they used.</div></div></div><div id="overcty"></div></div>
   </section>
 
   <section id="view-mails" hidden><div class="mails" id="mails"></div></section>
@@ -528,7 +562,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   // ---------- rendering ----------
   function render() {
     renderStatus();
-    ['queue', 'mails', 'sum'].forEach(function (v) { $('view-' + v).hidden = S.view !== v; });
+    ['queue', 'over', 'mails', 'sum'].forEach(function (v) { $('view-' + v).hidden = S.view !== v; });
+    if (S.view === 'over') renderOver();
     if (S.view === 'queue') { renderTube(); renderQueue(); renderDetail(); }
     if (S.view === 'mails') renderMails();
     if (S.view === 'sum') renderSum();
@@ -578,14 +613,35 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 
   // evidence: what the web says
   var SIG = { supports_use: ['supports', 'Points to use'], against_use: ['against', 'Points away from use'], unclear: ['unclear', 'Unclear'] };
+  // checklist items the documents read online give evidence for
+  function docHits(q) {
+    var out = [], d = q.web && q.web.docs; if (!d) return out;
+    (d.documents || []).forEach(function (x) { if (x.read) (x.checklist || []).forEach(function (id) { if (!out.some(function (o) { return o.id === id; })) out.push({ id: id, title: (x.title || 'a document').slice(0, 60) }); }); });
+    return out;
+  }
+  var CKL = { d0: 'groups by name', d1: 'identified the recommended way', d2: 'recommended statistics', p0: 'good practice 1', p1: 'good practice 2', e0: 'topic', e1: 'audience', l0: 'used before', l1: 'recommended instrument', l2: 'EGRISS link' };
   function webCard(q) {
     var w = q.web;
-    if (!w) return '<section class="card"><h3>On the web <span class="sig none">Not checked</span></h3><div class="hint">No web check yet for this example. Ask Claude to run the web check on the queue.</div></section>';
-    var s = SIG[w.signal] || SIG.unclear;
+    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">No web check yet for this example. Ask Claude to run the web check on the queue.</div></section>';
+    var d = w.docs, sigKey = d && d.signal ? d.signal : w.signal, s = SIG[sigKey] || SIG.unclear;
+    var head = '<section class="card"><h3>Online <span class="sig ' + s[0] + '" title="' + esc(d && d.reason || '') + '">' + s[1] + '</span></h3>';
+    if (d) {
+      var docs = (d.documents || []);
+      var list = docs.map(function (x) {
+        var u = safeUrl(x.url), src = { respondent: 'their link', web: 'web search', search: 'web search' }[x.source] || '';
+        var hits = (x.checklist || []).map(function (id) { return '<span class="rc">' + esc(CKL[id] || id) + '</span>'; }).join('');
+        return '<details class="doc"' + (x.read ? '' : ' style="opacity:.6"') + '><summary>' + esc(x.title || u || 'Document') + '<span class="src">' + esc([src, x.year].filter(Boolean).join(' · ')) + (x.read ? '' : ' · could not open') + '</span></summary>' +
+          '<dl>' + [['What it is', x.what], ['Groups', x.groups], ['Identified by', x.identified_by], ['Statistics', x.statistics], ['Mentions', x.mentions], ['Note', x.note]].filter(function (r2) { return r2[1]; }).map(function (r2) { return '<dt>' + r2[0] + '</dt><dd>' + esc(r2[1]) + '</dd>'; }).join('') +
+          (hits ? '<dt>Shows</dt><dd>' + hits + '</dd>' : '') + (x.quote ? '<dt>Quote</dt><dd>“' + esc(x.quote) + '”</dd>' : '') + '</dl>' +
+          (u ? '<div style="margin-top:6px"><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">Open the document</a></div>' : '') + '</details>';
+      }).join('');
+      var n = docs.filter(function (x) { return x.read; }).length;
+      return head + '<div class="eyebrow">What the documents show · ' + n + ' read</div><ul class="wsum">' + (d.summary || []).map(function (b2) { return '<li>' + esc(b2) + '</li>'; }).join('') + '</ul>' +
+        (d.reason ? '<div class="hint">' + esc(d.reason) + '</div>' : '') + (list ? '<div class="docs">' + list + '</div>' : '') + '</section>';
+    }
     var links = (w.links || []).map(function (l) { var u = safeUrl(l.url); return u ? '<li><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(l.title || u) + '</a> <span class="k">' + esc([l.kind, l.year].filter(Boolean).join(' · ')) + '</span></li>' : ''; }).join('');
     var men = (w.mentions || []).filter(function (m) { return m.what && m.what !== 'none' && m.snippet; }).map(function (m) { var u = safeUrl(m.url); return '<blockquote><b>' + esc(m.what) + '</b>' + esc(m.snippet) + (u ? ' <a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">source</a>' : '') + '</blockquote>'; }).join('');
-    return '<section class="card"><h3>On the web <span class="sig ' + s[0] + '">' + s[1] + '</span></h3><div>' + esc(w.summary || '') + '</div>' +
-      (w.categories ? '<div class="hint"><b>Categories seen:</b> ' + esc(w.categories) + '</div>' : '') + men +
+    return head + '<div>' + esc(w.summary || '') + '</div>' + (w.categories ? '<div class="hint"><b>Categories seen:</b> ' + esc(w.categories) + '</div>' : '') + men +
       (links ? '<ul class="links">' + links + '</ul>' : '<div class="hint">No public page found for the example itself.</div>') + '</section>';
   }
   // evidence: how similar examples were answered
@@ -595,7 +651,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var where = { org: 'from ' + (q.organisation || 'this organisation'), country: 'from ' + (q.country || 'this country'), region_source: (q.kind_name || 'this source') + ' examples in ' + (q.region || 'the region'), source: (q.kind_name || 'this source') + ' examples anywhere' }[tag];
     var list = (S.peerAll ? ps : ps.slice(0, 7)).map(function (p) {
       var o = p.qkey && outcomeOf(p.qkey), u = peerUsed(p);
-      var badge = p.qkey ? (o ? pill(o) : '<span class="pill open">In this review</span>') : '<span class="used' + (u ? '' : ' not') + '">' + (u ? 'Used ' + esc(p.recs && p.recs !== 'Mixed' ? p.recs.replace(/;/g, ' + ') : 'them') : 'No or Don’t know') + '</span>';
+      var badge = p.qkey ? (o ? pill(o) : '<span class="pill open">In this review</span>') : '<span class="used' + (u ? '' : ' not') + '">' + (u ? 'Used ' + esc(p.recs && p.recs !== 'Mixed' && p.recs !== 'Not named' ? p.recs.replace(/;/g, ' + ') : (p.recs === 'Mixed' ? 'several' : 'them')) : 'No or Don’t know') + '</span>';
       return '<li><span class="y">' + esc(p.year) + '</span><span>' + esc(p.title) + '<div class="pm">' + esc([p.country, p.org, p.kind].filter(Boolean).join(' · ')) + '</div></span>' + badge + '</li>';
     }).join('');
     return '<section class="card"><h3>Similar examples</h3><div class="chips" role="group" aria-label="Compare with">' + chips + '</div>' +
@@ -666,6 +722,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       if (a.kind) {
         var crit = window.AlignmentRules.criteriaFor(spec, a.kind), sugT = {}, last = null, done = 0;
         ((q.suggest && q.suggest.ticks) || []).forEach(function (x) { sugT[x.id] = x.why; });
+        docHits(q).forEach(function (x) { if (!sugT[x.id]) sugT[x.id] = 'online: ' + x.title; else sugT[x.id] += ' · also online: ' + x.title; });
         var GH = { distinctive: ['Follows the recommendations’ approach', 'the strongest evidence'], practice: ['Good practice', 'supporting evidence'], event: ['The event', ''], use: ['Signs they already use them', 'strong evidence'] };
         crit.forEach(function (c) {
           if (c.group !== last) { last = c.group; t += '<div class="crit-group">' + esc(GH[c.group][0]) + (GH[c.group][1] ? ' <span class="muted">· ' + GH[c.group][1] + '</span>' : '') + '</div>'; }
@@ -711,6 +768,43 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     }
     box.innerHTML = '<div class="detail">' + h + t + c + why + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
   }
+
+  // ---------- overview: every example, and what the same organisation and country used before ----------
+  var RCOL = { IRRS: '#3b71b9', IRIS: '#4cc3c9', IROSS: '#c9873a', Mixed: '#7a63b8', 'Not named': '#8db8e3', 'No or don’t know': 'transparent' };
+  function recChips(list) {
+    if (!list.length) return '<span class="hint">None in GAIN 2021 to 2025</span>';
+    return list.map(function (h) { var rc = h.used ? (h.recs || 'Used') : ''; return '<span class="rc ' + (rc ? esc(rc.split(';')[0]) : 'no') + '" title="' + esc(h.title) + '">' + esc(h.year) + ' ' + esc(rc ? rc.replace(/;/g, '+') : 'no') + '</span>'; }).join('');
+  }
+  function recBar(b) {
+    if (!b || !b.examples) return '<span class="hint">None</span>';
+    var keys = ['IRRS', 'IRIS', 'IROSS', 'Mixed', 'Not named', 'No or don’t know'];
+    return '<div class="mbar" title="' + esc(keys.filter(function (k) { return b.by_rec[k]; }).map(function (k) { return k + ': ' + b.by_rec[k]; }).join(' · ')) + '">' + keys.map(function (k) { var n = b.by_rec[k] || 0; return n ? '<i style="width:' + (100 * n / b.examples) + '%;background:' + RCOL[k] + '"></i>' : ''; }).join('') + '</div>' +
+      '<span class="hint">' + b.used + ' of ' + b.examples + ' used · ' + keys.filter(function (k) { return b.by_rec[k] && k !== 'No or don’t know'; }).map(function (k) { return k + ' ' + b.by_rec[k]; }).join(', ') + '</span>';
+  }
+  function webSig(q) { var d = q.web && q.web.docs, s = d && d.signal ? d.signal : (q.web && q.web.signal); var x = SIG[s] || ['none', q.web ? 'Unclear' : 'Not checked']; var n = d ? (d.documents || []).filter(function (z) { return z.read; }).length : 0; return '<span class="sig ' + x[0] + '">' + x[1] + '</span>' + (n ? '<div class="hint">' + n + ' document' + (n > 1 ? 's' : '') + ' read</div>' : ''); }
+  function renderOver() {
+    var f = ($('ofilter') || {}).value || 'all';
+    var ks = keys().filter(function (k) { return f === 'all' || (f === 'open' ? !outcomeOf(k) : !!outcomeOf(k)); })
+      .sort(function (a, b) { var A = S.queue[a], B = S.queue[b]; return (A.country || 'zz').localeCompare(B.country || 'zz') || (A.organisation || '').localeCompare(B.organisation || ''); });
+    $('overtbl').innerHTML = ks.length ? '<table class="otbl"><thead><tr><th>Country</th><th>Example</th><th>They said</th><th>Same organisation before</th><th>Same country before</th><th>Same region and source</th><th>Online</th><th>Outcome</th></tr></thead><tbody>' +
+      ks.map(function (k) {
+        var q = S.queue[k], h = q.history || {}, past = (h.org || []).filter(function (x) { return x.year !== '2026'; }), now = (h.org || []).filter(function (x) { return x.year === '2026'; });
+        return '<tr class="row" data-open="' + esc(k) + '"><td>' + esc(q.country || 'Regional or global') + '<div class="hint">' + esc(q.region || '') + '</div></td>' +
+          '<td><div class="t">' + esc(q.title.length > 110 ? q.title.slice(0, 110) + '…' : q.title) + '</div><div class="hint">' + esc(q.organisation) + ' · ' + esc(q.kind_name || '') + '</div></td>' +
+          '<td><span class="ans ' + (q.answer === 'dk' ? 'dk' : 'no') + '" style="white-space:nowrap">' + (q.answer === 'dk' ? 'Don’t know' : 'Not used') + '</span></td>' +
+          '<td>' + recChips(past) + (now.length ? '<div class="hint" style="margin-top:4px">This year: ' + now.map(function (x) { return x.used ? x.recs.replace(/;/g, '+') : 'no'; }).join(', ') + '</div>' : '') + '</td>' +
+          '<td>' + recBar(h.country) + '</td><td>' + recBar(h.region_source) + '</td><td>' + webSig(q) + '</td><td>' + pill(outcomeOf(k)) + '</td></tr>';
+      }).join('') + '</tbody></table>' : '<div class="empty"><b>Nothing here.</b><span>No example matches this filter.</span></div>';
+    var by = {};
+    keys().forEach(function (k) { var q = S.queue[k]; var c = q.country || 'Regional or global'; (by[c] = by[c] || { n: 0, h: (q.history || {}).country, keys: [] }).keys.push(k); });
+    $('overcty').innerHTML = '<div class="cty">' + Object.keys(by).sort().map(function (c) {
+      var x = by[c];
+      return '<section class="card"><h3>' + esc(c) + ' <span class="hint">' + x.keys.length + ' in this review</span></h3>' + recBar(x.h) +
+        '<div class="hint">' + x.keys.map(function (k) { return esc(S.queue[k].organisation.replace(/\s*\(.*?\)\s*$/, '')); }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(' · ') + '</div></section>';
+    }).join('') + '</div><div class="legend" style="margin-top:10px">' + ['IRRS', 'IRIS', 'IROSS', 'Mixed', 'Not named'].map(function (k) { return '<span><i style="background:' + RCOL[k] + '"></i>' + k + '</span>'; }).join('') + '<span><i style="box-shadow:inset 0 0 0 1px var(--ink-3)"></i>No or don’t know</span></div>';
+  }
+  document.addEventListener('change', function (e) { if (e.target.id === 'ofilter') renderOver(); });
+  document.addEventListener('click', function (e) { var tr = e.target.closest('tr[data-open]'); if (tr) { S.view = 'queue'; document.querySelectorAll('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t.dataset.view === 'queue'); }); select(tr.getAttribute('data-open'), { scroll: true }); } });
 
   // ---------- emails ----------
   function refsFor(refs, acrs) {
@@ -865,6 +959,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       if (S.draft.q4 == null) { if (s.q4 && s.q4.value === false) S.draft.q4 = false; else if (s.populations) { S.draft.q4 = true; S.draft.populations = s.populations; } }
       var ok = S.draft.kind ? window.AlignmentRules.criteriaFor(S.spec, S.draft.kind).map(function (c) { return c.id; }) : [];
       (s.ticks || []).forEach(function (t) { if (ok.indexOf(t.id) >= 0 && !S.draft.states[t.id]) { S.draft.states[t.id] = 'found'; S.draft.where[t.id] = guessWhere(t.why); } });
+      docHits(S.queue[S.sel]).forEach(function (t) { if (ok.indexOf(t.id) >= 0 && !S.draft.states[t.id]) { S.draft.states[t.id] = 'found'; S.draft.where[t.id] = 'web'; } });
       syncTicks(S.draft);
       renderDetail(); renderTube(); return;
     }
