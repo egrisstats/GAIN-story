@@ -37,7 +37,12 @@ const peerUsed = (p) => (p.qkey && dec[p.qkey] && dec[p.qkey].outcome) ? dec[p.q
 
 const rows = Object.keys(queue).sort((a, b) => (queue[a].organisation || '').localeCompare(queue[b].organisation || '') || queue[a].title.localeCompare(queue[b].title)).map((k) => {
   const q = queue[k], d = dec[k];
-  const base = { key: k, organisation: q.organisation || '', country: q.country || 'Regional or global', region: q.region || '', title: q.title, answer: ANS[q.answer] || q.answer, kind: q.kind_name || q.source || '' };
+  const docs = (q.web && q.web.docs) || null, sig = (docs && docs.signal) || (q.web && q.web.signal);
+  const h = q.history || {}, fmtB = (b) => b && b.examples ? b.used + ' of ' + b.examples + ' used' + (Object.keys(b.by_rec).filter((x) => !/know|named/.test(x)).length ? ' (' + Object.entries(b.by_rec).filter(([x]) => !/know/.test(x)).map(([x, n]) => x + ' ' + n).join(', ') + ')' : '') : 'none';
+  const base = { key: k, organisation: q.organisation || '', country: q.country || 'Regional or global', region: q.region || '', title: q.title, answer: ANS[q.answer] || q.answer, kind: q.kind_name || q.source || '',
+    web: WEB[sig] || 'Not checked', docs_read: docs ? (docs.documents || []).filter((d) => d.read).length : 0, online: docs ? (docs.summary || []).join(' ') : ((q.web && q.web.summary) || ''),
+    org_before: (h.org || []).filter((x) => x.year !== '2026').map((x) => x.year + ' ' + (x.used ? (x.recs || 'used').replace(/;/g, '+') : 'no')).join(', ') || 'none',
+    country_before: fmtB(h.country) };
   if (!d || !d.outcome) return Object.assign(base, { outcome: 'open', outcome_label: 'To review' });
   const g = T.rationale(R, spec, q, d, { excerpts, peerUsed });
   const a = d.answers || {}, where = a.where || {};
@@ -49,7 +54,7 @@ const rows = Object.keys(queue).sort((a, b) => (queue[a].organisation || '').loc
     found: g.found.map((c) => c.text), strong: g.found.filter((c) => c.group === 'distinctive' || c.group === 'use' || c.id === 'e0').length,
     not_found: g.notFound.length, cant_tell: g.unsure.length,
     seen_in: [...new Set(g.found.map((c) => WHERE[where[c.id]]).filter(Boolean))].join(', '),
-    similar: g.peers ? g.peers.used + ' of ' + g.peers.n : '', web: WEB[q.web && q.web.signal] || 'Not checked',
+    similar: g.peers ? g.peers.used + ' of ' + g.peers.n : '',
     paragraphs: g.paragraphs.map(T.paraName).join('; '), quoted: g.paragraphs.length ? (g.quoted.length ? (g.quoted.length === g.paragraphs.length ? 'Yes' : 'Some (' + g.quoted.length + ' of ' + g.paragraphs.length + ')') : 'No, summary only') : '',
     email, reviewed_on: (d.saved_at || '').slice(0, 10), note: d.note || '',
     why: d.rationale || g.text, why_edited: !!d.rationale_edited,
@@ -96,13 +101,15 @@ ORDER.forEach((o) => {
     body.push(new D.Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: [new D.TextRun({ text: r.title, bold: true, font, color: NAVY })] }));
     body.push(new D.Paragraph({ keepNext: true, spacing: { after: 80 }, children: [new D.TextRun({ text: [r.organisation, r.country, 'said: ' + r.answer.toLowerCase(), r.kind].filter(Boolean).join(' · '), font, size: 18, color: '5F6B87' })] }));
     r.why.split(/\n\s*\n/).forEach((para) => body.push(P(para.trim())));
+    if (r.online) body.push(P([B('Online (' + r.web.toLowerCase() + (r.docs_read ? ', ' + r.docs_read + (r.docs_read === 1 ? ' document read' : ' documents read') : '') + '): '), r.online], { spacing: { after: 80 } }));
+    body.push(P([B('Used before: '), 'same organisation ' + r.org_before + '; same country ' + r.country_before + '.'], { spacing: { after: 80 } }));
     const facts = [r.recommendations && 'Recommendations: ' + r.recommendations, r.paragraphs && 'Paragraphs cited: ' + r.paragraphs, r.quoted && 'Official wording quoted: ' + r.quoted, 'Email: ' + r.email, r.reviewed_on && 'Reviewed on ' + r.reviewed_on].filter(Boolean);
     body.push(new D.Paragraph({ spacing: { after: 200 }, border: { bottom: { style: D.BorderStyle.SINGLE, size: 4, color: 'DDE4EF', space: 6 } }, children: [new D.TextRun({ text: facts.join(' · '), font, size: 18, color: '5F6B87' })] }));
   });
 });
 if (open.length) {
   body.push(H('4. Still to review (' + open.length + ')', D.HeadingLevel.HEADING_1));
-  open.forEach((r) => body.push(bullet([B(r.title), ' · ' + r.organisation + ' · ' + r.country + ' · said: ' + r.answer.toLowerCase()])));
+  open.forEach((r) => body.push(bullet([B(r.title), ' · ' + r.organisation + ' · ' + r.country + ' · said: ' + r.answer.toLowerCase() + ' · online: ' + r.web.toLowerCase() + ' · same organisation before: ' + r.org_before])));
 }
 const outreach = reviewed.filter((r) => r.outcome === 'edit' || r.outcome === 'outreach');
 if (outreach.length) {

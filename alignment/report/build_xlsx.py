@@ -29,7 +29,8 @@ ex = wb.active
 ex.title = "Examples"
 cols = [("Organisation", 28), ("Country", 16), ("Region", 14), ("Example", 46), ("Kind of example", 20), ("They answered", 13),
         ("Outcome", 30), ("Recommendations", 15), ("Strong items found", 11), ("Not found", 9), ("Can't tell", 9), ("Seen in", 22),
-        ("Similar examples that used them", 14), ("Web check", 16), ("Paragraphs cited", 30), ("Official wording quoted", 16),
+        ("Similar examples that used them", 14), ("Online", 16), ("Documents read", 10), ("What the documents show", 60),
+        ("Same organisation before", 24), ("Same country before", 26), ("Paragraphs cited", 30), ("Official wording quoted", 16),
         ("Email", 14), ("Reviewed on", 12), ("Reviewer note", 26), ("Why we decided this", 90)]
 for i, (name, w) in enumerate(cols, 1):
     c = ex.cell(row=1, column=i, value=name)
@@ -38,7 +39,7 @@ for i, (name, w) in enumerate(cols, 1):
 for r, x in enumerate(rows, 2):
     vals = [x["organisation"], x["country"], x.get("region", ""), x["title"], x.get("kind", ""), x["answer"], x["outcome_label"],
             x.get("recommendations", ""), x.get("strong", ""), x.get("not_found", ""), x.get("cant_tell", ""), x.get("seen_in", ""),
-            x.get("similar", ""), x.get("web", ""), x.get("paragraphs", ""), x.get("quoted", ""), x.get("email", ""),
+            x.get("similar", ""), x.get("web", ""), x.get("docs_read", ""), x.get("online", ""), x.get("org_before", ""), x.get("country_before", ""), x.get("paragraphs", ""), x.get("quoted", ""), x.get("email", ""),
             x.get("reviewed_on", ""), x.get("note", ""), x.get("why", "")]
     for i, v in enumerate(vals, 1):
         c = ex.cell(row=r, column=i, value=v if v != "" else None)
@@ -63,8 +64,8 @@ su["A2"].font = Font(name=F, size=10, color="5F6B87")
 G = "Examples!$G$2:$G$" + str(max(n, 2))
 H = "Examples!$H$2:$H$" + str(max(n, 2))
 Fc = "Examples!$F$2:$F$" + str(max(n, 2))
-Q = "Examples!$Q$2:$Q$" + str(max(n, 2))
-P = "Examples!$P$2:$P$" + str(max(n, 2))
+Q = "Examples!$U$2:$U$" + str(max(n, 2))
+P = "Examples!$T$2:$T$" + str(max(n, 2))
 lines = [
     ("GAIN 2026 examples", m.get("examples_2026"), "Input: all GAIN 2026 examples in the Kobo pull (source: review queue, meta/run)."),
     ("In the review (said No or Don't know)", f"=COUNTA(Examples!$D$2:$D${max(n, 2)})", "Every row of the Examples sheet."),
