@@ -2,3 +2,5 @@
 dashboard/data/gain2026.csv
 __pycache__/
 dashboard/data/gain2026_meta.json
+alignment/review/tree.svg.html
+alignment/review/tree.css
