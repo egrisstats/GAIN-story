@@ -53,21 +53,20 @@ outcome(126, "o-keep", "Keep · they chose not to use them", "They decided not t
 outcome(178, "o-out", "Keep · send the recommendations", "They don’t know the recommendations")
 down(194, 262)
 add(f'<text x="{CX + 8}" y="222" class="tl">No reason, or another framework</text>')
-add(f'<text x="{CX + 8}" y="236" class="tl">(another framework counts toward use: +1 point)</text>')
-node(262, 44, "3", "What kind of example?", None)
-add(f'<text x="{NX + 196}" y="289" class="ts">sets the criteria</text>')
-down(306, 340)
-node(340, 44, "4", "Does it count the right groups?")
-side(362, [362], "No")
-outcome(342, "o-keep", "Keep · no matching groups", "The groups can’t be told apart")
-down(384, 420, "Yes")
-node(420, 64, "5", "How much evidence is there?",
-     ["Approach 2 each · Good practice 1 each", "Event 2 or 1 · Signs of use 2 each"])
+add(f'<text x="{CX + 8}" y="236" class="tl">(another framework counts toward use)</text>')
+node(262, 44, "3", "Does it count the right groups?", None)
+side(284, [284], "No")
+outcome(264, "o-keep", "Keep · no matching groups", "The groups can’t be told apart")
+down(306, 340, "Yes")
+node(340, 44, "4", "What kind of example?")
+down(384, 420)
+node(420, 64, "5", "Checklist: what does it show?",
+     ["Markers of the approach · good practice", "signs they already use them"])
 side(452, [430, 478, 526])
 outcome(410, "o-edit", "Count as using · tell them",
-        f"Don’t know: {t['dk']}+ points · No: {t['no']}+ and a sign of use")
-outcome(458, "o-al", "Aligned · not counted as use", f"{t['aligned_min']}+ points, below that bar")
-outcome(506, "o-keep", "Keep their answer", f"Under {t['aligned_min']} points: too little evidence")
+        "Enough found, including a sign of use for a No")
+outcome(458, "o-al", "Aligned · not counted as use", "Some evidence, but not enough")
+outcome(506, "o-keep", "Keep their answer", "Too little evidence")
 add('</svg>')
 
 css = """/* decision tree diagram (alignment/review/tree.svg.html); each page maps --t-edit, --t-out, --t-al, --t-keep */
