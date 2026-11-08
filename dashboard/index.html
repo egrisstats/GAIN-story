@@ -182,6 +182,19 @@ svg text { fill: var(--ink-3); font: 400 var(--fs-s) "IBM Plex Sans", sans-serif
 .dr .n { text-align: right; color: var(--ink); font: 500 var(--fs-l) "IBM Plex Mono", monospace; line-height: 1.1; }
 .dr .n small { display: block; font: 400 var(--fs-xs) "IBM Plex Sans", sans-serif; color: var(--ink-3); margin-top: 1px; }
 .empty { color: var(--ink-3); font-size: var(--fs-m); padding: 18px 0; text-align: center; }
+/* Secretariat review: the decision tree as a strip, then a flow from the answer to the outcome */
+.steps { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 12px; font-size: var(--fs-s); color: var(--ink-2); }
+.steps span { background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.steps b { font: 500 var(--fs-s) "IBM Plex Mono", monospace; color: var(--ink-3); margin-right: 4px; }
+.steps i { color: var(--ink-3); font-style: normal; }
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1.35fr); gap: 0 10px; align-items: center; }
+.flow .col > .k { font: 500 var(--fs-s)/1.2 "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+.flow .arrow { color: var(--ink-3); font-size: var(--fs-xl); text-align: center; }
+.flow .dr { grid-template-columns: minmax(0, 1fr) 1.4fr 44px; }
+.flow .dr .lab .sw { margin-right: 6px; }
+.rfoot { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; font-size: var(--fs-m); color: var(--ink-3); }
+a.btn { color: var(--ink); text-decoration: none; }
+@media (max-width: 720px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow .arrow { transform: rotate(90deg); padding: 4px 0; } }
 
 .tbl-wrap { max-height: 420px; overflow: auto; border-top: 1px solid var(--line); }
 table { width: 100%; border-collapse: collapse; font-size: var(--fs-m); }
@@ -351,6 +364,23 @@ footer a { color: var(--ink-2); }
     </section>
   </div>
 
+  <section class="panel" aria-labelledby="hAlign" id="alignPanel" style="margin-bottom:14px">
+    <div class="ph">
+      <div><h2 id="hAlign">Secretariat review of No and Don’t know answers</h2><div class="sub" id="alignSub">Each dot is an example that said No or Don’t know to the recommendations · the Secretariat checks each one with the decision tree</div></div>
+    </div>
+    <div class="steps" aria-label="The decision tree, in five steps"><span><b>1</b>Producing statistics?</span><i>→</i><span><b>2</b>Reason given?</span><i>→</i><span><b>3</b>Kind of example</span><i>→</i><span><b>4</b>Recommendation categories?</span><i>→</i><span><b>5</b>Score the evidence</span></div>
+    <div class="flow">
+      <div class="col"><div class="k">They answered</div><div id="alignIn" class="hbars"></div></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="col"><div class="k">After the review</div><div id="alignOut" class="hbars"></div></div>
+    </div>
+    <div class="rfoot">
+      <button class="btn" type="button" id="alignShow">Show them in Latest examples</button>
+      <a class="btn" id="alignOpen" target="_blank" rel="noopener" title="Private page for the Secretariat reviewers: descriptions, suggestions and email drafts. You need to be invited to open it.">Open the review page ↗</a>
+      <span>Secretariat only. This page shows outcomes, never descriptions, partners or emails.</span>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="hFeed">
     <div class="ph">
       <div><h2 id="hFeed">Latest examples</h2><div class="sub" id="feedSub"></div></div>
@@ -380,6 +410,7 @@ footer a { color: var(--ink-2); }
   // ---------- configuration ----------
   var params = new URLSearchParams(location.search);
   var CONFIG = {
+    reviewPage: 'https://claude.ai/artifact/EkHaCHd9JSdC7ECfoYG1Su',
     src: params.get('src'),                      // live export (CSV or JSON); also tried: data/gain2026.csv
     live: 'data/gain2026.csv',
     // other published copies of the same Kobo pull; the page reads whichever was taken from Kobo most recently
@@ -1420,6 +1451,33 @@ footer a { color: var(--ink-2); }
     document.getElementById('globeSub').textContent = 'Examples per country' + asOfTxt + ' · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter';
   }
 
+  // Secretariat review: who answered No or Don't know, and where the decision tree took them
+  var ALIGN_OUT = [['open', 'Not reviewed yet', 'var(--ink-3)', 'Waiting for the Secretariat'], ['edit', 'Edit and notify', 'var(--good)', 'Recorded as using the recommendation; the respondent is told what changed'],
+    ['aligned', 'Recorded as aligned', 'var(--irrs)', 'Counts in the alignment figure, not in use'], ['outreach', 'Send outreach', 'var(--warn)', 'Answer kept; the Secretariat sends the relevant recommendation'],
+    ['kept', 'Answer kept', 'var(--none)', 'Not statistics, chose not to apply, no categories, or too little evidence']];
+  function renderAlign() {
+    var rev = current({ rec: true }).filter(function (d) { return d.review; });
+    var sw = function (c) { return '<i class="sw dot" style="--c:' + c + '"></i>'; };
+    document.getElementById('alignSub').textContent = rev.length
+      ? rev.length + ' examples said No or Don’t know to the recommendations · each dot is an example · the Secretariat checks each one with the decision tree'
+      : 'No example has said No or Don’t know yet. When one does, it shows here and goes to the Secretariat’s review.';
+    var group = function (d) { var a = alignOf(d); if (!a) return 'open'; return ['edit', 'aligned', 'outreach'].indexOf(a.outcome) >= 0 ? a.outcome : 'kept'; };
+    var show = function () { S.alignOnly = true; renderFeed(); document.getElementById('hFeed').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    dotrows('alignIn', [['no', 'None of these were used'], ['dk', 'Don’t know']].map(function (a) {
+      return { label: a[1], rows: rev.filter(function (d) { return d.review === a[0]; }), note: 'Click to list them' };
+    }).filter(function (it) { return it.rows.length; }), { noPct: true, click: show });
+    dotrows('alignOut', ALIGN_OUT.map(function (o) {
+      return { label: o[1], rows: rev.filter(function (d) { return group(d) === o[0]; }), note: o[3], c: o[2] };
+    }).filter(function (it) { return it.rows.length; }), { noPct: true, click: show });
+    // a status swatch in front of each outcome, so the column reads as states rather than data
+    document.querySelectorAll('#alignOut .dr .lab').forEach(function (l, k) {
+      var it = ALIGN_OUT.filter(function (o) { return rev.some(function (d) { return group(d) === o[0]; }); })[k];
+      if (it) l.innerHTML = sw(it[2]) + esc(it[1]);
+    });
+    document.getElementById('alignPanel').style.display = S.rows.length ? '' : 'none';
+  }
+  document.getElementById('alignOpen').href = CONFIG.reviewPage;
+  document.getElementById('alignShow').addEventListener('click', function () { S.alignOnly = true; renderFeed(); document.getElementById('hFeed').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   function render(fast) {
     if (!S.rows.length && !S.loadedAt) return;
     syncControls();
@@ -1435,6 +1493,7 @@ footer a { color: var(--ink-2); }
     renderTop();
     renderMulti('srcBars', 'src');
     renderMulti('popBars', 'pop');
+    renderAlign();
     renderFeed();
   }
 
