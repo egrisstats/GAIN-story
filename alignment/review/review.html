@@ -237,6 +237,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 .mails { display: grid; gap: 14px; }
 .mail { padding: 16px; display: grid; gap: 10px; }
 .mail pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--fs-m)/1.55 var(--sans); background: var(--panel-2); border-radius: var(--r-m); padding: 12px; }
+.why textarea { min-height: 170px; font-size: var(--fs-s); line-height: 1.5; }
 .mnotes { border-top: 1px solid var(--line); padding-top: 8px; }
 .mnotes summary { cursor: pointer; font-size: var(--fs-s); font-weight: 600; color: var(--ink-2); }
 .mail .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
@@ -326,6 +327,9 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 
 <script>
 /*RULES*/
+</script>
+<script>
+/*TEXT*/
 </script>
 <script>
 (function () {
@@ -559,6 +563,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     S.sel = k;
     var d = S.dec[k], q = S.queue[k];
     S.draft = withStates(d && d.answers ? JSON.parse(JSON.stringify(d.answers)) : blankDraft(q));
+    if (d && d.rationale_edited) S.draft.rationale = d.rationale;
     if (S.draft.note == null) S.draft.note = (d && d.note) || '';
     if (S.view !== 'queue') { S.view = 'queue'; document.querySelectorAll('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t.dataset.view === 'queue'); }); }
     render();
@@ -695,7 +700,16 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var save = '<div class="save"><button class="btn primary" id="saveNext"' + (can && nxt ? '' : ' disabled') + ' title="' + (nxt ? 'Save, then open the next example not reviewed yet' : 'No other example is waiting') + '">Save and go to next</button>' +
       '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Undo this decision</button>' : '') +
       '<span class="savest" id="saveStatus">' + esc(S.readOnly ? 'You can read this review but not save decisions.' : who) + '</span></div>';
-    box.innerHTML = '<div class="detail">' + h + t + c + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
+    var why = '';
+    if (res.outcome) {
+      var gen = window.AlignmentText.rationale(window.AlignmentRules, spec, q, { answer: q.answer, outcome: res.outcome, answers: a, note: a.note, use_sign: res.use_sign }, { excerpts: S.excerpts, peerUsed: peerUsed });
+      S.genWhy = gen.text;
+      var txt = a.rationale != null ? a.rationale : gen.text;
+      why = '<section class="card why"><h3>Why we decided this <span class="hint">' + (a.rationale != null ? 'edited by you' : 'written from the checklist') + '</span></h3>' +
+        '<textarea id="dwhy" rows="9" aria-label="Why we decided this">' + esc(txt) + '</textarea>' +
+        '<div class="hint">Saved with the decision and used in the yearly report. Edit it if something needs saying in your own words.' + (a.rationale != null ? ' <button class="linkbtn" id="whyReset">Go back to the text written from the checklist</button>' : '') + '</div></section>';
+    }
+    box.innerHTML = '<div class="detail">' + h + t + c + why + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
   }
 
   // ---------- emails ----------
@@ -854,6 +868,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       syncTicks(S.draft);
       renderDetail(); renderTube(); return;
     }
+    if (b.id === 'whyReset' && S.draft) { delete S.draft.rationale; renderDetail(); return; }
     if (b.id === 'howClose') { $('how').hidden = true; try { localStorage.setItem('gainReviewHowSeen', '1'); } catch (x) {} return; }
     if (b.id === 'saveBtn') { save(); return; }
     if (b.id === 'saveNext') { var nx = nextOpen(S.sel); save(function () { if (nx) { select(nx); $('detail').scrollIntoView({ block: 'start' }); } }); return; }
@@ -872,7 +887,10 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (e.target.id === 'groups' && S.draft) { var gvv = e.target.value; if (!gvv) { S.draft.q4 = null; S.draft.populations = ''; } else if (gvv === 'none') { S.draft.q4 = false; S.draft.populations = ''; } else { S.draft.q4 = true; S.draft.populations = gvv; } renderDetail(); renderTube(); }
     if (e.target.id === 'pops' && S.draft) { S.draft.populations = e.target.value; renderDetail(); }
   });
-  document.addEventListener('input', function (e) { if (e.target.id === 'dnote' && S.draft) S.draft.note = e.target.value; });
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'dnote' && S.draft) S.draft.note = e.target.value;
+    if (e.target.id === 'dwhy' && S.draft) S.draft.rationale = e.target.value;
+  });
 
   var saving = false;
   function save(then) {
@@ -883,7 +901,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var doc = { key: S.sel, response_id: q.response_id, title_start: q.title_start, answer: q.answer, outcome: res.outcome, score: res.score, use_sign: res.use_sign,
       answers: { q1: a.q1, q2: a.q2 || 'none', kind: a.kind, q4: a.q4, ticks: a.ticks.slice(), states: a.states || {}, where: a.where || {}, populations: a.populations || '' }, note: a.note || '',
       fill: res.fill || null, reviewer: S.me || null, saved_at: new Date().toISOString(), spec_version: S.spec.version || null,
-      notified_on: prev.notified_on || null, objection: prev.objection || null };
+      notified_on: prev.notified_on || null, objection: prev.objection || null,
+      rationale: a.rationale != null ? a.rationale : (S.genWhy || ''), rationale_edited: a.rationale != null };
     saving = true; $('saveStatus').textContent = 'Saving…';
     S.db.collection('decisions').doc(S.sel).set(doc).then(function () { saving = false; $('saveStatus').textContent = 'Saved: ' + OUT[res.outcome].label; if (then) then(); })
       .catch(function (e) { saving = false; if (e.code === 'invalid_argument') { S.readOnly = true; renderDetail(); } $('saveStatus').textContent = 'Not saved (' + e.code + '). ' + (e.code === 'invalid_argument' ? 'Your access lets you read the review but not save to it.' : 'Try again in a moment.'); });

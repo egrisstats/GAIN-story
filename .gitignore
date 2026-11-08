@@ -4,3 +4,5 @@ __pycache__/
 dashboard/data/gain2026_meta.json
 alignment/review/tree.svg.html
 alignment/review/tree.css
+dashboard/tools/.cache/
+alignment/reports/
