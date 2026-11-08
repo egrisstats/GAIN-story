@@ -73,6 +73,8 @@ main { padding-block: 18px 48px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-m); min-width: 0; }
 .how { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; background: var(--band); border: 1px solid var(--line); border-left: 4px solid var(--teal); border-radius: var(--r-m); padding: 12px 16px; margin-bottom: 16px; }
 .how ol { margin: 6px 0; padding-left: 20px; display: grid; gap: 2px; font-size: var(--fs-s); }
+.key { white-space: nowrap; color: var(--ink-2); margin-left: 6px; }
+.key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
 .how p { margin: 0; font-size: var(--fs-s); color: var(--ink-2); }
 .note { background: var(--outreach-bg); border: 1px solid var(--outreach); border-radius: var(--r-m); padding: 10px 12px; font-size: var(--fs-s); margin-bottom: 14px; }
 .empty { padding: 28px 18px; color: var(--ink-3); display: grid; gap: 6px; }
@@ -212,6 +214,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 .mails { display: grid; gap: 14px; }
 .mail { padding: 16px; display: grid; gap: 10px; }
 .mail pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--fs-m)/1.55 var(--sans); background: var(--panel-2); border-radius: var(--r-m); padding: 12px; }
+.mnotes { border-top: 1px solid var(--line); padding-top: 8px; }
+.mnotes summary { cursor: pointer; font-size: var(--fs-s); font-weight: 600; color: var(--ink-2); }
 .mail .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .fig { padding: 14px 16px; border-top: 3px solid var(--teal); }
@@ -251,7 +255,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 <main class="wrap">
   <section class="how" id="how" aria-labelledby="hHow">
     <div><h2 id="hHow">How it works</h2>
-    <ol><li>Pick an example from the list, or click a dot.</li><li>Look at the evidence: what’s online, and how similar examples answered.</li><li>Answer five questions. The dot moves along the tube as you go.</li><li>Save. Emails to send collect under <b>Emails to send</b>.</li></ol>
+    <ol><li>Pick an example from the list, or click a dot. <span class="key"><i style="background:var(--no)"></i>coral: they said the recommendations were not used</span> <span class="key"><i style="background:var(--dk)"></i>blue: they said they don’t know</span></li><li>Look at the evidence: what’s online, and how similar examples answered.</li><li>Answer five questions. The dot moves along the tube as you go.</li><li>Save. Emails to send collect under <b>Emails to send</b>.</li></ol>
     <p>Suggestions are filled in for you, but every decision is yours. The respondent’s own answer is never changed.</p></div>
     <button class="btn" id="howClose" aria-label="Close how it works">Got it</button>
   </section>
@@ -271,7 +275,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     <div class="grid">
       <nav class="panel queue" aria-label="Examples to review">
         <div class="qhead">
-          <h2>Queue</h2>
+          <div><h2>Queue</h2><div class="hint"><span class="key" style="margin:0"><i style="background:var(--no)"></i>said not used</span> <span class="key"><i style="background:var(--dk)"></i>said don’t know</span></div></div>
           <label class="hint">Show <select id="qfilter">
             <option value="open">To review</option>
             <option value="all">All</option>
@@ -328,6 +332,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   function listJoin(a) { return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
 
   // ---------- data ----------
+  S.excerpts = {};
+  fetch('excerpts.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (x) { if (x && x.excerpts) { S.excerpts = x.excerpts; if (S.view === 'mails') renderMails(); } }).catch(function () {});
   fetch('decision_tree.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (s) { S.spec = s; render(); })
     .catch(function () { note('The decision tree (decision_tree.json) didn’t load, so the questions can’t be shown. Reload the page; if it persists, ask Claude to republish the review page.'); });
@@ -427,6 +433,12 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       el('rect', { x: b.x, y: b.y, width: b.w, height: 3, rx: 1.5, class: 'stripe ' + b.cls }, svg);
       var l = el('text', { x: b.x + 8, y: b.y + 17, class: 'bl' }, svg); l.textContent = b.label;
       el('text', { x: b.x + 8, y: b.y + 31, class: 'bc', 'data-count': o }, svg);
+    });
+    // the key, inside the waiting box, so the colours are explained where the dots start
+    var ob = BINS.open, ky = ob.y + ob.h - 30;
+    [['no', 'Said: not used'], ['dk', 'Said: don’t know']].forEach(function (x, i) {
+      el('circle', { cx: ob.x + 16, cy: ky + i * 16, r: 5, style: 'fill:var(--' + x[0] + ')' }, svg);
+      var t = el('text', { x: ob.x + 26, y: ky + i * 16 + 4, class: 'bc' }, svg); t.textContent = x[1];
     });
     el('g', { id: 'dots' }, svg);
     tubeBuilt = true;
@@ -662,18 +674,47 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (sent ? '<span class="pill edit">Sent ' + esc(S.dec[ks[0]].notified_on) + '</span>' : '') +
         '<button class="btn primary" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
         parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') +
+        mailNotes(ks, Object.keys(ks.reduce(function (m, k) { acronyms((S.dec[k].answers || {}).populations).forEach(function (x) { m[x] = 1; }); return m; }, {}))) +
         (edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + '</section>';
     }).join('');
   }
+  // what the referenced paragraphs say: the official wording when excerpts.json has it, else the criterion's plain summary
+  function refLines(k) {
+    var a = S.dec[k].answers, acr = acronyms(a.populations), out = [];
+    window.AlignmentRules.criteriaFor(S.spec, a.kind).filter(function (c) { return a.ticks.indexOf(c.id) >= 0 && !c.use && c.refs; }).forEach(function (c) {
+      String(c.refs).split(' · ').filter(function (p) { return acr.some(function (x) { return p.indexOf(x + ' ') === 0; }); }).forEach(function (p) {
+        var txt = S.excerpts[p], name = p.replace(/^(IRRS|IRIS|IROSS) /, function (m, x) { return x + ' paragraph' + (/[ ,]|to/.test(p.slice(m.length)) ? 's ' : ' '); });
+        out.push({ ref: p, line: '- ' + name + ': ' + (txt ? '“' + txt + '”' : c.text + '.') , quoted: !!txt, acr: p.split(' ')[0] });
+      });
+    });
+    var seen = {}; return out.filter(function (x) { return seen[x.ref] ? false : (seen[x.ref] = 1); });
+  }
+  // published GAIN examples like this one that used the recommendations: its own earlier ones first, then others nearby
+  function similarUsed(k, acr) {
+    var q = S.queue[k], ps = (q.peers || []).filter(function (p) { return peerUsed(p) && (p.tags.indexOf('org') >= 0 || p.tags.indexOf('country') >= 0 || p.tags.indexOf('region_source') >= 0); });
+    var match = function (p) { return !acr.length || !p.recs || acr.some(function (x) { return String(p.recs).indexOf(x) >= 0; }); };
+    var own = ps.filter(function (p) { return p.tags.indexOf('org') >= 0 && p.year !== '2026'; }).slice(0, 2);
+    var other = ps.filter(function (p) { return p.tags.indexOf('org') < 0 && match(p); }).sort(function (x, y) { return y.tags.length - x.tags.length || +y.year - +x.year; }).slice(0, 3);
+    return { own: own, other: other };
+  }
+  function exRef(p) { return '“' + p.title + '” (' + [p.org, p.country, 'GAIN ' + p.year].filter(Boolean).join(', ') + ')'; }
+  function similarPara(ks, acr, forOutreach) {
+    var own = [], other = [], seen = {};
+    ks.forEach(function (k) { var x = similarUsed(k, acr); x.own.forEach(function (p) { if (!seen[p.title]) { seen[p.title] = 1; own.push(p); } }); x.other.forEach(function (p) { if (!seen[p.title]) { seen[p.title] = 1; other.push(p); } }); });
+    var t = [];
+    if (own.length && !forOutreach) t.push('In earlier GAIN rounds you reported similar work as using them: ' + listJoin(own.slice(0, 2).map(function (p) { return '“' + p.title + '” (GAIN ' + p.year + ')'; })) + '.');
+    if (other.length) t.push((forOutreach ? 'Other organisations doing similar work use them, for example ' : 'Other examples like yours that used them include ') + listJoin(other.slice(0, 3).map(exRef)) + '.');
+    return t.join(' ');
+  }
   function editMail(org, ks) {
-    var spec = S.spec, allAcr = {}, body = [];
+    var spec = S.spec, allAcr = {}, body = [], refs = [];
     var anyNo = ks.some(function (k) { return S.queue[k].answer === 'no'; });
     ks.forEach(function (k) {
       var q = S.queue[k], d = S.dec[k], a = d.answers, acr = acronyms(a.populations);
       acr.forEach(function (x) { allAcr[x] = 1; });
       var crit = window.AlignmentRules.criteriaFor(spec, a.kind).filter(function (c) { return a.ticks.indexOf(c.id) >= 0 && !c.use; });
       var why = crit.map(function (c) { var r = refsFor(c.refs, acr); return c.text.charAt(0).toLowerCase() + c.text.slice(1) + (r ? ' (' + r + ')' : ''); });
-      var p = q.title + ': [one sentence on what the example does, in the respondent’s terms]. This reflects the ' + (acr.join(' and ') || '[acronym]') + (why.length ? ' in ' + listJoin(why) : '') + '.';
+      var p = q.title + ': [one sentence on what the example does, in the respondent’s terms]. This reflects the ' + (acr.join(' and ') || '[acronym]') + (why.length ? ': it ' + listJoin(why) : '') + '.';
       if (q.answer === 'no') {
         var use = window.AlignmentRules.criteriaFor(spec, a.kind).filter(function (c) { return a.ticks.indexOf(c.id) >= 0 && c.use; })[0];
         var sig = use ? (use.id === 'l0' ? 'Your other example or earlier submission on the same data was reported as using the ' + (acr.join(' and ') || '[acronym]') + '.' :
@@ -681,20 +722,36 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         if (sig) p += ' ' + sig;
       }
       body.push(p);
+      refLines(k).forEach(function (x) { if (!refs.some(function (y) { return y.ref === x.ref; })) refs.push(x); });
     });
-    var names = Object.keys(allAcr).map(function (x) { return RECS[x].name + ' (' + x + ')'; });
+    var A = Object.keys(allAcr), names = A.map(function (x) { return RECS[x].name + ' (' + x + ')'; });
+    var sim = similarPara(ks, A, false);
+    var refBlock = refs.length ? '\n\nWhat the recommendations say (for reference):\n' + refs.map(function (x) { return x.line; }).join('\n') + '\n' + A.map(function (x) { return x + ': ' + RECS[x].url; }).join('\n') : '';
     return 'Subject: GAIN 2026: an update to your submission\n\nDear [Name],\n\nThank you for ' + org + '’s GAIN 2026 submission. ' +
       (anyNo ? 'You indicated that the recommendations were not used. Looking at the example' + (ks.length > 1 ? 's' : '') + ', we believe ' + (ks.length > 1 ? 'they draw' : 'it does draw') + ' on them, so we have recorded ' + (ks.length > 1 ? 'them' : 'it') + ' as such. ' : '') +
       'Reviewing your examples, we have recorded the following as using the ' + (listJoin(names) || '[recommendation full name]') + ':\n\n' + body.join('\n\n') +
+      (sim ? '\n\n' + sim : '') + refBlock +
       '\n\nIf this does not reflect your work, just reply and we will restore your original answer.\n\nWith thanks,\n[names], EGRISS Secretariat';
   }
   function outreachMail(org, ks) {
     var acr = {}; ks.forEach(function (k) { acronyms(S.dec[k].answers.populations || (S.queue[k].suggest || {}).populations).forEach(function (x) { acr[x] = 1; }); });
     var A = Object.keys(acr); if (!A.length) A = ['IRRS'];
     var titles = ks.map(function (k) { return S.queue[k].title; });
+    var sim = similarPara(ks, A, true);
     return 'Subject: GAIN 2026: the EGRISS recommendations for your work on ' + titles[0] + '\n\nDear [Name],\n\nThank you for ' + org + '’s GAIN 2026 submission. You mentioned you are not familiar with the EGRISS recommendations. For work like ' + listJoin(titles) +
       ', the ' + listJoin(A) + ' may be useful, in particular [chapter or paragraphs]. ' + A.map(function (x) { return RECS[x].name + ': ' + RECS[x].url; }).join(' ') +
+      (sim ? '\n\n' + sim : '') +
       '\n\nThe e-learning course [link] gives a short introduction, and we would be glad to set up a call.\n\nWith thanks,\n[names], EGRISS Secretariat';
+  }
+  // for the reviewer, under each draft: the similar examples behind it, and which paragraph texts still need the official wording
+  function mailNotes(ks, A) {
+    var rows = [], seen = {};
+    ks.forEach(function (k) { var x = similarUsed(k, A); x.own.concat(x.other).forEach(function (p) { if (!seen[p.title]) { seen[p.title] = 1; rows.push(p); } }); });
+    var refs = []; ks.forEach(function (k) { if (outcomeOf(k) === 'edit') refLines(k).forEach(function (x) { if (!x.quoted && refs.indexOf(x.ref) < 0) refs.push(x.ref); }); });
+    return '<details class="mnotes"><summary>Similar examples behind this draft (' + rows.length + ')' + (refs.length ? ' · paragraphs without official wording yet (' + refs.length + ')' : '') + '</summary>' +
+      (rows.length ? '<ul class="peers">' + rows.map(function (p) { return '<li><span class="y">' + esc(p.year) + '</span><span>' + esc(p.title) + '<div class="pm">' + esc([p.country, p.org, p.kind].filter(Boolean).join(' · ')) + '</div></span><span class="used">' + (p.recs ? 'Used ' + esc(p.recs.replace(/;/g, ' + ')) : 'Used them') + '</span></li>'; }).join('') + '</ul>'
+        : '<div class="hint">No similar example that used the recommendations, so the draft leaves that paragraph out.</div>') +
+      (refs.length ? '<div class="hint" style="margin-top:8px">These paragraphs show a plain summary, not the official wording: ' + esc(refs.join(', ')) + '. Paste the wording into alignment/spec/excerpts.json and ask Claude to republish, or replace the summary in the draft before sending.</div>' : '') + '</details>';
   }
 
   // ---------- summary ----------
