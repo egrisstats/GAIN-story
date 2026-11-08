@@ -21,6 +21,25 @@ python3 -m http.server 8123
 
 Then open http://localhost:8123/Main.dc.html.
 
+## Country cards
+
+Every example's profile names its country as a link (for example **NIGERIA ↗** in the header). It opens a
+**country card** on top of the example, like a second index card: the country's GAIN examples year by year (click one
+to open it), who lives there according to UNHCR and which examples covered each group, a small map of where
+displaced and stateless people live (places named in an example in gold), and how the examples counted them
+(census, survey, administrative data). "Back to the example" returns to the card underneath.
+A country card has its own link: `Main.dc.html#country-NGA`.
+
+The data is in `assets/countries/`: `countries.json` and one map file per country, built by
+`python3 tools/country_profiles.py` (add `--refresh` to download UNHCR's figures and locations again).
+Sources: UNHCR Refugee Data Finder (with IDMC and UNRWA), UNHCR's GIS list of locations, Natural Earth outlines.
+GAIN asked about data sources and population groups only from 2024; for earlier examples the method is read from the title.
+
+**Nigeria** also has an area layer: IDPs per local government area from IOM DTM's site assessments (north-east,
+and north-central and north-west), with a switch between all IDPs and IDPs in camps, and a list by state. States
+or areas named in an example are outlined in gold. DTM's files are Excel, so the build needs `openpyxl`
+(`pip install openpyxl`); without it the Nigeria card falls back to UNHCR's points only.
+
 ## Updating the design artifact
 
 The design copy loads images and data from its own uploads (`/_blob/<id>`), not from this repo.

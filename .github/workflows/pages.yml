@@ -42,6 +42,7 @@ jobs:
           cp -r assets/covers-web _site/assets/
           cp -r assets/cases _site/assets/
           cp -r assets/recs _site/assets/
+          cp -r assets/countries _site/assets/
           cp assets/fonts/Obvia-SemiBold.otf _site/assets/fonts/
           touch _site/.nojekyll
           cp -r campaign _site/

@@ -44,6 +44,21 @@ a{color:#4cc3c9}a:hover{color:#8fe0e4}
 .casecard{display:flex;gap:12px;align-items:center;padding:8px;border:1px solid rgba(76,195,201,0.45);border-radius:4px;background:rgba(76,195,201,0.07);text-decoration:none}.casecard:hover{border-color:#4cc3c9}
 .otherex{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;min-height:36px;padding:7px 10px;border:1px solid rgba(207,224,244,0.14);border-radius:3px;background:rgba(10,20,48,0.5);color:#ffffff;font:400 13px/1.4 "IBM Plex Sans",sans-serif;cursor:pointer}.otherex:hover{border-color:#4cc3c9}
 .openbtn:focus-visible,.actbtn:focus-visible,.otherex:focus-visible,.casecard:focus-visible{outline:3px solid rgba(59,113,185,0.8);outline-offset:2px}
+.ctylink{font:inherit;letter-spacing:inherit;color:#ffffff;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:#4cc3c9;text-underline-offset:3px;text-decoration-thickness:2px}.ctylink:hover{color:#4cc3c9}.ctylink:focus-visible{outline:3px solid rgba(59,113,185,0.8);outline-offset:2px}
+.ccyears{display:flex;flex-direction:column;gap:6px}
+.ccyr{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:start}
+.ccy{font:500 12px "IBM Plex Mono",monospace;color:#8db8e3;padding-top:8px}
+.ccyl{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ccex{display:flex;gap:10px;align-items:baseline;text-align:left;width:100%;min-height:34px;padding:6px 10px;border:1px solid rgba(207,224,244,0.14);border-radius:3px;background:rgba(10,20,48,0.5);color:#e6eef8;font:400 13px/1.4 "IBM Plex Sans",sans-serif;cursor:pointer}
+.ccex:hover{border-color:#4cc3c9}.ccex:focus-visible{outline:3px solid rgba(59,113,185,0.8);outline-offset:2px}
+.ccnone{font:400 12px "IBM Plex Sans",sans-serif;color:#5a6884;padding-top:8px}
+.ccg{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(207,224,244,0.1)}
+.ccgn{font-size:14px;color:#ffffff}
+.ccgv{font:600 15px "IBM Plex Sans",sans-serif;color:#ffffff;font-variant-numeric:tabular-nums;text-align:right}
+.ccgc{grid-column:2/-1;font-size:12px;line-height:1.45}
+.cclg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:#cfe0f4}
+.cclg span{display:inline-flex;align-items:center;gap:6px}
+.backbtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:3px;border:1px solid rgba(207,224,244,0.3);background:transparent;color:#ffffff;font:500 13px "IBM Plex Sans",sans-serif;cursor:pointer}.backbtn:hover{border-color:#4cc3c9;color:#4cc3c9}.backbtn:focus-visible{outline:3px solid rgba(59,113,185,0.8);outline-offset:2px}
 .psec{display:flex;flex-direction:column;gap:9px;margin:0}
 .phead{margin:0;font:500 11px "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:#8db8e3}
 .pnote{margin:0;font-size:13px;line-height:1.5;color:#8b98b3}
@@ -331,7 +346,7 @@ a{color:#4cc3c9}a:hover{color:#8fe0e4}
 <div style="position: fixed; inset: 0; z-index: 60; background: rgba(4,9,26,0.62)" onClick="{{closeEx}}"></div>
 <div style="{{dr.style}}" role="dialog" aria-modal="true" aria-label="Example details">
 <div style="position: sticky; top: 0; z-index: 1; display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 22px 12px; background: #0e1b3d; border-bottom: 1px solid rgba(207,224,244,0.12)">
-<div style="font: 500 11px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; color: #4cc3c9">{{dr.meta}}</div>
+<div style="font: 500 11px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; color: #4cc3c9">{{dr.metaA}}<sc-if value="{{dr.hasCty}}" hint-placeholder-val="{{ false }}"><button class="ctylink" type="button" onClick="{{dr.openCty}}" aria-label="{{dr.ctyAria}}">{{dr.ctyName}} ↗</button></sc-if><sc-if value="{{dr.noCty}}" hint-placeholder-val="{{ false }}">{{dr.ctyName}}</sc-if>{{dr.metaB}}</div>
 <button class="x" type="button" aria-label="Close example" onClick="{{closeEx}}">×</button>
 </div>
 <div style="{{dr.grid}}">
@@ -401,10 +416,81 @@ a{color:#4cc3c9}a:hover{color:#8fe0e4}
 <sc-if value="{{dr.hasCaseLink}}" hint-placeholder-val="{{ false }}">
 <a href="{{dr.caseLink}}" target="_blank" rel="noopener" class="actbtn">Read the case study ↗</a>
 </sc-if>
+<sc-if value="{{dr.hasCty}}" hint-placeholder-val="{{ false }}">
+<button class="actbtn" type="button" onClick="{{dr.openCty}}">{{dr.ctyText}}</button>
+</sc-if>
 <button class="actbtn" type="button" onClick="{{dr.copy}}">{{dr.copyLabel}}</button>
 </div>
 <div style="font: 400 11px 'IBM Plex Mono', monospace; line-height: 1.6; color: #8db8e3">{{dr.foot}}</div>
 </div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{cc.show}}" hint-placeholder-val="{{ false }}">
+<div style="{{cc.scrim}}" onClick="{{cc.back}}"></div>
+<div style="{{cc.style}}" role="dialog" aria-modal="true" aria-label="{{cc.aria}}">
+<div style="position: sticky; top: 0; z-index: 1; display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 22px; background: #13234b; border-bottom: 1px solid rgba(207,224,244,0.12)">
+<button class="backbtn" type="button" onClick="{{cc.back}}">{{cc.backText}}</button>
+<div style="font: 500 11px 'IBM Plex Mono', monospace; letter-spacing: 0.12em; color: #e0a93b">COUNTRY CARD</div>
+<button class="x" type="button" aria-label="Close" onClick="{{cc.closeAll}}">×</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 20px; padding: 18px 22px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font: 500 11px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; color: #8db8e3">{{cc.region}}</div>
+<h2 style="margin: 0; font-family: Obvia, Figtree, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15; color: #ffffff">{{cc.name}}</h2>
+<div style="font-size: 13px; color: #cfe0f4">{{cc.sub}}</div>
+<sc-if value="{{cc.hasLede}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 6px 0 0; padding: 10px 12px; border-left: 3px solid #e0a93b; background: rgba(224,169,59,0.08); font-size: 14px; line-height: 1.55; color: #e6eef8">{{cc.lede}}</p>
+</sc-if>
+</div>
+<sc-if value="{{cc.loading}}" hint-placeholder-val="{{ false }}">
+<p class="pnote">Loading the country’s figures…</p>
+</sc-if>
+<section class="psec">
+<h3 class="phead">GAIN examples, year by year</h3>
+<div class="ccyears"><sc-for list="{{cc.years}}" as="yr" hint-placeholder-count="2"><div class="ccyr"><div class="ccy">{{yr.y}}</div><div class="ccyl"><sc-for list="{{yr.ex}}" as="x" hint-placeholder-count="1"><button class="ccex" type="button" style="{{x.style}}" onClick="{{x.pick}}"><span style="{{x.dot}}"></span><span style="min-width: 0">{{x.t}}</span><span style="{{x.hereStyle}}">{{x.here}}</span></button></sc-for><sc-if value="{{yr.none}}" hint-placeholder-val="{{ false }}"><span class="ccnone">No example this round</span></sc-if></div></div></sc-for></div>
+<p class="pnote">Blue: country-led · teal: institution-led. Click an example to open its card.</p>
+</section>
+<sc-if value="{{cc.hasPop}}" hint-placeholder-val="{{ false }}">
+<section class="psec">
+<h3 class="phead">{{cc.popHead}}</h3>
+<div><sc-for list="{{cc.groups}}" as="gr" hint-placeholder-count="2"><div class="ccg"><span style="{{gr.sw}}"></span><span class="ccgn">{{gr.label}}</span><span class="ccgv">{{gr.n}}</span><span class="ccgc" style="{{gr.covStyle}}">{{gr.cov}}</span></div></sc-for></div>
+<p class="pnote">{{cc.popNote}}</p>
+</section>
+</sc-if>
+<sc-if value="{{cc.hasMap}}" hint-placeholder-val="{{ false }}">
+<section class="psec">
+<h3 class="phead">Where they live</h3>
+<sc-if value="{{cc.hasAreas}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="seg" type="button" style="{{cc.lyrA}}" aria-pressed="{{cc.lyrAOn}}" onClick="{{cc.setA}}">All IDPs</button><button class="seg" type="button" style="{{cc.lyrB}}" aria-pressed="{{cc.lyrBOn}}" onClick="{{cc.setB}}">IDPs in camps</button></div>
+</sc-if>
+<img src="{{cc.map}}" alt="{{cc.mapAlt}}" style="display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid rgba(207,224,244,0.14)">
+<div class="cclg"><sc-for list="{{cc.legend}}" as="lg" hint-placeholder-count="2"><span><span style="{{lg.sw}}"></span>{{lg.t}}</span></sc-for></div>
+<p class="pnote">{{cc.mapNote}}</p>
+</section>
+</sc-if>
+<sc-if value="{{cc.hasAreas}}" hint-placeholder-val="{{ false }}">
+<section class="psec">
+<h3 class="phead">{{cc.areaHead}}</h3>
+<div><sc-for list="{{cc.areaRows}}" as="ar" hint-placeholder-count="2"><div class="ccg"><span style="{{ar.sw}}"></span><span class="ccgn">{{ar.name}}</span><span class="ccgv">{{ar.n}}</span><span class="ccgc" style="{{ar.subStyle}}">{{ar.sub}}</span></div></sc-for></div>
+<p class="pnote">{{cc.areaNote}}</p>
+</section>
+</sc-if>
+<section class="psec">
+<h3 class="phead">How the examples counted them</h3>
+<div class="tiles"><sc-for list="{{cc.methods}}" as="it" hint-placeholder-count="2"><span class="tile" style="{{it.style}}"><img src="{{it.icon}}" alt="" class="ico">{{it.t}}</span></sc-for></div>
+<p class="pnote">{{cc.methodNote}}</p>
+</section>
+<sc-if value="{{cc.hasOrigins}}" hint-placeholder-val="{{ false }}">
+<section class="psec">
+<h3 class="phead">Where refugees and asylum-seekers come from</h3>
+<p style="margin: 0; font-size: 14px; line-height: 1.55; color: #e6eef8">{{cc.origins}}</p>
+</section>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 14px; border-top: 1px solid rgba(207,224,244,0.14)">
+<button class="actbtn" type="button" onClick="{{cc.copy}}">{{cc.copyLabel}}</button>
+</div>
+<div style="font: 400 11px 'IBM Plex Mono', monospace; line-height: 1.6; color: #8db8e3">{{cc.foot}}</div>
 </div>
 </div>
 </sc-if>
@@ -1262,6 +1348,8 @@ class Component extends DCLogic {
       self.setState({ ready: true });
       var mh = /^#example-(\d+)$/.exec(location.hash || '');
       if (mh && self.rows[+mh[1] - 1]) self.setState({ sel: +mh[1] - 1, sx: null, sy: null, hover: null });
+      var mc = /^#country-([A-Za-z]{3})$/.exec(location.hash || '');
+      if (mc) self.openCty(null, mc[1].toUpperCase());
     }).catch(function () { self.setState({ failed: true }); });
     this.measure();
     this.raf = requestAnimationFrame(this.tickFn);
@@ -1275,6 +1363,223 @@ class Component extends DCLogic {
     i = Math.max(0, Math.min(n - 1, i));
     var el = this.stepEls && this.stepEls[i];
     if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  // ---------- country cards: a second index card, opened from an example ----------
+  // data: assets/countries/countries.json (built by tools/country_profiles.py); one small map file per country
+  loadCtys() {
+    var self = this;
+    if (!this._ctyP) this._ctyP = fetch('./assets/countries/countries.json').then(function (r) { return r.json(); }).then(function (j) {
+      self.ctyDoc = j; self.ctyOf = {};
+      Object.keys(j.countries).forEach(function (k) { j.countries[k].examples.forEach(function (e) { self.ctyOf[e.id] = k; }); });
+      self.setState({ ctyTick: (self.state.ctyTick || 0) + 1 });
+    }).catch(function () { self.ctyDoc = { countries: {} }; self.ctyOf = {}; self.setState({ ctyTick: -1 }); });
+    return this._ctyP;
+  }
+  loadCtyMap(iso) {
+    var self = this;
+    this.ctyMaps = this.ctyMaps || {};
+    if (this.ctyMaps[iso] !== undefined) return;
+    this.ctyMaps[iso] = null;
+    fetch('./assets/countries/' + iso + '.json').then(function (r) { return r.json(); }).then(function (m) { self.ctyMaps[iso] = m; self.setState({ ctyTick: (self.state.ctyTick || 0) + 1 }); }).catch(function () { self.ctyMaps[iso] = {}; });
+  }
+  // from an example (1-based id) or straight from a country code (a #country-XXX link)
+  openCty(exNo, iso) {
+    var self = this;
+    this.setState({ cty: { ex: exNo, iso: iso } });
+    this.loadCtys().then(function () {
+      var k = iso || self.ctyOf[exNo];
+      if (k) { self.loadCtyMap(k); try { history.replaceState(null, '', '#country-' + k); } catch (e) {} }
+    });
+  }
+  closeCty(all) {
+    var st = this.state || {};
+    var keep = !all && st.sel != null && st.sel !== -1;
+    this.setState(all ? { cty: null, sel: -1, hover: null } : { cty: null });
+    try { history.replaceState(null, '', keep ? '#example-' + (st.sel + 1) : location.pathname + location.search); } catch (e) {}
+  }
+  ctyMapSvg(m, p, here, layer) {
+    var GC = ['#f2a65a', '#74cf8e', '#b48ef0', '#f7d58e', '#e6e1d3', '#8b98b3'];
+    var TN = this.ctyDoc.location_types;
+    var named = {}, mine = {};
+    p.examples.forEach(function (e) { (e.places || []).forEach(function (n) { named[n] = 1; if (here && e.id === here.id) mine[n] = 1; }); });
+    var r = m.pts.length > 2000 ? 1.8 : m.pts.length > 400 ? 2.4 : 3.6;
+    var o = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + m.w + ' ' + m.h + '" width="' + m.w + '" height="' + m.h + '">',
+      '<rect width="100%" height="100%" fill="#0b1736"/>',
+      '<path d="' + m.near + '" fill="rgba(207,224,244,0.05)" stroke="rgba(207,224,244,0.16)" stroke-width="0.6"/>',
+      '<path d="' + m.land + '" fill="#16285a" stroke="#4a64a0" stroke-width="1.2"/>'];
+    var areaMode = !!(m.areas && m.areas.length);
+    if (areaMode) {
+      // shade each area by the IDPs living there (or living in camps); darker = more
+      var vi = layer === 'camp' ? 5 : 4, vmax = Math.max.apply(null, m.areas.map(function (a) { return a[vi]; })) || 1;
+      var myAreas = here && here.areas ? here.areas : [];
+      m.areas.forEach(function (a) {
+        var v = a[vi], op = v > 0 ? (0.14 + 0.82 * Math.sqrt(v / vmax)).toFixed(2) : 0;
+        if (v > 0) o.push('<path d="' + a[0] + '" fill="#b48ef0" fill-opacity="' + op + '" stroke="#0b1736" stroke-width="0.3"/>');
+      });
+      m.states.forEach(function (st2) { o.push('<path d="' + st2[0] + '" fill="none" stroke="rgba(207,224,244,0.45)" stroke-width="0.8"/>'); });
+      m.areas.forEach(function (a) { if (myAreas.indexOf(a[2]) >= 0) o.push('<path d="' + a[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
+      m.states.forEach(function (st2) { if (myAreas.indexOf(st2[1]) >= 0) o.push('<path d="' + st2[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
+    }
+    m.pts.forEach(function (q) {
+      // with the area layer on, only camps and refugee sites stay as points (IDP communities are in the shading)
+      if (areaMode && q[2] === 2 && !/formal/i.test(TN[q[3]])) return;
+      if (areaMode && q[2] === 2) { o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (r + 0.6) + '" fill="#ffffff" stroke="#0b1736" stroke-width="0.8"/>'); return; }
+      var c = GC[q[2]] || '#8b98b3', t = TN[q[3]];
+      if (/centre/i.test(t)) o.push('<rect x="' + (q[0] - r) + '" y="' + (q[1] - r) + '" width="' + 2 * r + '" height="' + 2 * r + '" fill="' + c + '"/>');
+      else if (/communities/i.test(t)) o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="none" stroke="' + c + '" stroke-width="1.2"/>');
+      else o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="' + c + '" fill-opacity="0.9"/>');
+    });
+    var esc = function (t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+    var boxes = [], label = function (q, col, wt, size) {
+      // to the right of the point, or to the left when it would run off the map
+      var w = q[4].length * size * 0.56 + 8, left = q[0] + 10 + w > m.w - 2;
+      var b = left ? [q[0] - 10 - w, q[1] - size, q[0] - 7, q[1] + 4] : [q[0] + 7, q[1] - size, q[0] + 7 + w, q[1] + 4];
+      if (b[0] < 2 || boxes.some(function (a) { return !(b[2] < a[0] || b[0] > a[2] || b[3] < a[1] || b[1] > a[3]); })) return;
+      boxes.push(b);
+      o.push('<text x="' + (left ? q[0] - 10 : q[0] + 10) + '" y="' + (q[1] + 4) + '"' + (left ? ' text-anchor="end"' : '') + ' font-family="Helvetica, Arial, sans-serif" font-size="' + size + '" font-weight="' + wt + '" fill="' + col + '" stroke="#0b1736" stroke-width="3" paint-order="stroke">' + esc(q[4]) + '</text>');
+    };
+    if (areaMode) {
+      var vi2 = layer === 'camp' ? 5 : 4, tot = {};
+      m.areas.forEach(function (a) { tot[a[3]] = (tot[a[3]] || 0) + a[vi2]; });
+      var mineS = here && here.areas ? here.areas : [];
+      m.states.slice().sort(function (a, b) { return (tot[b[1]] || 0) - (tot[a[1]] || 0); }).slice(0, 6).forEach(function (st2) {
+        if (tot[st2[1]] && mineS.indexOf(st2[1]) < 0) o.push('<text x="' + st2[2] + '" y="' + st2[3] + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" stroke="#0b1736" stroke-width="3" paint-order="stroke">' + esc(st2[1]) + '</text>');
+      });
+      (here && here.areas || []).forEach(function (nm) {
+        var st3 = m.states.find(function (x) { return x[1] === nm; });
+        if (st3) o.push('<text x="' + st3[2] + '" y="' + st3[3] + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffd166" stroke="#0b1736" stroke-width="3.5" paint-order="stroke">' + esc(nm) + '</text>');
+      });
+    }
+    var seen = {};
+    m.pts.forEach(function (q) { if (named[q[4]] && !seen[q[4]]) { seen[q[4]] = 1; o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (mine[q[4]] ? 9 : 7) + '" fill="none" stroke="#ffd166" stroke-width="2.2"/>'); label(q, '#ffd166', 700, mine[q[4]] ? 16 : 14); } });
+    if (m.pts.length <= 60) m.pts.forEach(function (q) { if (!named[q[4]]) label(q, '#cfe0f4', 400, 13); });
+    o.push('</svg>');
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(o.join(''));
+  }
+  ctyCard(st, g) {
+    var self = this, off = { show: false };
+    var cs = st.cty;
+    if (!cs) return off;
+    var doc = this.ctyDoc, iso = doc ? (cs.iso || (this.ctyOf || {})[cs.ex]) : null, p = iso ? doc.countries[iso] : null;
+    var under = st.sel != null && st.sel !== -1;
+    var wide = g.W >= 760;
+    var fmt = function (n) { if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + ' million'; if (n >= 1e4) return Math.round(n / 1e3) + ',000'; return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var cc = {
+      show: true,
+      scrim: 'position: fixed; inset: 0; z-index: 63; background: ' + (under ? 'rgba(4,9,26,0.35)' : 'rgba(4,9,26,0.62)') + '; cursor: pointer',
+      style: wide
+        ? 'position: fixed; top: ' + (under ? 64 : 16) + 'px; right: ' + (under ? 56 : 16) + 'px; bottom: 16px; z-index: 64; width: min(600px, calc(100vw - 72px)); overflow-y: auto; overscroll-behavior: contain; background: #13234b; border: 1px solid rgba(224,169,59,0.55); border-radius: 6px; box-shadow: -18px 24px 60px rgba(0,0,0,0.55)'
+        : 'position: fixed; left: 0; right: 0; bottom: 0; z-index: 64; max-height: 92vh; overflow-y: auto; overscroll-behavior: contain; background: #13234b; border-top: 2px solid #e0a93b; border-radius: 12px 12px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,0.5)',
+      aria: 'Country card' + (p ? ': ' + p.name : ''),
+      back: function () { self.closeCty(false); }, backText: under ? '← Back to the example' : '← Close',
+      closeAll: function () { self.closeCty(true); },
+      region: '', name: p ? p.name : (cs.ex && this.rows[cs.ex - 1] ? this.rows[cs.ex - 1].country : ''), sub: '', hasLede: false, lede: '',
+      loading: !p, years: [], hasPop: false, popHead: '', groups: [], popNote: '', hasMap: false, map: '', mapAlt: '', legend: [], mapNote: '',
+      methods: [], methodNote: '', hasOrigins: false, origins: '', copy: null, copyLabel: '', foot: ''
+    };
+    if (!p) return cc;
+    var here = under ? p.examples.find(function (e) { return e.id === st.sel + 1; }) : null;
+    var ex = p.examples, nC = ex.filter(function (e) { return e.lead === 'Country-led'; }).length;
+    var y0 = ex.length ? ex[0].year : 2021;
+    cc.region = ((p.region || '') + (p.subregion ? ' · ' + p.subregion : '')).toUpperCase();
+    cc.sub = ex.length + ' GAIN example' + (ex.length === 1 ? '' : 's') + ', ' + y0 + '–2025 · ' + nC + ' country-led, ' + (ex.length - nC) + ' institution-led';
+    // the years, with this country's examples in each; the open example is marked
+    cc.years = [2021, 2022, 2023, 2024, 2025].map(function (y) {
+      var list = ex.filter(function (e) { return e.year === y; });
+      return { y: String(y), none: !list.length, ex: list.map(function (e) {
+        var me = here && e.id === here.id;
+        return { t: e.title.length > 96 ? e.title.slice(0, 93) + '…' : e.title,
+          dot: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; align-self: center; background: ' + (e.lead === 'Country-led' ? '#5b8fd9' : '#4cc3c9'),
+          style: me ? 'border-color: #e0a93b; background: rgba(224,169,59,0.1)' : '', here: me ? 'OPEN NOW' : '', hereStyle: me ? "margin-left: auto; flex-shrink: 0; font: 500 10px 'IBM Plex Mono', monospace; letter-spacing: 0.08em; color: #e0a93b" : 'display: none',
+          pick: function () { self.setState({ cty: null, sel: e.id - 1, sx: null, sy: null, hover: null }); } };
+      }) };
+    });
+    // who lives there (UNHCR), and which examples covered each group
+    var yrs = Object.keys(p.population || {}).sort(), py = yrs[yrs.length - 1], v = py ? p.population[py] : {};
+    var lastOf = function (o) { var k = Object.keys(o || {}).sort(); return k.length ? o[k[k.length - 1]] : 0; };
+    var GR = [
+      { k: 'Refugees', l: 'Refugees', c: '#f2a65a', n: (v.refugees || 0) + (v.oip || 0) + lastOf(p.unrwa), note: p.unrwa && lastOf(p.unrwa) ? 'incl. Palestine refugees registered with UNRWA' : '' },
+      { k: 'Asylum-seekers', l: 'Asylum-seekers', c: '#f7d58e', n: v.asylum || 0 },
+      { k: 'IDPs', l: 'Internally displaced people', c: '#b48ef0', n: Math.max(v.idps || 0, lastOf(p.idmc)), note: lastOf(p.idmc) > (v.idps || 0) ? 'IDMC estimate' : '' },
+      { k: 'Stateless people', l: 'Stateless people', c: '#e6e1d3', n: v.stateless || 0 },
+      { k: 'Returnees', l: 'Returned during ' + (py || 'the year'), c: '#74cf8e', n: (v.ret_ref || 0) + (v.ret_idp || 0) }
+    ];
+    var mineG = here ? here.groups : [];
+    cc.groups = GR.filter(function (gr) { return gr.n >= 100 || ex.some(function (e) { return e.groups.indexOf(gr.k) >= 0; }); }).map(function (gr) {
+      var cov = ex.filter(function (e) { return e.groups.indexOf(gr.k) >= 0; }).length, me = mineG.indexOf(gr.k) >= 0;
+      var txt = cov ? (me ? 'This example covers them' + (cov > 1 ? ', as do ' + (cov - 1) + ' other' + (cov === 2 ? '' : 's') : '') : cov + ' example' + (cov === 1 ? '' : 's') + ' covered them') : (gr.n >= 1000 ? 'No GAIN example has covered them yet' : 'No example');
+      return { label: gr.l, n: gr.n ? fmt(gr.n) : 'none', sw: 'width: 10px; height: 10px; border-radius: 50%; background: ' + gr.c + '; align-self: center',
+        cov: txt + (gr.note ? ' · ' + gr.note : ''), covStyle: me ? 'color: #e0a93b; font-weight: 500' : (!cov && gr.n >= 1000 ? 'color: #f5b041' : 'color: #8b98b3') };
+    });
+    cc.hasPop = cc.groups.length > 0;
+    cc.popHead = 'Who lives there' + (py ? ' · UNHCR, end of ' + py : '');
+    cc.popNote = py ? 'Figures: UNHCR Refugee Data Finder' + (lastOf(p.idmc) ? '; internal displacement also from IDMC' : '') + '. Returnees are people who came back during the year.' : (p.iso === 'XKX' ? 'UNHCR reports Kosovo* together with Serbia, so there is no separate figure.' : 'UNHCR publishes no figures for this country.');
+    if (!cc.groups.length && !py) { cc.hasPop = true; cc.groups = []; }
+    // the link between this example and the country
+    if (here) {
+      var bits = here.groups.map(function (k) { var gr = GR.find(function (x) { return x.k === k; }); return gr && gr.n ? fmt(gr.n) + ' ' + gr.l.toLowerCase() : ''; }).filter(Boolean);
+      cc.hasLede = true;
+      cc.lede = 'The example you opened covered ' + (here.groups.length ? here.groups.join(', ').toLowerCase().replace('idps', 'internally displaced people') : 'groups it did not state') + '. ' +
+        (bits.length ? 'In ' + p.name + ' that is ' + bits.join(' and ') + (py ? ' (UNHCR, ' + py + ')' : '') + '.' : '') + (here.places && here.places.length ? ' It names ' + here.places.join(', ') + ', marked on the map.' : '');
+    }
+    // map
+    var m = (this.ctyMaps || {})[p.iso];
+    if (m && m.w) {
+      // the picture is built once per country and open example, not on every render
+      var layer = st.ctyLayer || 'all';
+      var mk = p.iso + ':' + (here ? here.id : '') + ':' + layer;
+      if (this._ctySvgKey !== mk) { this._ctySvgKey = mk; this._ctySvg = this.ctyMapSvg(m, p, here, layer === 'camp' ? 'camp' : 'all'); }
+      cc.hasMap = true; cc.map = this._ctySvg;
+      cc.mapAlt = 'Map of ' + p.name + ' with ' + m.pts.length + ' places where UNHCR records displaced or stateless people';
+      var GN = this.ctyDoc.location_groups, GC = ['#f2a65a', '#74cf8e', '#b48ef0', '#f7d58e', '#e6e1d3', '#8b98b3'];
+      var present = {}; m.pts.forEach(function (q) { present[q[2]] = (present[q[2]] || 0) + 1; });
+      var dot = function (c, ring) { return 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; ' + (ring ? 'box-shadow: inset 0 0 0 1.5px ' + c : 'background: ' + c); };
+      cc.legend = Object.keys(present).map(function (k) { return { t: GN[k] + ' (' + present[k] + ')', sw: dot(GC[k]) }; })
+        .concat([{ t: 'filled: camp or settlement', sw: dot('#cfe0f4') }, { t: 'ring: in communities', sw: dot('#cfe0f4', true) }, { t: 'square: centre', sw: 'display: inline-block; width: 9px; height: 9px; background: #cfe0f4' }])
+        .concat(ex.some(function (e) { return e.places && e.places.length; }) ? [{ t: 'gold: named in a GAIN example', sw: dot('#ffd166', true) }] : []);
+      if (m.areas && m.areas.length) {
+        var camp = layer === 'camp', vi3 = camp ? 5 : 4, byS = {};
+        m.areas.forEach(function (a) { var b = byS[a[3]] = byS[a[3]] || { idp: 0, camp: 0, camps: 0 }; b.idp += a[4]; b.camp += a[5]; b.camps += a[6]; });
+        var totI = 0, totC = 0, totN = 0; Object.keys(byS).forEach(function (k) { totI += byS[k].idp; totC += byS[k].camp; totN += byS[k].camps; });
+        var rows2 = Object.keys(byS).filter(function (k) { return byS[k][camp ? 'camp' : 'idp'] > 0; }).sort(function (a, b) { return byS[b][camp ? 'camp' : 'idp'] - byS[a][camp ? 'camp' : 'idp']; });
+        var myA = here && here.areas ? here.areas : [];
+        cc.hasAreas = true;
+        cc.areaHead = (camp ? 'IDPs in camps' : 'IDPs') + ' by state · IOM DTM';
+        cc.areaRows = rows2.slice(0, 8).map(function (k) {
+          var b = byS[k], mine = myA.indexOf(k) >= 0;
+          return { name: k + (mine ? ' · named in this example' : ''), n: fmt(camp ? b.camp : b.idp), sw: 'width: 10px; height: 10px; border-radius: 2px; background: #b48ef0; opacity: ' + (0.3 + 0.7 * Math.sqrt((camp ? b.camp : b.idp) / (camp ? byS[rows2[0]].camp : byS[rows2[0]].idp))).toFixed(2) + '; align-self: center',
+            sub: camp ? b.camps + ' camp' + (b.camps === 1 ? '' : 's') : (b.camp ? fmt(b.camp) + ' in ' + b.camps + ' camp' + (b.camps === 1 ? '' : 's') + ', the rest with host communities or in other sites' : 'none in camps'),
+            subStyle: mine ? 'color: #e0a93b; font-weight: 500' : 'color: #8b98b3' };
+        });
+        cc.areaNote = 'IOM’s Displacement Tracking Matrix counted ' + fmt(totI) + ' IDPs at the sites it assessed, ' + fmt(totC) + ' of them in ' + totN + ' camps' + (rows2.length > 8 ? '; ' + (rows2.length - 8) + ' more states have fewer' : '') + '. DTM covers the north of the country, so this is not a national total. ' + m.areas_src;
+        var on2 = 'border-color: #4cc3c9; color: #4cc3c9';
+        cc.lyrA = camp ? '' : on2; cc.lyrB = camp ? on2 : ''; cc.lyrAOn = camp ? 'false' : 'true'; cc.lyrBOn = camp ? 'true' : 'false';
+        cc.setA = function () { self.setState({ ctyLayer: 'all' }); }; cc.setB = function () { self.setState({ ctyLayer: 'camp' }); };
+        cc.legend = [{ t: (camp ? 'IDPs in camps' : 'IDPs') + ' per local government area (darker = more)', sw: 'display: inline-block; width: 22px; height: 9px; background: linear-gradient(90deg, rgba(180,142,240,0.2), #b48ef0)' },
+          { t: 'white: IDP camp (UNHCR)', sw: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ffffff' }]
+          .concat(cc.legend.filter(function (x) { return !/^IDPs \(/.test(x.t) && !/ring: in communities/.test(x.t); }));
+        if (myA.length) cc.legend.push({ t: 'gold outline: ' + myA.join(', ') + ', named in this example', sw: 'display: inline-block; width: 9px; height: 9px; box-shadow: inset 0 0 0 2px #ffd166' });
+      }
+      cc.mapNote = 'UNHCR’s list of locations (gis.unhcr.org). A point is a place, not a count: one camp of 200,000 people and one town with a few families each show as one point.' + (m.off ? ' ' + m.off + ' further locations lie outside this view.' : '');
+    } else if (m === null) { cc.hasMap = false; }
+    else if (m && !m.w) { cc.hasMap = false; }
+    // methods
+    var MS = [['Census', 'census'], ['Survey', 'survey'], ['Administrative data', 'admin'], ['Data integration', 'integration']];
+    cc.methods = MS.map(function (mm) {
+      var n = ex.filter(function (e) { return e.method.indexOf(mm[0]) >= 0; }).length;
+      return { t: n ? n + ' ' + (mm[0] === 'Census' ? (n === 1 ? 'census' : 'censuses') : mm[0] === 'Survey' ? (n === 1 ? 'survey' : 'surveys') : mm[0].toLowerCase()) : 'No ' + mm[0].toLowerCase(), icon: self.icon(mm[1], n ? '#cfe0f4' : '#5a6884'), style: n ? '' : 'color: #8b98b3; border-style: dashed' };
+    });
+    var inferred = ex.filter(function (e) { return e.method_basis === 'title'; }).length;
+    cc.methodNote = 'An example can use more than one.' + (inferred ? ' For ' + inferred + ' example' + (inferred === 1 ? '' : 's') + ' from before GAIN 2024, which did not ask, the method is read from the title.' : '');
+    if (p.origins && p.origins.length) { cc.hasOrigins = true; cc.origins = p.origins.slice(0, 4).map(function (o) { return o.country + ' (' + fmt(o.people) + ')'; }).join(' · ') + (py ? ' · UNHCR, ' + py : ''); }
+    cc.copy = function () {
+      var url = location.href.split('#')[0] + '#country-' + p.iso;
+      var done = function () { self.setState({ copied: 'c' + p.iso }); };
+      try { navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); }); } catch (e) { window.prompt('Copy this link', url); }
+    };
+    cc.copyLabel = st.copied === 'c' + p.iso ? 'Link copied ✓' : 'Copy link to this country card';
+    cc.foot = 'Examples: GAIN Survey ' + y0 + '–2025 · People: UNHCR Refugee Data Finder, IDMC, UNRWA · Places: UNHCR GIS · Outlines: Natural Earth. Boundaries and names do not imply endorsement by the United Nations.' + (p.iso === 'XKX' ? ' *References to Kosovo are in the context of UN Security Council resolution 1244 (1999).' : '') + ' Data as of ' + doc.built + '.';
+    return cc;
   }
   renderVals() {
     var self = this;
@@ -1346,7 +1651,8 @@ class Component extends DCLogic {
       closeEx: function () { self.setState({ sel: -1, hover: null }); if (/^#example-/.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } },
       loading: !st.ready, labels: [], legend: [], chartTitle: '',
       pv: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', hasImg: false, img: '', imgAlt: '', chips: [], closable: false, hoverHint: false, hint: '', style: 'display: none' },
-      dr: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', style: 'display: none', grid: '', hasImg: false, img: '', imgAlt: '', figStyle: '', imgStyle: '', cap: '', desc: '', descStyle: '', pops: [], recs: [], hasRecs: false, recNote: '', hasRecNote: false, srcs: [], chs: [], similar: [], hasSimilar: false, similarWhy: '', copy: null, copyLabel: '', hasCases: false, cases: [], casesHead: '', hasOthers: false, othersHead: '', others: [], hasLink: false, link: '', linkText: '', hasCaseLink: false, caseLink: '', foot: '' },
+      dr: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', style: 'display: none', grid: '', hasImg: false, img: '', imgAlt: '', figStyle: '', imgStyle: '', cap: '', desc: '', descStyle: '', pops: [], recs: [], hasRecs: false, recNote: '', hasRecNote: false, srcs: [], chs: [], similar: [], hasSimilar: false, similarWhy: '', copy: null, copyLabel: '', hasCases: false, cases: [], casesHead: '', hasOthers: false, othersHead: '', others: [], hasCty: false, noCty: false, ctyName: '', ctyAria: '', metaA: '', metaB: '', openCty: null, ctyText: '', hasLink: false, link: '', linkText: '', hasCaseLink: false, caseLink: '', foot: '' },
+      cc: { show: false, hasAreas: false, areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, scrim: '', style: '', aria: '', back: null, backText: '', closeAll: null, region: '', name: '', sub: '', hasLede: false, lede: '', loading: false, years: [], hasPop: false, popHead: '', groups: [], popNote: '', hasMap: false, map: '', mapAlt: '', legend: [], mapNote: '', hasAreas: false, areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, methods: [], methodNote: '', hasOrigins: false, origins: '', copy: null, copyLabel: '', foot: '' },
       openFull: function () { var s3 = self.state || {}, sp = self.steps()[s3.active || 0]; if (sp && sp.feat != null) self.setState({ sel: sp.feat, hover: null }); },
       legendBox: 'display: none', exploreBox: 'display: none', seg: {}, mode: { text: '', style: 'display: none' }
     };
@@ -1491,7 +1797,7 @@ class Component extends DCLogic {
       var linkText = lnkRel ? 'Open a related source' : "Open the example's source";
       var host = lnk ? lnk.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] : '';
       if (pinned && !featured) {
-        if (location.hash !== '#example-' + (d.id + 1)) { try { history.replaceState(null, '', '#example-' + (d.id + 1)); } catch (e) {} }
+        if (!st.cty && location.hash !== '#example-' + (d.id + 1)) { try { history.replaceState(null, '', '#example-' + (d.id + 1)); } catch (e) {} }
         // a click: the full profile, on top of everything, page dimmed behind it
         var others = [];
         if (d.country) this.rows.forEach(function (r) { if (r.country === d.country && r.id !== d.id) others.push(r); });
@@ -1564,6 +1870,9 @@ class Component extends DCLogic {
           hasCases: csList.length > 0, cases: csList, casesHead: csHead,
           hasOthers: nOth > 0, othersHead: 'More from ' + (d.country || '') + ' in GAIN · ' + nOth + ' other example' + (nOth === 1 ? '' : 's') + ' · blue: country-led, teal: institution-led',
           others: others.slice(0, 12).map(function (r) { return { y: String(r.y), t: r.title.length > 110 ? r.title.slice(0, 107) + '…' : r.title, pick: self2._pick['e' + r.id], dot: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; align-self: center; background: ' + (r.lead ? '#4cc3c9' : '#5b8fd9') }; }),
+          hasCty: !!d.country, noCty: !d.country, ctyName: (d.country || 'Regional / global').toUpperCase(), ctyAria: 'Open the country card for ' + (d.country || ''),
+          metaA: 'GAIN ' + d.y + ' · ', metaB: ' · ' + (d.lead === 0 ? 'COUNTRY-LED' : 'INSTITUTION-LED'),
+          openCty: function () { self2.openCty(d.id + 1, null); }, ctyText: 'Open the ' + (d.country || '') + ' country card',
           hasLink: !!lnk, link: lnk, linkText: linkText + (lnkNews ? ' (news article)' : ''),
           hasCaseLink: csList.length > 0, caseLink: csList.length ? csList[0].url : '',
           foot: 'Source: GAIN Survey ' + d.y + (host ? ' · ' + host + (lnkRel ? ' (not this example\'s own document)' : '') : '') + (nParts > 1 ? ' · Multiple-choice answers: this example appears ' + nParts + ' times in the data sources and challenges charts' : '')
@@ -1604,7 +1913,7 @@ class Component extends DCLogic {
     return Object.assign(base, {
       yearBox: yearBox, ys: ys,
       loading: false, labels: labels, legend: legend, chartTitle: B ? B.title : '',
-      pv: pv, dr: dr, legendBox: legendBox, exploreBox: exploreBox, seg: seg,
+      pv: pv, dr: dr, cc: self.ctyCard(st, g), legendBox: legendBox, exploreBox: exploreBox, seg: seg,
       mode: (function () {
         // which rounds the chart shows: the latest round (GAIN 2025 now, 2026 next) or all rounds
         var bits = layout.split(':'), kind = bits[0], yv = bits[1], L = String(self.latest());
