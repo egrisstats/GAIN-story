@@ -194,6 +194,25 @@ svg text { fill: var(--ink-3); font: 400 var(--fs-s) "IBM Plex Sans", sans-serif
 .flow .dr .lab .sw { margin-right: 6px; }
 .rfoot { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; font-size: var(--fs-m); color: var(--ink-3); }
 a.btn { color: var(--ink); text-decoration: none; }
+/* decision tree diagram (alignment/review/tree.svg.html); each page maps --t-edit, --t-out, --t-al, --t-keep */
+.dtree { margin: 0 0 12px; }
+.dtree summary { cursor: pointer; color: var(--ink-2); font-size: var(--fs-s); width: max-content; }
+.dtree summary:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 2px; }
+.dtree .tbox { overflow-x: auto; margin-top: 8px; }
+.dtree svg { display: block; width: 100%; min-width: 620px; max-width: 760px; height: auto; }
+.dtree .tn { fill: var(--panel-2); stroke: var(--line); }
+.dtree .tstart { fill: none; stroke: var(--ink-3); stroke-dasharray: 3 3; }
+.dtree .tq { fill: var(--ink); font: 600 12px "IBM Plex Sans", system-ui, sans-serif; }
+.dtree .tnum { fill: var(--ink-3); font-family: "IBM Plex Mono", monospace; font-weight: 500; }
+.dtree .ts { fill: var(--ink-3); font: 400 10.5px "IBM Plex Sans", system-ui, sans-serif; }
+.dtree .tl { fill: var(--ink-2); font: 400 10.5px "IBM Plex Sans", system-ui, sans-serif; }
+.dtree .ta { fill: none; stroke: var(--ink-3); stroke-width: 1.2; }
+.dtree .tah { fill: var(--ink-3); }
+.dtree .tob { fill: var(--panel-2); stroke: var(--line); }
+.dtree .tot { fill: var(--ink); font: 600 11.5px "IBM Plex Sans", system-ui, sans-serif; }
+.dtree .o-edit .tos { fill: var(--t-edit); } .dtree .o-out .tos { fill: var(--t-out); }
+.dtree .o-al .tos { fill: var(--t-al); } .dtree .o-keep .tos { fill: var(--t-keep); }
+.dtree { --t-edit: var(--good); --t-out: var(--warn); --t-al: var(--irrs); --t-keep: var(--ink-3); }
 @media (max-width: 720px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow .arrow { transform: rotate(90deg); padding: 4px 0; } }
 
 .tbl-wrap { max-height: 420px; overflow: auto; border-top: 1px solid var(--line); }
@@ -369,6 +388,51 @@ footer a { color: var(--ink-2); }
       <div><h2 id="hAlign">Secretariat review of No and Don’t know answers</h2><div class="sub" id="alignSub">Each dot is an example that said No or Don’t know to the recommendations · the Secretariat checks each one with the decision tree</div></div>
     </div>
     <div class="steps" aria-label="The decision tree, in five steps"><span><b>1</b>Producing statistics?</span><i>→</i><span><b>2</b>Reason given?</span><i>→</i><span><b>3</b>Kind of example</span><i>→</i><span><b>4</b>Recommendation categories?</span><i>→</i><span><b>5</b>Score the evidence</span></div>
+    <details class="dtree"><summary>See the decision tree</summary><div class="tbox">
+<svg viewBox="0 0 680 556" role="img" aria-label="The alignment decision tree: five steps from a No or Don’t know answer to an outcome" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="tarr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="tah"/></marker></defs>
+<rect x="60" y="10" width="220" height="30" rx="15" class="tstart"/>
+<text x="170" y="29" text-anchor="middle" class="tq">Said No or Don’t know</text>
+<path d="M170,40 V62" class="ta" marker-end="url(#tarr)"/>
+<rect x="20" y="64" width="300" height="44" rx="6" class="tn"/>
+<text x="32" y="90.0" class="tq"><tspan class="tnum">1</tspan>  Producing statistics?</text>
+<path d="M320,86 H360 V86 H394" class="ta" marker-end="url(#tarr)"/>
+<text x="326" y="81" class="tl">No</text>
+<g class="to o-keep"><rect x="396" y="66" width="268" height="40" rx="6" class="tob"/><rect x="396" y="66" width="4" height="40" rx="2" class="tos"/><text x="410" y="83" class="tot">Keep the answer</text><text x="410" y="98" class="ts">Not statistics: flag for the validity check</text></g>
+<path d="M170,108 V148" class="ta" marker-end="url(#tarr)"/>
+<text x="178" y="133.0" class="tl">Yes</text>
+<rect x="20" y="150" width="300" height="44" rx="6" class="tn"/>
+<text x="32" y="176.0" class="tq"><tspan class="tnum">2</tspan>  What reason do they give?</text>
+<path d="M320,172 H360 V146 H394" class="ta" marker-end="url(#tarr)"/>
+<path d="M320,172 H360 V198 H394" class="ta" marker-end="url(#tarr)"/>
+<g class="to o-keep"><rect x="396" y="126" width="268" height="40" rx="6" class="tob"/><rect x="396" y="126" width="4" height="40" rx="2" class="tos"/><text x="410" y="143" class="tot">Keep the answer</text><text x="410" y="158" class="ts">They chose not to apply the recommendations</text></g>
+<g class="to o-out"><rect x="396" y="178" width="268" height="40" rx="6" class="tob"/><rect x="396" y="178" width="4" height="40" rx="2" class="tos"/><text x="410" y="195" class="tot">Keep the answer, send outreach</text><text x="410" y="210" class="ts">They don’t know the recommendations</text></g>
+<path d="M170,194 V260" class="ta" marker-end="url(#tarr)"/>
+<text x="178" y="222" class="tl">No reason, or another framework</text>
+<text x="178" y="236" class="tl">(another framework: +1 point, a sign of use)</text>
+<rect x="20" y="262" width="300" height="44" rx="6" class="tn"/>
+<text x="32" y="288.0" class="tq"><tspan class="tnum">3</tspan>  Kind of example</text>
+<text x="170" y="289" class="ts">sets which criteria count</text>
+<path d="M170,306 V338" class="ta" marker-end="url(#tarr)"/>
+<rect x="20" y="340" width="300" height="44" rx="6" class="tn"/>
+<text x="32" y="366.0" class="tq"><tspan class="tnum">4</tspan>  Recommendation categories?</text>
+<path d="M320,362 H360 V362 H394" class="ta" marker-end="url(#tarr)"/>
+<text x="326" y="357" class="tl">No</text>
+<g class="to o-keep"><rect x="396" y="342" width="268" height="40" rx="6" class="tob"/><rect x="396" y="342" width="4" height="40" rx="2" class="tos"/><text x="410" y="359" class="tot">Keep the answer</text><text x="410" y="374" class="ts">The populations can’t be told apart</text></g>
+<path d="M170,384 V418" class="ta" marker-end="url(#tarr)"/>
+<text x="178" y="406.0" class="tl">Yes</text>
+<rect x="20" y="420" width="300" height="64" rx="6" class="tn"/>
+<text x="32" y="438" class="tq"><tspan class="tnum">5</tspan>  Score the evidence</text>
+<text x="32" y="454" class="ts">Data 2 each · Practice 1 each</text>
+<text x="32" y="467" class="ts">Event 2 or 1 · Use 2 each (a sign of use)</text>
+<path d="M320,452 H360 V430 H394" class="ta" marker-end="url(#tarr)"/>
+<path d="M320,452 H360 V478 H394" class="ta" marker-end="url(#tarr)"/>
+<path d="M320,452 H360 V526 H394" class="ta" marker-end="url(#tarr)"/>
+<g class="to o-edit"><rect x="396" y="410" width="268" height="40" rx="6" class="tob"/><rect x="396" y="410" width="4" height="40" rx="2" class="tos"/><text x="410" y="427" class="tot">Edit and notify</text><text x="410" y="442" class="ts">Don’t know: 4+ points · No: 7+ and a sign of use</text></g>
+<g class="to o-al"><rect x="396" y="458" width="268" height="40" rx="6" class="tob"/><rect x="396" y="458" width="4" height="40" rx="2" class="tos"/><text x="410" y="475" class="tot">Record as aligned</text><text x="410" y="490" class="ts">4+ points, below that bar</text></g>
+<g class="to o-keep"><rect x="396" y="506" width="268" height="40" rx="6" class="tob"/><rect x="396" y="506" width="4" height="40" rx="2" class="tos"/><text x="410" y="523" class="tot">Keep the answer</text><text x="410" y="538" class="ts">Under 4 points: too little evidence</text></g>
+</svg>
+</div></details>
     <div class="flow">
       <div class="col"><div class="k">They answered</div><div id="alignIn" class="hbars"></div></div>
       <div class="arrow" aria-hidden="true">→</div>
