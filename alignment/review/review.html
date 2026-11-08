@@ -71,6 +71,9 @@ main { padding-block: 18px 48px; }
 .btn.primary:hover { filter: brightness(.95); }
 .btn:disabled { opacity: .45; cursor: default; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-m); min-width: 0; }
+.how { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; background: var(--band); border: 1px solid var(--line); border-left: 4px solid var(--teal); border-radius: var(--r-m); padding: 12px 16px; margin-bottom: 16px; }
+.how ol { margin: 6px 0; padding-left: 20px; display: grid; gap: 2px; font-size: var(--fs-s); }
+.how p { margin: 0; font-size: var(--fs-s); color: var(--ink-2); }
 .note { background: var(--outreach-bg); border: 1px solid var(--outreach); border-radius: var(--r-m); padding: 10px 12px; font-size: var(--fs-s); margin-bottom: 14px; }
 .empty { padding: 28px 18px; color: var(--ink-3); display: grid; gap: 6px; }
 .empty b { color: var(--ink); }
@@ -238,22 +241,28 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     <div class="mark"><span class="logo"><i aria-hidden="true"></i>EGRISS</span><span class="tag">GAIN 2026<br>Alignment review</span></div>
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-queue" aria-selected="true" data-view="queue">Review</button>
-      <button role="tab" id="tab-mails" aria-selected="false" data-view="mails">Email drafts</button>
-      <button role="tab" id="tab-sum" aria-selected="false" data-view="sum">Summary</button>
+      <button role="tab" id="tab-mails" aria-selected="false" data-view="mails">Emails to send</button>
+      <button role="tab" id="tab-sum" aria-selected="false" data-view="sum">Results</button>
     </nav>
   </div>
 </header>
 <div class="status"><div class="wrap" id="status">Loading the review queue…</div></div>
 
 <main class="wrap">
+  <section class="how" id="how" aria-labelledby="hHow">
+    <div><h2 id="hHow">How it works</h2>
+    <ol><li>Pick an example from the list, or click a dot.</li><li>Look at the evidence: what’s online, and how similar examples answered.</li><li>Answer five questions. The dot moves along the tube as you go.</li><li>Save. Emails to send collect under <b>Emails to send</b>.</li></ol>
+    <p>Suggestions are filled in for you, but every decision is yours. The respondent’s own answer is never changed.</p></div>
+    <button class="btn" id="howClose" aria-label="Close how it works">Got it</button>
+  </section>
   <div class="note" id="note" hidden></div>
 
   <section id="view-queue">
     <section class="panel tubep" aria-labelledby="hTube">
       <div class="ph">
         <div><h2 id="hTube">Every example through the decision tree</h2>
-          <div class="sub">Each dot is an example that said No or Don’t know. It waits on the left until someone opens it, moves through the tube as the questions are answered, and settles in a box once the decision is saved. Click a dot to open it.</div></div>
-        <div class="legend"><span><i style="background:var(--no)"></i>Said none were used</span><span><i style="background:var(--dk)"></i>Said Don’t know</span><span><i style="box-shadow:inset 0 0 0 2px var(--ink)"></i>Open now</span><span><i style="box-shadow:inset 0 0 0 2px var(--ink);border:1px dashed var(--ink)"></i>Dashed: not saved yet</span></div>
+          <div class="sub">Each dot is one example. Open one and it moves through the five questions. When you save, it lands in a box. Click a dot to open it.</div></div>
+        <div class="legend"><span><i style="background:var(--no)"></i>Said: not used</span><span><i style="background:var(--dk)"></i>Said: don’t know</span><span><i style="box-shadow:inset 0 0 0 2px var(--ink)"></i>Open now</span><span><i style="box-shadow:inset 0 0 0 2px var(--ink);border:1px dashed var(--ink)"></i>Dashed: not saved yet</span></div>
       </div>
       <div class="tubebox"><svg id="tube" viewBox="0 0 1000 300" role="img" aria-label="The review as a tube: examples waiting, the five questions, and boxes by outcome"></svg></div>
       <details class="dtree"><summary>See the decision tree as a diagram</summary><div class="tbox"><!--TREE--></div></details>
@@ -264,12 +273,12 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         <div class="qhead">
           <h2>Queue</h2>
           <label class="hint">Show <select id="qfilter">
-            <option value="open">Not reviewed</option>
+            <option value="open">To review</option>
             <option value="all">All</option>
-            <option value="edit">Edit and notify</option>
-            <option value="outreach">Send outreach</option>
-            <option value="aligned">Recorded as aligned</option>
-            <option value="keep">Answer kept</option>
+            <option value="edit">Count as using</option>
+            <option value="outreach">Send the recommendations</option>
+            <option value="aligned">Aligned</option>
+            <option value="keep">Keep their answer</option>
           </select></label>
         </div>
         <div id="qlist"><div class="empty"><b>Loading the review queue…</b><span>The examples appear here once the store answers.</span></div></div>
@@ -300,19 +309,21 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     IROSS: { name: 'International Recommendations on Statelessness Statistics', url: 'https://egrisstats.org/recommendations/international-recommendations-on-statelessness-statistics-iross/' }
   };
   var OUT = {
-    edit: { label: 'Edit and notify', cls: 'edit' }, outreach: { label: 'Send outreach', cls: 'outreach' },
-    aligned: { label: 'Recorded as aligned', cls: 'aligned' }, keep: { label: 'Answer kept', cls: 'keep' },
-    outscope: { label: 'Not statistics: validity check', cls: 'keep' }, deliberate: { label: 'Answer kept: chose not to apply', cls: 'keep' },
-    nocat: { label: 'Answer kept: no categories', cls: 'keep' }
+    edit: { label: 'Count as using · tell them', cls: 'edit' }, outreach: { label: 'Keep their answer · send the recommendations', cls: 'outreach' },
+    aligned: { label: 'Aligned · not counted as use', cls: 'aligned' }, keep: { label: 'Keep their answer', cls: 'keep' },
+    outscope: { label: 'Keep · not statistics (check if valid)', cls: 'keep' }, deliberate: { label: 'Keep · they chose not to use them', cls: 'keep' },
+    nocat: { label: 'Keep · no matching groups', cls: 'keep' }
   };
-  var ANS = { no: 'No', dk: 'Don’t know' };
+  var Q2 = { none: 'No reason given', other: 'They follow another framework (national law, EU Regulation 862/2007, UN migration recommendations)', unaware: 'They don’t know the recommendations', deliberate: 'They decided not to use them' };
+  var ANS = { no: 'Said: not used', dk: 'Said: don’t know' };
   var S = { spec: null, queue: {}, dec: {}, meta: null, sel: null, view: 'queue', filter: 'open', draft: null, db: null, user: null, me: null, names: {}, readOnly: false, loaded: false, decLoaded: false, peerTag: null, peerAll: false };
   var $ = function (id) { return document.getElementById(id); };
+  try { if (localStorage.getItem('gainReviewHowSeen')) $('how').hidden = true; } catch (x) {}
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function safeUrl(u) { return /^https?:\/\//i.test(String(u || '')) ? String(u) : null; }
   function outcomeOf(k) { var d = S.dec[k]; return d && d.outcome ? d.outcome : null; }
   function bucket(o) { return !o ? 'open' : (o === 'edit' || o === 'outreach' || o === 'aligned') ? o : 'keep'; }
-  function pill(o) { if (!o) return '<span class="pill open">Not reviewed</span>'; var x = OUT[o]; return '<span class="pill ' + x.cls + '">' + esc(x.label) + '</span>'; }
+  function pill(o) { if (!o) return '<span class="pill open">To review</span>'; var x = OUT[o]; return '<span class="pill ' + x.cls + '">' + esc(x.label) + '</span>'; }
   function note(msg) { var n = $('note'); n.textContent = msg || ''; n.hidden = !msg; }
   function listJoin(a) { return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
 
@@ -374,7 +385,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (!ks.length) { $('status').innerHTML = S.loaded ? 'No examples in the review yet.' : 'Loading the review queue…'; return; }
     var when = m && m.pulled_at ? new Date(m.pulled_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
     var web = m && m.context && m.context.web_searched_on;
-    $('status').innerHTML = '<span><b>' + ks.length + '</b> in the review' + (m ? ' of ' + m.examples + ' GAIN 2026 examples' : '') + '</span><span><b>' + open + '</b> not reviewed</span><span><b>' + (ks.length - open) + '</b> reviewed</span>' +
+    $('status').innerHTML = '<span><b>' + ks.length + '</b> in the review' + (m ? ' of ' + m.examples + ' GAIN 2026 examples' : '') + '</span><span><b>' + open + '</b> to review</span><span><b>' + (ks.length - open) + '</b> reviewed</span>' +
       (when ? '<span>Queue taken from Kobo on ' + esc(when) + '</span>' : '') + (web ? '<span>Web check run on ' + esc(web) + '</span>' : '') +
       '<span class="muted">Suggestions and checks are hints; every decision is yours.</span>';
   }
@@ -382,23 +393,22 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   // ---------- the tube ----------
   var NS = 'http://www.w3.org/2000/svg';
   var TY = 96, TH = 44, TX0 = 192, TX1 = 780, GATES = [240, 340, 520, 630, 730];
-  var GNAME = ['Statistics?', 'Reason', 'Kind', 'Categories?', 'Score'];
+  var GNAME = ['Is it statistics?', 'Why not?', 'What kind?', 'Right groups?', 'Enough evidence?'];
   var BINS = {
-    open: { x: 6, y: 40, w: 172, h: 214, label: 'Not reviewed', cls: 'open' },
-    outscope: { x: 196, y: 204, w: 88, h: 90, label: 'Not statistics', cls: 'keep', gate: 0 },
-    deliberate: { x: 292, y: 204, w: 86, h: 90, label: 'Not applied', cls: 'keep', gate: 1 },
-    outreach: { x: 384, y: 204, w: 90, h: 90, label: 'Outreach', cls: 'outreach', gate: 1 },
-    nocat: { x: 586, y: 204, w: 88, h: 90, label: 'No categories', cls: 'keep', gate: 3 },
-    edit: { x: 808, y: 6, w: 186, h: 92, label: 'Edit and notify', cls: 'edit' },
-    aligned: { x: 808, y: 104, w: 186, h: 92, label: 'Recorded as aligned', cls: 'aligned' },
-    keep: { x: 808, y: 202, w: 186, h: 92, label: 'Answer kept', cls: 'keep' }
+    open: { x: 6, y: 40, w: 172, h: 214, label: 'Waiting to review', cls: 'open' },
+    outscope: { x: 194, y: 204, w: 92, h: 90, label: 'Not statistics', cls: 'keep', gate: 0 },
+    deliberate: { x: 292, y: 204, w: 96, h: 90, label: 'Chose not to use', cls: 'keep', gate: 1 },
+    outreach: { x: 394, y: 204, w: 96, h: 90, label: 'Didn’t know them', cls: 'outreach', gate: 1 },
+    nocat: { x: 570, y: 204, w: 120, h: 90, label: 'No matching groups', cls: 'keep', gate: 3 },
+    edit: { x: 808, y: 6, w: 186, h: 92, label: 'Count as using', cls: 'edit' },
+    aligned: { x: 808, y: 104, w: 186, h: 92, label: 'Aligned', cls: 'aligned' },
+    keep: { x: 808, y: 202, w: 186, h: 92, label: 'Keep their answer', cls: 'keep' }
   };
   var tubeBuilt = false;
   function el(name, attrs, parent) { var e = document.createElementNS(NS, name); for (var a in attrs) e.setAttribute(a, attrs[a]); if (parent) parent.appendChild(e); return e; }
   function buildTube() {
     var svg = $('tube'); svg.innerHTML = '';
     var cy = TY + TH / 2;
-    el('text', { x: 8, y: 28, class: 'side' }, svg).textContent = 'Waiting';
     // chutes under the gates that have an exit, then the pipe on top
     [['outscope'], ['deliberate', 'outreach'], [], ['nocat']].forEach(function (outs, gi) {
       outs.forEach(function (o) { var b = BINS[o], bx = b.x + b.w / 2; el('path', { d: 'M' + GATES[gi] + ',' + (TY + TH) + ' V' + (TY + TH + 22) + ' H' + bx + ' V' + b.y, class: 'chute' }, svg); });
@@ -552,17 +562,17 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   function checks(q, res) {
     var rows = [], lean = [];
     var t = !res.outcome ? ['none', 'Answer the questions first'] : (res.outcome === 'edit' || res.outcome === 'aligned') ? ['supports', OUT[res.outcome].label + (res.score != null ? ', ' + res.score + ' points' : '')] : ['against', OUT[res.outcome].label + (res.score != null ? ', ' + res.score + ' points' : '')];
-    rows.push(['Decision tree', t]); if (t[0] !== 'none') lean.push(t[0]);
+    rows.push(['Questions', t]); if (t[0] !== 'none') lean.push(t[0]);
     var tag = defaultTag(q), ps = peersOf(q, tag), sh = ps.length ? ps.filter(peerUsed).length / ps.length : null;
     var name = { org: 'examples from the same organisation', country: 'examples from the same country', region_source: 'examples from the same region and source', source: 'examples with the same source' }[tag];
     var p = ps.length < 2 ? ['none', 'Too few similar examples'] : sh >= .6 ? ['supports', Math.round(sh * 100) + '% of ' + name + ' used them'] : sh <= .3 ? ['against', Math.round(sh * 100) + '% of ' + name + ' used them'] : ['mixed', Math.round(sh * 100) + '% of ' + name + ' used them'];
     rows.push(['Similar examples', p]); if (p[0] === 'supports' || p[0] === 'against') lean.push(p[0]);
     var w = q.web ? (SIG[q.web.signal] || SIG.unclear) : ['none', 'Not checked'];
-    var wl = [w[0], w[1]]; rows.push(['On the web', wl]); if (w[0] === 'supports' || w[0] === 'against') lean.push(w[0]);
+    var wl = [w[0], w[1]]; rows.push(['Web', wl]); if (w[0] === 'supports' || w[0] === 'against') lean.push(w[0]);
     var sup = lean.filter(function (x) { return x === 'supports'; }).length, ag = lean.length - sup;
-    var v = !lean.length ? 'Not enough to compare yet.' : !ag ? 'What we can check points to use of the recommendations.' : !sup ? 'What we can check points away from use.' : 'Mixed: the checks disagree, so look again at the evidence above before saving.';
-    return '<section class="card"><h3>Combined check</h3><div class="checks">' + rows.map(function (r) {
-      return '<div class="chk"><span class="w">' + r[0] + '</span><span>' + esc(r[1][1]) + '</span><span class="sig ' + r[1][0] + '">' + ({ supports: 'Use', against: 'No use', mixed: 'Mixed', unclear: 'Unclear', none: 'n/a' }[r[1][0]]) + '</span></div>';
+    var v = !lean.length ? 'Not enough to compare yet.' : !ag ? 'The checks agree: this looks like use of the recommendations.' : !sup ? 'The checks agree: this does not look like use.' : 'The checks disagree. Look again at the evidence before you save.';
+    return '<section class="card"><h3>Do the checks agree?</h3><div class="checks">' + rows.map(function (r) {
+      return '<div class="chk"><span class="w">' + r[0] + '</span><span>' + esc(r[1][1]) + '</span><span class="sig ' + r[1][0] + '">' + ({ supports: 'Suggests use', against: 'Suggests no use', mixed: 'Mixed', unclear: 'Unclear', none: 'Not enough' }[r[1][0]]) + '</span></div>';
     }).join('') + '</div><div class="verdict">' + esc(v) + '</div><div class="hint">A hint only: the decision is the reviewer’s, and the respondent’s answer is never overwritten.</div></section>';
   }
 
@@ -572,61 +582,61 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var spec = S.spec, a = S.draft, saved = S.dec[k];
     var h = '<div class="case"><div class="eyebrow">' + esc(q.organisation || '') + '</div><h2>' + esc(q.title) + '</h2><div class="meta"><span class="ans ' + (q.answer === 'dk' ? 'dk' : 'no') + '">' + esc(ANS[q.answer] || q.answer) + '</span>' +
       '<span>' + esc(q.country || 'Regional or global') + (q.region ? ' · ' + esc(q.region) : '') + '</span><span>' + esc(q.kind_name || q.source || '') + '</span>' + (q.phase ? '<span>' + esc(q.phase) + '</span>' : '') + pill(outcomeOf(k)) + '</div></div>';
-    h += '<div class="section-h"><span class="n">A</span><h3>Evidence</h3></div><div class="evidence">' + webCard(q) + peersCard(q) + '</div>';
-    var facts = [['Answer', (ANS[q.answer] || q.answer) + (q.answer_text ? ' (' + q.answer_text + ')' : '')], ['Source (PRO08)', [q.source, q.sources_more].filter(Boolean).join('; ')], ['Population (PRO07)', q.population],
-      ['Partners (PRO18)', q.partners], ['Publications they know (ACT04)', q.known_publications]];
-    h += '<details open><summary class="eyebrow" style="cursor:pointer">What they told us</summary><div style="display:grid;gap:10px;margin-top:8px"><div class="facts">' + facts.map(function (f) { return '<div class="fact"><div class="k">' + esc(f[0]) + '</div><div class="v">' + (f[1] ? esc(f[1]) : '<span class="muted">Not given</span>') + '</div></div>'; }).join('') + '</div>' +
-      '<div class="desc">' + (q.description ? esc(q.description) : '<span class="muted">No description given.</span>') + '</div></div></details>';
+    h += '<div class="section-h"><span class="n">1</span><h3>Look at the evidence</h3></div><div class="evidence">' + webCard(q) + peersCard(q) + '</div>';
+    var facts = [['Their answer', q.answer_text || ANS[q.answer] || q.answer, 'PRO09'], ['Data source', [q.source, q.sources_more].filter(Boolean).join('; '), 'PRO08'], ['Groups covered', q.population, 'PRO07'],
+      ['Partners', q.partners, 'PRO18'], ['Recommendations they know', q.known_publications, 'ACT04']];
+    h += '<details open><summary class="eyebrow" style="cursor:pointer">What they told us</summary><div style="display:grid;gap:10px;margin-top:8px"><div class="facts">' + facts.map(function (f) { return '<div class="fact"><div class="k" title="Kobo question ' + f[2] + '">' + esc(f[0]) + '</div><div class="v">' + (f[1] ? esc(f[1]) : '<span class="muted">Not given</span>') + '</div></div>'; }).join('') + '</div>' +
+      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : '<span class="muted">No description given.</span>') + '</div></div></details>';
     if (!spec) { box.innerHTML = '<div class="detail">' + h + '<div class="empty">Loading the decision tree…</div></div>'; return; }
     var res = decideFor(k, a);
     var reached = { q2: a.q1 === true, q3: a.q1 === true && spec.steps[1].options[a.q2 || 'none'].then === 'continue' };
     reached.q4 = reached.q3 && !!a.kind; reached.q5 = reached.q4 && a.q4 === true;
     var st = spec.steps, o2 = st[1].options;
-    var t = '<div class="section-h"><span class="n">B</span><h3 style="flex:1">The questions</h3>' + (q.suggest ? '<button class="btn" id="useSugg">Fill in the suggestions</button>' : '') + '</div><div class="tree">';
-    t += '<div class="step' + (a.q1 != null ? ' done' : '') + '"><div class="q"><span class="n">1</span><div><b>About producing statistics?</b><div class="hint">' + esc(st[0].question) + '</div></div></div>' + yesNo('q1', a.q1) + suggLine('q1', function (v) { return v ? 'Yes' : 'No'; }) + '</div>';
-    t += '<div class="step' + (reached.q2 ? ' done' : ' off') + '"><div class="q"><span class="n">2</span><div><b>What reason do they give?</b><div class="hint">In the description or the awareness questions.</div></div></div><div class="choice col">' +
-      Object.keys(o2).map(function (r) { return '<button data-set="q2" data-v="' + r + '" aria-pressed="' + ((a.q2 || (reached.q2 ? 'none' : '')) === r) + '"' + (reached.q2 ? '' : ' disabled') + '>' + esc(o2[r].label) + (o2[r].points ? ' <span class="hint">+' + o2[r].points + ' point, counts as a sign of use</span>' : '') + '</button>'; }).join('') +
-      '</div>' + suggLine('q2', function (v) { return o2[v] ? o2[v].label : v; }) + '</div>';
-    t += '<div class="step' + (reached.q3 ? (a.kind ? ' done' : '') : ' off') + '"><div class="q"><span class="n">3</span><div><b>Kind of example</b><div class="hint">' + esc(st[2].note || '') + '</div></div></div><select id="kind"' + (reached.q3 ? '' : ' disabled') + '><option value="">Choose…</option>' +
+    var t = '<div class="section-h"><span class="n">2</span><h3 style="flex:1">Answer the questions</h3>' + (q.suggest ? '<span class="hint">You can change any of them</span><button class="btn" id="useSugg">Use the suggestions</button>' : '') + '</div><div class="tree">';
+    t += '<div class="step' + (a.q1 != null ? ' done' : '') + '"><div class="q"><span class="n">1</span><div><b>Is this about producing statistics?</b><div class="hint">Yes for data, registers, surveys, censuses, or guidance and training on them. No for programmes that deliver aid or services (cash, health care, awareness).</div></div></div>' + yesNo('q1', a.q1) + suggLine('q1', function (v) { return v ? 'Yes' : 'No'; }) + '</div>';
+    t += '<div class="step' + (reached.q2 ? ' done' : ' off') + '"><div class="q"><span class="n">2</span><div><b>Do they say why they didn’t use the recommendations?</b><div class="hint">Look in their description and in their answers about the recommendations.</div></div></div><div class="choice col">' +
+      Object.keys(o2).map(function (r) { return '<button data-set="q2" data-v="' + r + '" aria-pressed="' + ((a.q2 || (reached.q2 ? 'none' : '')) === r) + '"' + (reached.q2 ? '' : ' disabled') + '>' + esc(Q2[r] || o2[r].label) + (o2[r].points ? ' <span class="hint">This counts toward use (+' + o2[r].points + ' point)</span>' : '') + '</button>'; }).join('') +
+      '</div>' + suggLine('q2', function (v) { return Q2[v] || (o2[v] ? o2[v].label : v); }) + '</div>';
+    t += '<div class="step' + (reached.q3 ? (a.kind ? ' done' : '') : ' off') + '"><div class="q"><span class="n">3</span><div><b>What kind of example is it?</b><div class="hint">Pick what it really is, even if their data source answer says otherwise.</div></div></div><select id="kind"' + (reached.q3 ? '' : ' disabled') + '><option value="">Choose…</option>' +
       Object.keys(spec.kinds).map(function (kk) { return '<option value="' + kk + '"' + (a.kind === kk ? ' selected' : '') + '>' + esc(spec.kinds[kk].name) + '</option>'; }).join('') + '</select>' + suggLine('kind', function (v) { return spec.kinds[v] ? spec.kinds[v].name : v; }) + '</div>';
-    t += '<div class="step' + (reached.q4 ? (a.q4 != null ? ' done' : '') : ' off') + '"><div class="q"><span class="n">4</span><div><b>Can the populations be told apart as recommendation categories?</b><div class="hint">' + esc(st[3].question) + '</div></div></div>' + (reached.q4 ? yesNo('q4', a.q4) : '') +
-      suggLine('q4', function (v) { return v ? 'Yes' : 'No'; }) + (reached.q4 ? '<label class="hint">Categories found: <select id="pops"><option value="">Choose…</option>' +
+    t += '<div class="step' + (reached.q4 ? (a.q4 != null ? ' done' : '') : ' off') + '"><div class="q"><span class="n">4</span><div><b>Does it count the groups the recommendations cover?</b><div class="hint">Refugees, asylum seekers, people under temporary protection, returnees, IDPs (including after disasters), stateless people. For training or events: is the topic refugee, IDP or statelessness statistics?</div></div></div>' + (reached.q4 ? yesNo('q4', a.q4) : '') +
+      suggLine('q4', function (v) { return v ? 'Yes' : 'No'; }) + (reached.q4 ? '<label class="hint">Which groups? <select id="pops"><option value="">Choose…</option>' +
       [['R', 'Refugees, asylum seekers, temporary protection, returnees (IRRS)'], ['I', 'IDPs (IRIS)'], ['S', 'Stateless people (IROSS)'], ['RI', 'IRRS and IRIS'], ['RS', 'IRRS and IROSS'], ['IS', 'IRIS and IROSS'], ['RIS', 'All three']]
         .map(function (p) { return '<option value="' + p[0] + '"' + (a.populations === p[0] ? ' selected' : '') + '>' + esc(p[1]) + '</option>'; }).join('') + '</select></label>' : '') + '</div>';
     if (reached.q5) {
       var crit = window.AlignmentRules.criteriaFor(spec, a.kind), sugT = {};
       ((q.suggest && q.suggest.ticks) || []).forEach(function (x) { sugT[x.id] = x.why; });
-      var groups = { distinctive: 'Distinctive markers · ' + spec.criteria.distinctive.points + ' points each', practice: 'Good practice for this source · ' + spec.criteria.practice.points + ' point each',
-        event: 'The event', use: 'Signs of use · ' + spec.criteria.use.points + ' points each' }, last = null, c5 = '';
+      var groups = { distinctive: 'Follows the recommendations’ approach · ' + spec.criteria.distinctive.points + ' points each', practice: 'Good practice · ' + spec.criteria.practice.points + ' point each',
+        event: 'The event', use: 'Signs they already use them · ' + spec.criteria.use.points + ' points each' }, last = null, c5 = '';
       crit.forEach(function (c) {
         if (c.group !== last) { last = c.group; c5 += '<div class="crit-group">' + esc(groups[c.group]) + '</div>'; }
         var on = a.ticks.indexOf(c.id) >= 0;
         c5 += '<div class="crit"><div><div>' + esc(c.text) + (c.group === 'event' ? ' <span class="hint">(' + c.points + ')</span>' : '') + '</div>' + (c.refs ? '<div class="refs">' + esc(c.refs) + '</div>' : '') +
           (sugT[c.id] ? '<div class="sugg">Suggested · ' + esc(sugT[c.id]) + '</div>' : '') + '</div><span class="yn"><button data-tick="' + c.id + '" data-v="1" aria-pressed="' + on + '">Yes</button><button data-tick="' + c.id + '" data-v="0" aria-pressed="' + !on + '">No</button></span></div>';
       });
-      t += '<div class="step done"><div class="q"><span class="n">5</span><div><b>Score the evidence</b><div class="hint">Tick what the example shows. The evidence above can count here: a similar example by the same organisation that used them is a sign of use.</div></div></div>' + c5 + '</div>';
+      t += '<div class="step done"><div class="q"><span class="n">5</span><div><b>How much evidence is there?</b><div class="hint">Tick only what you can see in their answers, the web results or similar examples. A similar example by the same organisation that used them counts as a sign they already use them.</div></div></div>' + c5 + '</div>';
     }
     t += '</div>';
-    var c = '<div class="section-h"><span class="n">C</span><h3>Check and save</h3></div>' + checks(q, res);
+    var c = '<div class="section-h"><span class="n">3</span><h3>Check and save</h3></div>' + checks(q, res);
     var r = '';
     if (res.outcome) {
       var x = OUT[res.outcome], need = res.need, max = need ? Math.max(need + 3, res.score || 0) : 0;
       r = '<div class="result ' + x.cls + '"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="pill ' + x.cls + '">' + esc(x.label) + '</span><span class="hint">' + esc(spec.outcomes[res.outcome].detail) + '</span></div>';
       if (res.score != null) {
-        var bar = q.answer === 'no' ? 'Edit at ' + need + ' or more, including a sign of use' : 'Edit at ' + need + ' or more';
-        r += '<div class="scoreline"><span><b>' + res.score + '</b> points' + (q.answer === 'no' ? (res.use_sign ? ' · sign of use ticked' : ' · no sign of use yet') : '') + '</span><span class="hint">' + esc(bar) + '; ' + spec.thresholds.aligned_min + ' or more records it as aligned</span></div>' +
+        var amin = spec.thresholds.aligned_min, bar = need + ' points or more' + (q.answer === 'no' ? ', with a sign of use' : '') + ': count as using.' + (amin < need ? ' ' + amin + ' to ' + (need - 1) + ': aligned.' : '');
+        r += '<div class="scoreline"><span><b>' + res.score + '</b> points' + (q.answer === 'no' ? (res.use_sign ? ' · sign of use ticked' : ' · no sign of use yet') : '') + '</span><span class="hint">' + esc(bar) + '</span></div>' +
           '<div class="bar" aria-hidden="true"><i style="width:' + Math.min(100, 100 * res.score / max) + '%"></i><u style="left:' + (100 * need / max) + '%"></u></div>';
       }
-      if (res.fill) r += '<details><summary>Fields this fills</summary><div class="hint">PRO09_reviewed = 1 · PRO10_reviewed = ' + esc(res.fill.PRO10_reviewed || 'choose the categories in step 4') + ' · PRO12_reviewed = ' + esc(res.fill.PRO12_reviewed.join('; ') || 'none') + ' · review_source = ' + esc(res.fill.review_source) + '. PRO09 as reported stays unchanged.</div></details>';
+      if (res.fill) r += '<details><summary>What gets recorded</summary><div class="hint" title="PRO09_reviewed, PRO10_reviewed, PRO12_reviewed, review_source">Uses the recommendations: yes (after review) · Which: ' + esc(res.fill.PRO10_reviewed || 'choose the groups in question 4') + ' · How: ' + esc(res.fill.PRO12_reviewed.join('; ') || 'nothing ticked') + ' · Source: Secretariat review, respondent told. Their original answer stays as it was.</div></details>';
       r += '</div>';
     } else {
-      r = '<div class="result"><span class="hint">Answer step ' + ({ q1: 1, q3: 3, q4: 4 }[res.step] || '') + ' to see the outcome.</span></div>';
+      r = '<div class="result"><span class="hint">Answer question ' + ({ q1: 1, q3: 3, q4: 4 }[res.step] || '') + ' to see where this example goes.</span></div>';
     }
     var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) : 'Not saved yet';
     var nxt = nextOpen(k), can = !!res.outcome && !S.readOnly;
     var noteBox = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>';
     var save = '<div class="save"><button class="btn primary" id="saveNext"' + (can && nxt ? '' : ' disabled') + ' title="' + (nxt ? 'Save, then open the next example not reviewed yet' : 'No other example is waiting') + '">Save and go to next</button>' +
-      '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Clear the decision</button>' : '') +
+      '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Undo this decision</button>' : '') +
       '<span class="savest" id="saveStatus">' + esc(S.readOnly ? 'You can read this review but not save decisions.' : who) + '</span></div>';
     box.innerHTML = '<div class="detail">' + h + t + c + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
   }
@@ -641,7 +651,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var by = {};
     keys().forEach(function (k) { var o = outcomeOf(k); if (o === 'edit' || o === 'outreach') { var q = S.queue[k]; (by[q.organisation] = by[q.organisation] || []).push(k); } });
     var orgs = Object.keys(by).sort();
-    if (!orgs.length) { $('mails').innerHTML = '<div class="panel empty"><b>No drafts yet.</b><span>A draft appears here for each organisation with at least one example saved as Edit and notify or Send outreach. One email covers all of its examples.</span></div>'; return; }
+    if (!orgs.length) { $('mails').innerHTML = '<div class="panel empty"><b>No drafts yet.</b><span>A draft appears here for each organisation with at least one example saved as Count as using or Send the recommendations. One email covers all of its examples.</span></div>'; return; }
     $('mails').innerHTML = orgs.map(function (org, i) {
       var ks = by[org], edits = ks.filter(function (k) { return outcomeOf(k) === 'edit'; }), outs = ks.filter(function (k) { return outcomeOf(k) === 'outreach'; });
       var parts = [];
@@ -694,7 +704,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var m = S.meta || {}, total = m.examples || 0, inRev = ks.length, using = total - inRev;
     var pct = function (n) { return total ? Math.round(100 * n / total) + '%' : '0%'; };
     var after = using + (c.edit || 0), aligned = after + (c.aligned || 0);
-    $('figs').innerHTML = [['Use as reported', using, 'examples whose respondent named a recommendation'], ['Use after review', after, 'adds ' + (c.edit || 0) + ' edited and notified'], ['Alignment', aligned, 'adds ' + (c.aligned || 0) + ' recorded as aligned']]
+    $('figs').innerHTML = [['Using, as they told us', using, 'examples where the respondent named a recommendation'], ['Using, after our review', after, 'adds ' + (c.edit || 0) + ' counted as using after review'], ['Using or aligned', aligned, 'adds ' + (c.aligned || 0) + ' aligned']]
       .map(function (f) { return '<div class="panel fig"><span>' + esc(f[0]) + '</span><b>' + pct(f[1]) + '</b><span>' + f[1] + ' of ' + total + ' examples · ' + esc(f[2]) + '</span></div>'; }).join('');
     var row = function (label, ks2, color, filled) {
       return '<div class="fr"><span>' + (filled ? '<i class="sw" style="background:' + color + '"></i>' : '') + esc(label) + '</span><span class="pts">' +
@@ -702,11 +712,11 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         '</span><span class="n">' + ks2.length + '</span></div>';
     };
     var by = function (f) { return ks.filter(f); };
-    var ins = [['no', 'None of these were used', 'var(--no)'], ['dk', 'Don’t know', 'var(--dk)']].map(function (a) { var x = by(function (k) { return S.queue[k].answer === a[0]; }); return x.length ? row(a[1], x, a[2], false) : ''; }).join('');
-    var outs = [['open', 'Not reviewed yet', 'var(--ink-3)']].concat(Object.keys(OUT).map(function (o) { return [o, OUT[o].label, 'var(--' + ({ edit: 'edit', outreach: 'outreach', aligned: 'aligned' }[o] || 'keep') + ')']; }))
+    var ins = [['no', 'Said: not used', 'var(--no)'], ['dk', 'Said: don’t know', 'var(--dk)']].map(function (a) { var x = by(function (k) { return S.queue[k].answer === a[0]; }); return x.length ? row(a[1], x, a[2], false) : ''; }).join('');
+    var outs = [['open', 'To review', 'var(--ink-3)']].concat(Object.keys(OUT).map(function (o) { return [o, OUT[o].label, 'var(--' + ({ edit: 'edit', outreach: 'outreach', aligned: 'aligned' }[o] || 'keep') + ')']; }))
       .map(function (o) { var x = by(function (k) { return (outcomeOf(k) || 'open') === o[0]; }); return x.length ? row(o[1], x, o[2], true) : ''; }).join('');
     $('sumflow').innerHTML = ks.length ? '<div class="flow"><div><div class="k">They answered</div>' + ins + '</div><div class="arrow" aria-hidden="true">→</div><div><div class="k">After the review</div>' + outs + '</div></div>' +
-      '<p class="hint" style="margin:10px 0 0">Each dot is an example; hover for its title. Use as reported counts the examples outside this review, where the respondent named a recommendation. Secretariat-filled PRO12 stays out of any elements-used table unless the respondent confirmed it.</p>'
+      '<p class="hint" style="margin:10px 0 0">Each dot is an example; hover for its title. Using, as they told us, counts the examples outside this review, where the respondent named a recommendation. Secretariat-filled PRO12 stays out of any elements-used table unless the respondent confirmed it.</p>'
       : '<div class="empty"><b>Nothing in the review yet.</b><span>Examples that said No or Don’t know appear here once the queue is loaded.</span></div>';
   }
 
@@ -735,6 +745,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       (s.ticks || []).forEach(function (t) { if (ok.indexOf(t.id) >= 0 && S.draft.ticks.indexOf(t.id) < 0) S.draft.ticks.push(t.id); });
       renderDetail(); renderTube(); return;
     }
+    if (b.id === 'howClose') { $('how').hidden = true; try { localStorage.setItem('gainReviewHowSeen', '1'); } catch (x) {} return; }
     if (b.id === 'saveBtn') { save(); return; }
     if (b.id === 'saveNext') { var nx = nextOpen(S.sel); save(function () { if (nx) { select(nx); $('detail').scrollIntoView({ block: 'start' }); } }); return; }
     if (b.id === 'clearBtn') { clearDecision(); return; }
