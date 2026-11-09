@@ -71,7 +71,9 @@ main { padding-block: 18px 48px; }
 .btn.primary:hover { filter: brightness(.95); }
 .btn:disabled { opacity: .45; cursor: default; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-m); min-width: 0; }
-.how { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; background: var(--band); border: 1px solid var(--line); border-left: 4px solid var(--teal); border-radius: var(--r-m); padding: 12px 16px; margin-bottom: 16px; }
+.how { background: var(--band); border: 1px solid var(--line); border-left: 4px solid var(--teal); border-radius: var(--r-m); padding: 10px 16px; margin-bottom: 16px; }
+.how summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.how[open] summary { margin-bottom: 4px; }
 .how ol { margin: 6px 0; padding-left: 20px; display: grid; gap: 2px; font-size: var(--fs-s); }
 .key { white-space: nowrap; color: var(--ink-2); margin-left: 6px; }
 .key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
@@ -303,15 +305,11 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 <div class="status"><div class="wrap" id="status">Loading the review queue…</div></div>
 
 <main class="wrap">
-  <section class="how" id="how" aria-labelledby="hHow">
-    <div><h2 id="hHow">How it works</h2>
-    <ol><li>Pick an example from the list, or click a dot. <span class="key"><i style="background:var(--no)"></i>coral: they said the recommendations were not used</span> <span class="key"><i style="background:var(--dk)"></i>blue: they said they don’t know</span></li><li>Look at the evidence: what’s online, and how similar examples answered.</li><li>Answer three quick questions, then go through the checklist of what the example shows. The dot moves along the tube as you go.</li><li>Save. Emails to send collect under <b>Emails to send</b>.</li></ol>
-    <p>Suggestions are filled in for you, but every decision is yours. The respondent’s own answer is never changed.</p></div>
-    <button class="btn" id="howClose" aria-label="Close how it works">Got it</button>
-  </section>
   <div class="note" id="note" hidden></div>
 
   <section id="view-queue">
+    <details class="how" data-how="queue" open><summary>How to use this page</summary><ol><li>Pick an example from the <b>Queue</b>, or click a dot in the tube. <span class="key"><i style="background:var(--no)"></i>coral: said not used</span> <span class="key"><i style="background:var(--dk)"></i>blue: said don’t know</span></li><li>Look at the evidence: the <b>Online</b> card and <b>Similar examples</b>.</li><li>Answer the three questions in <b>Before you start</b>, then go through the checklist of what the example shows.</li><li>Check <b>Do the checks agree?</b>, read or edit <b>Why we decided this</b>, then press <b>Save and go to next</b>.</li></ol><p>Suggestions are filled in for you, but every decision is yours. Their own answer is never changed.</p></details>
+
     <section class="panel tubep" aria-labelledby="hTube">
       <div class="ph">
         <div><h2 id="hTube">Every example through the decision tree</h2>
@@ -344,6 +342,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   </section>
 
   <section id="view-over" hidden>
+    <details class="how" data-how="over" open><summary>How to use this page</summary><ol><li>Each row is one example. Use <b>Show</b> to see only those to review, or those already reviewed.</li><li>Read across the row: what they said, what the same organisation and country used before, how similar examples answered, and what is online.</li><li>Click a row to open that example in <b>Review</b>.</li><li>Scroll down to <b>By country</b> to see which recommendations each country used from 2021 to 2026.</li></ol></details>
+
     <div class="panel overp"><div class="ph"><div><h2>Every example in the review, and which recommendations were used before</h2>
       <div class="sub">One row per example: what they answered, which recommendations the same organisation and the same country used in earlier GAIN rounds, how similar examples in the region were answered, and what the documents online show. Click a row to open it.</div></div>
       <label class="hint">Show <select id="ofilter"><option value="all">All</option><option value="open">To review</option><option value="done">Reviewed</option></select></label></div>
@@ -351,9 +351,13 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     <div class="panel overp" style="margin-top:16px"><div class="ph"><div><h2>By country</h2><div class="sub">GAIN 2021 to 2026 examples from each country in the review, by the recommendation they used.</div></div></div><div id="overcty"></div></div>
   </section>
 
-  <section id="view-mails" hidden><div class="mails" id="mails"></div></section>
+  <section id="view-mails" hidden>
+    <details class="how" data-how="mails" open><summary>How to use this page</summary><ol><li>A draft appears here, one per organisation, after you save a decision that needs an email.</li><li>Read the draft. The checklist lines and the similar examples below it show why it says what it says.</li><li>Press <b>Copy draft</b> and paste it into your own email. Nothing is sent from this page.</li><li>After you send it, press <b>Mark as sent today</b> so colleagues don’t send it twice.</li></ol><p>Emails are drafts only. Check them before you send.</p></details>
+<div class="mails" id="mails"></div></section>
 
   <section id="view-sum" hidden>
+    <details class="how" data-how="sum" open><summary>How to use this page</summary><ol><li>The figures at the top show the share of examples using the recommendations: as they told us, after our review, and using or aligned.</li><li>Below, see where each example ended up after the review.</li><li>The numbers update as soon as anyone saves a decision.</li></ol></details>
+
     <div class="figs" id="figs"></div>
     <div class="panel" style="margin-top:14px"><div id="sumflow"></div></div>
   </section>
@@ -383,7 +387,10 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   var ANS = { no: 'Said: not used', dk: 'Said: don’t know' };
   var S = { spec: null, queue: {}, dec: {}, meta: null, sel: null, view: 'queue', filter: 'open', draft: null, db: null, user: null, me: null, names: {}, readOnly: false, loaded: false, decLoaded: false, peerTag: null, peerAll: false };
   var $ = function (id) { return document.getElementById(id); };
-  try { if (localStorage.getItem('gainReviewHowSeen')) $('how').hidden = true; } catch (x) {}
+  document.querySelectorAll('details.how').forEach(function (d) {
+    try { if (localStorage.getItem('gainHowClosed_' + d.dataset.how)) d.open = false; } catch (x) {}
+    d.addEventListener('toggle', function () { try { if (d.open) localStorage.removeItem('gainHowClosed_' + d.dataset.how); else localStorage.setItem('gainHowClosed_' + d.dataset.how, '1'); } catch (x) {} });
+  });
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function safeUrl(u) { return /^https?:\/\//i.test(String(u || '')) ? String(u) : null; }
   function outcomeOf(k) { var d = S.dec[k]; return d && d.outcome ? d.outcome : null; }
@@ -978,7 +985,6 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       renderDetail(); renderTube(); return;
     }
     if (b.id === 'whyReset' && S.draft) { delete S.draft.rationale; renderDetail(); return; }
-    if (b.id === 'howClose') { $('how').hidden = true; try { localStorage.setItem('gainReviewHowSeen', '1'); } catch (x) {} return; }
     if (b.id === 'saveBtn') { save(); return; }
     if (b.id === 'saveNext') { var nx = nextOpen(S.sel); save(function () { if (nx) { select(nx); $('detail').scrollIntoView({ block: 'start' }); } }); return; }
     if (b.id === 'clearBtn') { clearDecision(); return; }
