@@ -1350,6 +1350,13 @@ class Component extends DCLogic {
       if (mh && self.rows[+mh[1] - 1]) self.setState({ sel: +mh[1] - 1, sx: null, sy: null, hover: null });
       var mc = /^#country-([A-Za-z]{3})$/.exec(location.hash || '');
       if (mc) self.openCty(null, mc[1].toUpperCase());
+      // follow later changes to the address too (a pasted #country-XXX or #example-N link)
+      self.onHash = function () {
+        var h = location.hash || '', c2 = /^#country-([A-Za-z]{3})$/.exec(h), e2 = /^#example-(\d+)$/.exec(h), st4 = self.state || {};
+        if (c2) { var k2 = c2[1].toUpperCase(); if (!st4.cty || (st4.cty.iso || (self.ctyOf || {})[st4.cty.ex]) !== k2) self.openCty(null, k2); }
+        else if (e2 && self.rows[+e2[1] - 1] && st4.sel !== +e2[1] - 1) self.setState({ cty: null, sel: +e2[1] - 1, sx: null, sy: null, hover: null });
+      };
+      window.addEventListener('hashchange', self.onHash);
     }).catch(function () { self.setState({ failed: true }); });
     this.measure();
     this.raf = requestAnimationFrame(this.tickFn);
@@ -1357,6 +1364,7 @@ class Component extends DCLogic {
   componentWillUnmount() {
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.onResize);
+    if (this.onHash) window.removeEventListener('hashchange', this.onHash);
   }
   go(i) {
     var n = this.steps().length;

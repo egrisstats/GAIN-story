@@ -45,10 +45,14 @@ GAIN asked about data sources and population groups only from 2024; for earlier 
 | DR Congo | OCHA population movements, people still displaced (June 2026) | IDPs per territory, switch to sites and collective centres |
 | Ukraine | IOM DTM IDP estimates R24 (June 2026) | IDPs per oblast |
 | Mali | IOM DTM baseline assessment R83 | IDPs per cercle |
+| Afghanistan, Central African Republic, Haiti, Libya, Mozambique, Sudan, Syria, Yemen | IOM DTM, HDX's standard “IOM DTM data for admin levels 0–2” file per country: the latest round of each operation | IDPs per district (or locality, commune, sub-prefecture, municipality) |
 
 Areas are OCHA's common boundaries (HDX `cod-ab-*`), matched by area code. Areas or regions named in an example are
-outlined in gold. Not included: Haiti and Mozambique (their current files are not openly downloadable), Chad (area
-codes do not match the boundaries), and countries whose site lists are years old (South Sudan, Sudan, Syria, Burkina Faso).
+outlined in gold. For the standard DTM files the build checks each country: area codes must match the boundaries (80% of IDPs or more),
+the area figures must add up to the province figures, and the total may not exceed 1.6 times UNHCR's or IDMC's figure.
+Left out for now: South Sudan (its file double-counts), Bangladesh, Sri Lanka, Malawi, Zambia, Zimbabwe, Kenya, Burundi
+and Pakistan (short disaster displacement far above the IDP stock), and Chad, Cameroon, Iraq, Uganda and the
+Philippines (area codes do not match). Where two DTM operations cover the same areas, only the larger is used.
 The files are Excel, so the build needs `openpyxl` (`pip install openpyxl`); without it the cards show UNHCR's points only.
 
 ## Updating the design artifact

@@ -333,6 +333,82 @@ def layer_som():
             'who': 'the CCCM Cluster Somalia (camp coordination and camp management)', 'src': 'CCCM Cluster Somalia, ' + re.sub(r'\.xlsx?$', '', name, flags=re.I),
             'cover': 'Verified IDP sites; people living outside sites, with host families or renting, are not in this list.'}
 
+
+# Every other country IOM DTM reports on, through HDX's standard "IOM DTM data for admin levels 0-2" files
+# (one per country, one row per area, operation and round). For each operation (variants such as "(Overview)" and
+# "(Monthly)" count as one) the latest round is used, at the finest admin level it reports.
+WORDS = {'SDN': ('state', 'locality'), 'SSD': ('state', 'county'), 'YEM': ('governorate', 'district'), 'AFG': ('province', 'district'),
+         'SYR': ('governorate', 'district'), 'IRQ': ('governorate', 'district'), 'CMR': ('region', 'department'), 'TCD': ('province', 'department'),
+         'HTI': ('department', 'commune'), 'MOZ': ('province', 'district'), 'CAF': ('prefecture', 'sub-prefecture'), 'BFA': ('region', 'province'),
+         'LBY': ('region', 'municipality'), 'PAK': ('province', 'district'), 'BDI': ('province', 'commune'), 'DJI': ('region', 'district'),
+         'KEN': ('county', 'sub-county'), 'UGA': ('region', 'district'), 'ZWE': ('province', 'district'), 'ZMB': ('province', 'district'),
+         'PHL': ('region', 'province'), 'IDN': ('province', 'regency'), 'BGD': ('division', 'district'), 'LBN': ('governorate', 'district'),
+         'GTM': ('department', 'municipality'), 'HND': ('department', 'municipality'), 'SLV': ('department', 'municipality'),
+         'ECU': ('province', 'canton'), 'PER': ('region', 'province'), 'LKA': ('province', 'district'), 'LAO': ('province', 'district'),
+         'ARM': ('province', 'community'), 'ZAF': ('province', 'district')}
+def layer_dtm_api(iso3):
+    import csv
+    name, f = hdx_res(iso3.lower() + '-iom-dtm-from-api', 0, 'dtmapi_' + iso3)
+    rows = list(csv.DictReader(open(f, encoding='utf-8-sig')))
+    base = lambda op: re.sub(r'\s*\(.*?\)\s*$', '', op or '').strip()
+    latest = {}
+    for r in rows:
+        if r.get('operationStatus') not in ('Active', '') or not r.get('reportingDate'):
+            continue
+        k = (r['operation'], r['reportingDate'][:10], r['adminLevel'])
+        latest.setdefault(base(r['operation']), {}).setdefault(k, []).append(r)
+    picked, dates = [], []
+    for b, sets in latest.items():
+        # newest round of this operation; at that date, the finest admin level; among variants, the one covering most areas
+        top = max(k[1] for k in sets)
+        cands = [k for k in sets if k[1] == top]
+        lvl = max(int(k[2] or 0) for k in cands)
+        cands = [k for k in cands if int(k[2] or 0) == lvl]
+        k = max(cands, key=lambda k: len(set(x['admin%dPcode' % lvl] if lvl else 'all' for x in sets[k])))
+        picked.append((lvl, sets[k], k[0], top)); dates.append(top)
+    if not picked:
+        return None
+    newest = max(dates)
+    picked = [p_ for p_ in picked if p_[3] >= str(int(newest[:4]) - 2) + newest[4:] and p_[0] >= 1]
+    if not picked:
+        return None
+    lvl = min(p_[0] for p_ in picked)   # one level for the whole map
+    # operations can overlap (a national one and a local one): keep the largest, add others only where they cover other areas
+    picked.sort(key=lambda p_: -sum(num_(r['numPresentIdpInd']) for r in p_[1]))
+    keep, seen_ = [], set()
+    for p_ in picked:
+        codes = {r['admin%dPcode' % lvl] for r in p_[1] if r['admin%dPcode' % lvl]}
+        if not keep or not (codes & seen_):
+            keep.append(p_); seen_ |= codes
+    picked = keep
+    inconsistent = False
+    for l_, rs, op, d_ in picked:
+        if l_ == 2:
+            up = [r for r in rows if r['operation'] == op and r['reportingDate'][:10] == d_ and r['adminLevel'] == '1']
+            s1, s2 = sum(num_(r['numPresentIdpInd']) for r in up), sum(num_(r['numPresentIdpInd']) for r in rs)
+            if s1 and abs(s2 - s1) > 0.15 * s1:
+                inconsistent = True
+    by = {}
+    for l_, rs, op, d_ in picked:
+        for r in rs:
+            pc = r['admin%dPcode' % lvl]
+            if pc:
+                by.setdefault(pc, {'idp': 0, 'camp': 0, 'camps': 0})['idp'] += num_(r['numPresentIdpInd'])
+    if sum(a['idp'] for a in by.values()) < 1000:
+        return None
+    ops = sorted({(op, d_[:7]) for l_, rs, op, d_ in picked}, key=lambda x: x[1], reverse=True)
+    month = lambda ym: time.strftime('%B %Y', time.strptime(ym, '%Y-%m'))
+    par, unit = WORDS.get(iso3, ('region', 'district'))
+    return {'kind': 'areas', 'level': lvl, 'by': by, 'camp': False, 'parent': par, 'unit': unit if lvl == 2 else par,
+            'who': 'IOM’s Displacement Tracking Matrix (DTM)',
+            'src': 'IOM DTM, ' + '; '.join('%s (%s)' % (op, month(d_)) for op, d_ in ops),
+            'cover': 'The latest round of each DTM operation in the country; DTM may not cover every area.', 'inconsistent': inconsistent}
+
+def match_rate(Ly, adm):
+    codes = {f['properties']['adm%d_pcode' % Ly['level']] for f in adm['features']}
+    tot = sum(a['idp'] for a in Ly['by'].values()) or 1
+    return sum(a['idp'] for k, a in Ly['by'].items() if k in codes) / tot
+
 LAYERS = {}
 try:
     import openpyxl  # noqa: F401
@@ -344,6 +420,40 @@ try:
             LAYERS[iso_] = L_
         except Exception as e:  # one country failing should not stop the rest
             print('no IDP layer for', iso_, '-', e)
+    # the standard DTM files, for the GAIN countries without a layer above
+    gain_iso = {iso_of(e[3]) for e in ex if e[3]}
+    for iso_ in sorted(gain_iso - set(LAYERS)):
+        if not iso_:
+            continue
+        miss_f = os.path.join(CACHE, 'dtm_missing.json')
+        missing = json.load(open(miss_f)) if os.path.exists(miss_f) and not REFRESH else []
+        if iso_ in missing:
+            continue   # no DTM file for this country (remembered, so later runs do not ask again)
+        try:
+            get('https://data.humdata.org/api/3/action/package_show?id=' + iso_.lower() + '-iom-dtm-from-api', 'hdx_' + iso_.lower() + '-iom-dtm-from-api')
+        except Exception:
+            json.dump(sorted(set(missing + [iso_])), open(miss_f, 'w'))
+            continue
+        try:
+            L_ = layer_dtm_api(iso_)
+            if not L_:
+                print('DTM', iso_, ': no recent sub-national figures'); continue
+            # sanity: no more than 1.6 times what UNHCR and IDMC report (screens out duplicated files and short disaster evacuations)
+            tot_ = sum(a['idp'] for a in L_['by'].values())
+            ref_ = max([v.get('idps', 0) for y, v in sorted(popby.get(iso_, {}).items())][-1:] + [v for y, v in sorted(idmcby.get(iso_, {}).items())][-1:] + [0])
+            if not ref_ or tot_ > 1.6 * ref_:
+                print('DTM', iso_, ': %s IDPs against %s from UNHCR/IDMC, left out' % (format(tot_, ','), format(ref_, ','))); continue
+            if L_.get('inconsistent'):
+                print('DTM', iso_, ': area figures do not add up to the province figures, left out'); continue
+            L_['adm'] = cod_ab(iso_, L_['level'])
+            r_ = match_rate(L_, L_['adm'])
+            if r_ < 0.8:
+                print('DTM', iso_, ': area codes match only %d%%, left out' % (r_ * 100)); continue
+            L_['adm1'] = cod_ab(iso_, 1)
+            LAYERS[iso_] = L_
+            print('DTM', iso_, ': %s IDPs, level %d, codes match %d%%' % (format(sum(a['idp'] for a in L_['by'].values()), ','), L_['level'], r_ * 100))
+        except Exception as e:
+            print('DTM', iso_, ': failed -', str(e)[:120])
 except ImportError:
     print('openpyxl not installed: country cards without the IDP site layers')
 
