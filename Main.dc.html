@@ -461,8 +461,8 @@ a{color:#4cc3c9}a:hover{color:#8fe0e4}
 <sc-if value="{{cc.hasMap}}" hint-placeholder-val="{{ false }}">
 <section class="psec">
 <h3 class="phead">Where they live</h3>
-<sc-if value="{{cc.hasAreas}}" hint-placeholder-val="{{ false }}">
-<div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="seg" type="button" style="{{cc.lyrA}}" aria-pressed="{{cc.lyrAOn}}" onClick="{{cc.setA}}">All IDPs</button><button class="seg" type="button" style="{{cc.lyrB}}" aria-pressed="{{cc.lyrBOn}}" onClick="{{cc.setB}}">IDPs in camps</button></div>
+<sc-if value="{{cc.hasToggle}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="seg" type="button" style="{{cc.lyrA}}" aria-pressed="{{cc.lyrAOn}}" onClick="{{cc.setA}}">All IDPs</button><button class="seg" type="button" style="{{cc.lyrB}}" aria-pressed="{{cc.lyrBOn}}" onClick="{{cc.setB}}">{{cc.lyrBText}}</button></div>
 </sc-if>
 <img src="{{cc.map}}" alt="{{cc.mapAlt}}" style="display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid rgba(207,224,244,0.14)">
 <div class="cclg"><sc-for list="{{cc.legend}}" as="lg" hint-placeholder-count="2"><span><span style="{{lg.sw}}"></span>{{lg.t}}</span></sc-for></div>
@@ -1407,22 +1407,34 @@ class Component extends DCLogic {
       '<rect width="100%" height="100%" fill="#0b1736"/>',
       '<path d="' + m.near + '" fill="rgba(207,224,244,0.05)" stroke="rgba(207,224,244,0.16)" stroke-width="0.6"/>',
       '<path d="' + m.land + '" fill="#16285a" stroke="#4a64a0" stroke-width="1.2"/>'];
-    var areaMode = !!(m.areas && m.areas.length);
-    if (areaMode) {
-      // shade each area by the IDPs living there (or living in camps); darker = more
-      var vi = layer === 'camp' ? 5 : 4, vmax = Math.max.apply(null, m.areas.map(function (a) { return a[vi]; })) || 1;
-      var myAreas = here && here.areas ? here.areas : [];
+    // IDP layer (IOM DTM, CCCM, OCHA): areas shaded by IDPs, or one dot per IDP site sized by its people
+    var Lr = m.layer || {}, hasA = !!(m.areas && m.areas.length), hasS = !!(m.sites && m.sites.length), areaMode = hasA || hasS;
+    var fk = function (t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, ''); };
+    var myAreas = here && here.areas ? here.areas : [];
+    if (hasA) {
+      var vi = layer === 'camp' && Lr.camp ? 5 : 4, vmax = Math.max.apply(null, m.areas.map(function (a) { return a[vi]; })) || 1;
       m.areas.forEach(function (a) {
         var v = a[vi], op = v > 0 ? (0.14 + 0.82 * Math.sqrt(v / vmax)).toFixed(2) : 0;
         if (v > 0) o.push('<path d="' + a[0] + '" fill="#b48ef0" fill-opacity="' + op + '" stroke="#0b1736" stroke-width="0.3"/>');
       });
-      m.states.forEach(function (st2) { o.push('<path d="' + st2[0] + '" fill="none" stroke="rgba(207,224,244,0.45)" stroke-width="0.8"/>'); });
-      m.areas.forEach(function (a) { if (myAreas.indexOf(a[2]) >= 0) o.push('<path d="' + a[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
-      m.states.forEach(function (st2) { if (myAreas.indexOf(st2[1]) >= 0) o.push('<path d="' + st2[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
     }
+    if (areaMode) m.states.forEach(function (st2) { o.push('<path d="' + st2[0] + '" fill="none" stroke="rgba(207,224,244,0.45)" stroke-width="0.8"/>'); });
+    if (hasS) {
+      // regions shaded by the people in their sites, so many small sites (as in Mogadishu) still read as a lot
+      var rt = {}; m.sites.forEach(function (x) { rt[fk(x[4])] = (rt[fk(x[4])] || 0) + x[2]; });
+      var rmax = Math.max.apply(null, Object.keys(rt).map(function (k) { return rt[k]; })) || 1;
+      m.states.forEach(function (st2) { var v = rt[fk(st2[1])] || 0; if (v) o.push('<path d="' + st2[0] + '" fill="#b48ef0" fill-opacity="' + (0.08 + 0.42 * Math.sqrt(v / rmax)).toFixed(2) + '" stroke="none"/>'); });
+      var smax = Math.max.apply(null, m.sites.map(function (x) { return x[2]; })) || 1;
+      m.sites.slice().sort(function (a, b) { return b[2] - a[2]; }).forEach(function (x) {
+        var rr = Math.max(1.3, 13 * Math.sqrt(x[2] / smax));
+        o.push('<circle cx="' + x[0] + '" cy="' + x[1] + '" r="' + rr.toFixed(1) + '" fill="#b48ef0" fill-opacity="0.55" stroke="#e9ddff" stroke-width="0.5"/>');
+      });
+    }
+    if (hasA) m.areas.forEach(function (a) { if (myAreas.indexOf(a[2]) >= 0) o.push('<path d="' + a[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
+    if (areaMode) m.states.forEach(function (st2) { if (myAreas.indexOf(st2[1]) >= 0) o.push('<path d="' + st2[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
     m.pts.forEach(function (q) {
       // with the area layer on, only camps and refugee sites stay as points (IDP communities are in the shading)
-      if (areaMode && q[2] === 2 && !/formal/i.test(TN[q[3]])) return;
+      if (areaMode && q[2] === 2 && (hasS || !/formal/i.test(TN[q[3]]))) return;
       if (areaMode && q[2] === 2) { o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (r + 0.6) + '" fill="#ffffff" stroke="#0b1736" stroke-width="0.8"/>'); return; }
       var c = GC[q[2]] || '#8b98b3', t = TN[q[3]];
       if (/centre/i.test(t)) o.push('<rect x="' + (q[0] - r) + '" y="' + (q[1] - r) + '" width="' + 2 * r + '" height="' + 2 * r + '" fill="' + c + '"/>');
@@ -1439,20 +1451,25 @@ class Component extends DCLogic {
       o.push('<text x="' + (left ? q[0] - 10 : q[0] + 10) + '" y="' + (q[1] + 4) + '"' + (left ? ' text-anchor="end"' : '') + ' font-family="Helvetica, Arial, sans-serif" font-size="' + size + '" font-weight="' + wt + '" fill="' + col + '" stroke="#0b1736" stroke-width="3" paint-order="stroke">' + esc(q[4]) + '</text>');
     };
     if (areaMode) {
-      var vi2 = layer === 'camp' ? 5 : 4, tot = {};
-      m.areas.forEach(function (a) { tot[a[3]] = (tot[a[3]] || 0) + a[vi2]; });
-      var mineS = here && here.areas ? here.areas : [];
-      m.states.slice().sort(function (a, b) { return (tot[b[1]] || 0) - (tot[a[1]] || 0); }).slice(0, 6).forEach(function (st2) {
-        if (tot[st2[1]] && mineS.indexOf(st2[1]) < 0) o.push('<text x="' + st2[2] + '" y="' + st2[3] + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" stroke="#0b1736" stroke-width="3" paint-order="stroke">' + esc(st2[1]) + '</text>');
+      var vi2 = layer === 'camp' && Lr.camp ? 5 : 4, tot = {};
+      if (hasA) m.areas.forEach(function (a) { tot[fk(a[3])] = (tot[fk(a[3])] || 0) + a[vi2]; });
+      if (hasS) m.sites.forEach(function (x) { tot[fk(x[4])] = (tot[fk(x[4])] || 0) + x[2]; });
+      var mineS = myAreas;
+      m.states.slice().sort(function (a, b) { return (tot[fk(b[1])] || 0) - (tot[fk(a[1])] || 0); }).slice(0, 6).forEach(function (st2) {
+        if (!tot[fk(st2[1])] || mineS.indexOf(st2[1]) >= 0) return;
+        var w2 = st2[1].length * 14 * 0.58 + 6, b2 = [st2[2] - w2 / 2, st2[3] - 13, st2[2] + w2 / 2, st2[3] + 4];
+        if (boxes.some(function (a) { return !(b2[2] < a[0] || b2[0] > a[2] || b2[3] < a[1] || b2[1] > a[3]); })) return;
+        boxes.push(b2);
+        o.push('<text x="' + st2[2] + '" y="' + st2[3] + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" stroke="#0b1736" stroke-width="3" paint-order="stroke">' + esc(st2[1]) + '</text>');
       });
-      (here && here.areas || []).forEach(function (nm) {
+      mineS.forEach(function (nm) {
         var st3 = m.states.find(function (x) { return x[1] === nm; });
         if (st3) o.push('<text x="' + st3[2] + '" y="' + st3[3] + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffd166" stroke="#0b1736" stroke-width="3.5" paint-order="stroke">' + esc(nm) + '</text>');
       });
     }
     var seen = {};
     m.pts.forEach(function (q) { if (named[q[4]] && !seen[q[4]]) { seen[q[4]] = 1; o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (mine[q[4]] ? 9 : 7) + '" fill="none" stroke="#ffd166" stroke-width="2.2"/>'); label(q, '#ffd166', 700, mine[q[4]] ? 16 : 14); } });
-    if (m.pts.length <= 60) m.pts.forEach(function (q) { if (!named[q[4]]) label(q, '#cfe0f4', 400, 13); });
+    if (m.pts.length <= 60 && !areaMode) m.pts.forEach(function (q) { if (!named[q[4]]) label(q, '#cfe0f4', 400, 13); });
     o.push('</svg>');
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(o.join(''));
   }
@@ -1537,26 +1554,38 @@ class Component extends DCLogic {
       cc.legend = Object.keys(present).map(function (k) { return { t: GN[k] + ' (' + present[k] + ')', sw: dot(GC[k]) }; })
         .concat([{ t: 'filled: camp or settlement', sw: dot('#cfe0f4') }, { t: 'ring: in communities', sw: dot('#cfe0f4', true) }, { t: 'square: centre', sw: 'display: inline-block; width: 9px; height: 9px; background: #cfe0f4' }])
         .concat(ex.some(function (e) { return e.places && e.places.length; }) ? [{ t: 'gold: named in a GAIN example', sw: dot('#ffd166', true) }] : []);
-      if (m.areas && m.areas.length) {
-        var camp = layer === 'camp', vi3 = camp ? 5 : 4, byS = {};
-        m.areas.forEach(function (a) { var b = byS[a[3]] = byS[a[3]] || { idp: 0, camp: 0, camps: 0 }; b.idp += a[4]; b.camp += a[5]; b.camps += a[6]; });
+      var Lr = m.layer || {}, hasA = !!(m.areas && m.areas.length), hasS = !!(m.sites && m.sites.length);
+      if (hasA || hasS) {
+        var camp = layer === 'camp' && !!Lr.camp, campWord = Lr.campWord || 'camps', byS = {};
+        var short = /CCCM/.test(Lr.who) ? 'CCCM Cluster' : /OCHA/.test(Lr.who) ? 'OCHA' : 'IOM DTM';
+        if (hasA) m.areas.forEach(function (a) { var b = byS[a[3]] = byS[a[3]] || { idp: 0, camp: 0, camps: 0, big: null }; b.idp += a[4]; b.camp += a[5]; b.camps += a[6]; });
+        if (hasS) m.sites.forEach(function (x) { var b = byS[x[4]] = byS[x[4]] || { idp: 0, camp: 0, camps: 0, big: null }; b.idp += x[2]; b.camps += 1; if (!b.big || x[2] > b.big[2]) b.big = x; });
         var totI = 0, totC = 0, totN = 0; Object.keys(byS).forEach(function (k) { totI += byS[k].idp; totC += byS[k].camp; totN += byS[k].camps; });
-        var rows2 = Object.keys(byS).filter(function (k) { return byS[k][camp ? 'camp' : 'idp'] > 0; }).sort(function (a, b) { return byS[b][camp ? 'camp' : 'idp'] - byS[a][camp ? 'camp' : 'idp']; });
+        var val = function (b) { return camp ? b.camp : b.idp; };
+        var rows2 = Object.keys(byS).filter(function (k) { return val(byS[k]) > 0; }).sort(function (a, b) { return val(byS[b]) - val(byS[a]); });
         var myA = here && here.areas ? here.areas : [];
+        var plural = function (w) { return /y$/.test(w) ? w.slice(0, -1) + 'ies' : w + 's'; };
         cc.hasAreas = true;
-        cc.areaHead = (camp ? 'IDPs in camps' : 'IDPs') + ' by state · IOM DTM';
+        cc.areaHead = (camp ? 'IDPs in ' + campWord : 'IDPs') + ' by ' + Lr.parent + ' · ' + short;
         cc.areaRows = rows2.slice(0, 8).map(function (k) {
-          var b = byS[k], mine = myA.indexOf(k) >= 0;
-          return { name: k + (mine ? ' · named in this example' : ''), n: fmt(camp ? b.camp : b.idp), sw: 'width: 10px; height: 10px; border-radius: 2px; background: #b48ef0; opacity: ' + (0.3 + 0.7 * Math.sqrt((camp ? b.camp : b.idp) / (camp ? byS[rows2[0]].camp : byS[rows2[0]].idp))).toFixed(2) + '; align-self: center',
-            sub: camp ? b.camps + ' camp' + (b.camps === 1 ? '' : 's') : (b.camp ? fmt(b.camp) + ' in ' + b.camps + ' camp' + (b.camps === 1 ? '' : 's') + ', the rest with host communities or in other sites' : 'none in camps'),
-            subStyle: mine ? 'color: #e0a93b; font-weight: 500' : 'color: #8b98b3' };
+          var b = byS[k], mine = myA.indexOf(k) >= 0, sub;
+          if (hasS) sub = fmt(b.camps) + ' site' + (b.camps === 1 ? '' : 's') + (b.big ? '; the largest, ' + b.big[3] + ', ' + fmt(b.big[2]) + ' people' : '');
+          else if (camp) sub = Lr.campCount ? fmt(b.camp) + ' people' : b.camps + ' ' + (b.camps === 1 ? campWord.replace(/s\b/g, '') : campWord);
+          else if (Lr.camp) sub = b.camp ? fmt(b.camp) + ' in ' + campWord + ', the rest with host families or in other places' : 'none in ' + campWord;
+          else sub = '';
+          return { name: k + (mine ? ' · named in this example' : ''), n: fmt(val(b)), sw: 'width: 10px; height: 10px; border-radius: 2px; background: #b48ef0; opacity: ' + (0.3 + 0.7 * Math.sqrt(val(b) / val(byS[rows2[0]]))).toFixed(2) + '; align-self: center',
+            sub: sub, subStyle: mine ? 'color: #e0a93b; font-weight: 500' : 'color: #8b98b3' };
         });
-        cc.areaNote = 'IOM’s Displacement Tracking Matrix counted ' + fmt(totI) + ' IDPs at the sites it assessed, ' + fmt(totC) + ' of them in ' + totN + ' camps' + (rows2.length > 8 ? '; ' + (rows2.length - 8) + ' more states have fewer' : '') + '. DTM covers the north of the country, so this is not a national total. ' + m.areas_src;
+        cc.areaNote = 'Counted by ' + Lr.who + ': ' + fmt(totI) + ' IDPs' + (hasS ? ' in ' + fmt(totN) + ' sites' : '') + (Lr.camp && totC ? ', ' + fmt(totC) + ' of them in ' + campWord + (Lr.campCount ? '' : ' (' + totN + ')') : '') +
+          (rows2.length > 8 ? '; ' + (rows2.length - 8) + ' more ' + plural(Lr.parent) + ' have fewer' : '') + '. ' + (Lr.cover ? Lr.cover + ' ' : '') + m.areas_src;
         var on2 = 'border-color: #4cc3c9; color: #4cc3c9';
+        cc.hasToggle = !!Lr.camp; cc.lyrBText = 'IDPs in ' + campWord;
         cc.lyrA = camp ? '' : on2; cc.lyrB = camp ? on2 : ''; cc.lyrAOn = camp ? 'false' : 'true'; cc.lyrBOn = camp ? 'true' : 'false';
         cc.setA = function () { self.setState({ ctyLayer: 'all' }); }; cc.setB = function () { self.setState({ ctyLayer: 'camp' }); };
-        cc.legend = [{ t: (camp ? 'IDPs in camps' : 'IDPs') + ' per local government area (darker = more)', sw: 'display: inline-block; width: 22px; height: 9px; background: linear-gradient(90deg, rgba(180,142,240,0.2), #b48ef0)' },
-          { t: 'white: IDP camp (UNHCR)', sw: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ffffff' }]
+        var idpCamps = !hasS && m.pts.some(function (q) { return q[2] === 2 && /formal/i.test(self.ctyDoc.location_types[q[3]]); });
+        cc.legend = [hasS ? { t: 'IDP site, sized by the people living there; regions shaded by their total', sw: 'display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: rgba(180,142,240,0.6); box-shadow: inset 0 0 0 1px #e9ddff' }
+          : { t: (camp ? 'IDPs in ' + campWord : 'IDPs') + ' per ' + Lr.unit + ' (darker = more)', sw: 'display: inline-block; width: 22px; height: 9px; background: linear-gradient(90deg, rgba(180,142,240,0.2), #b48ef0)' }]
+          .concat(idpCamps ? [{ t: 'white: IDP camp (UNHCR)', sw: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ffffff' }] : [])
           .concat(cc.legend.filter(function (x) { return !/^IDPs \(/.test(x.t) && !/ring: in communities/.test(x.t); }));
         if (myA.length) cc.legend.push({ t: 'gold outline: ' + myA.join(', ') + ', named in this example', sw: 'display: inline-block; width: 9px; height: 9px; box-shadow: inset 0 0 0 2px #ffd166' });
       }
@@ -1652,7 +1681,7 @@ class Component extends DCLogic {
       loading: !st.ready, labels: [], legend: [], chartTitle: '',
       pv: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', hasImg: false, img: '', imgAlt: '', chips: [], closable: false, hoverHint: false, hint: '', style: 'display: none' },
       dr: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', style: 'display: none', grid: '', hasImg: false, img: '', imgAlt: '', figStyle: '', imgStyle: '', cap: '', desc: '', descStyle: '', pops: [], recs: [], hasRecs: false, recNote: '', hasRecNote: false, srcs: [], chs: [], similar: [], hasSimilar: false, similarWhy: '', copy: null, copyLabel: '', hasCases: false, cases: [], casesHead: '', hasOthers: false, othersHead: '', others: [], hasCty: false, noCty: false, ctyName: '', ctyAria: '', metaA: '', metaB: '', openCty: null, ctyText: '', hasLink: false, link: '', linkText: '', hasCaseLink: false, caseLink: '', foot: '' },
-      cc: { show: false, hasAreas: false, areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, scrim: '', style: '', aria: '', back: null, backText: '', closeAll: null, region: '', name: '', sub: '', hasLede: false, lede: '', loading: false, years: [], hasPop: false, popHead: '', groups: [], popNote: '', hasMap: false, map: '', mapAlt: '', legend: [], mapNote: '', hasAreas: false, areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, methods: [], methodNote: '', hasOrigins: false, origins: '', copy: null, copyLabel: '', foot: '' },
+      cc: { show: false, hasAreas: false, hasToggle: false, lyrBText: '', areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, scrim: '', style: '', aria: '', back: null, backText: '', closeAll: null, region: '', name: '', sub: '', hasLede: false, lede: '', loading: false, years: [], hasPop: false, popHead: '', groups: [], popNote: '', hasMap: false, map: '', mapAlt: '', legend: [], mapNote: '', hasAreas: false, hasToggle: false, lyrBText: '', areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, methods: [], methodNote: '', hasOrigins: false, origins: '', copy: null, copyLabel: '', foot: '' },
       openFull: function () { var s3 = self.state || {}, sp = self.steps()[s3.active || 0]; if (sp && sp.feat != null) self.setState({ sel: sp.feat, hover: null }); },
       legendBox: 'display: none', exploreBox: 'display: none', seg: {}, mode: { text: '', style: 'display: none' }
     };

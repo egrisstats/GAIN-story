@@ -35,10 +35,21 @@ The data is in `assets/countries/`: `countries.json` and one map file per countr
 Sources: UNHCR Refugee Data Finder (with IDMC and UNRWA), UNHCR's GIS list of locations, Natural Earth outlines.
 GAIN asked about data sources and population groups only from 2024; for earlier examples the method is read from the title.
 
-**Nigeria** also has an area layer: IDPs per local government area from IOM DTM's site assessments (north-east,
-and north-central and north-west), with a switch between all IDPs and IDPs in camps, and a list by state. States
-or areas named in an example are outlined in gold. DTM's files are Excel, so the build needs `openpyxl`
-(`pip install openpyxl`); without it the Nigeria card falls back to UNHCR's points only.
+**Where IDPs live, in more detail.** Six country cards add a layer from the humanitarian site lists on HDX:
+
+| Country | Source | Shown as |
+|---|---|---|
+| Nigeria | IOM DTM site assessments (north-east R52, north-central and north-west R19) | IDPs per local government area, switch to IDPs in camps |
+| Ethiopia | IOM DTM site assessment R37 | IDPs per woreda, switch to camps and collective centres |
+| Somalia | CCCM Cluster IDP site master list (Q4 2024) | one dot per IDP site, sized by its people; regions shaded by their total |
+| DR Congo | OCHA population movements, people still displaced (June 2026) | IDPs per territory, switch to sites and collective centres |
+| Ukraine | IOM DTM IDP estimates R24 (June 2026) | IDPs per oblast |
+| Mali | IOM DTM baseline assessment R83 | IDPs per cercle |
+
+Areas are OCHA's common boundaries (HDX `cod-ab-*`), matched by area code. Areas or regions named in an example are
+outlined in gold. Not included: Haiti and Mozambique (their current files are not openly downloadable), Chad (area
+codes do not match the boundaries), and countries whose site lists are years old (South Sudan, Sudan, Syria, Burkina Faso).
+The files are Excel, so the build needs `openpyxl` (`pip install openpyxl`); without it the cards show UNHCR's points only.
 
 ## Updating the design artifact
 

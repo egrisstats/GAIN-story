@@ -210,52 +210,142 @@ def area(r):
     return abs(sum(r[i][0] * r[i - 1][1] - r[i - 1][0] * r[i][1] for i in range(len(r)))) / 2
 
 
-# ---------- Nigeria: IDPs and camps by area (IOM DTM site assessments) ----------
-# DTM publishes every assessed site with its local government area (LGA) and head count, but no coordinates,
-# so the card shades LGAs (OCHA common boundaries) by the IDPs living there, in camps or with host communities.
-# Needs openpyxl to read DTM's Excel files; without it the Nigeria card simply has no area layer.
-DTM_NGA = [('nigeria-site-assessment-data', 'North-east, round'), ('nigeria-displacement-data-north-central-west-site-assessment-iom-dtm', 'North-central and north-west, round')]
-NGA_ADM = 'https://data.humdata.org/dataset/81ac1d38-f603-4a98-804d-325c658599a3/resource/7e30ec96-7f29-4ee8-9f4c-77633b353cbb/download/nga_admin_boundaries.geojson.zip'
-def dtm_nigeria():
+# ---------- where IDPs live, from IOM DTM and camp-management site lists (HDX) ----------
+# For a few countries the card adds a layer on top of UNHCR's points:
+#   'areas': the country's administrative areas (OCHA common boundaries) shaded by the IDPs counted there, when the
+#            published site lists carry area codes but no coordinates (Nigeria, Ethiopia, Mali, Ukraine, DR Congo);
+#   'sites': one dot per IDP site, sized by its population, when they carry coordinates (Somalia).
+# The files are Excel, so this needs openpyxl; without it the cards simply have no layer.
+def hdx_res(pkg, k=0, key=None):
+    """the k-th resource of an HDX dataset: (name, local file)"""
+    r = get('https://data.humdata.org/api/3/action/package_show?id=' + pkg, 'hdx_' + (key or pkg))['result']['resources'][k]
+    d = os.path.join(CACHE, 'layers'); os.makedirs(d, exist_ok=True)
+    f = os.path.join(d, (key or pkg) + '.' + r['format'].lower())
+    if REFRESH or not os.path.exists(f):
+        subprocess.run(['curl', '-sfL', '-m', '600', '-o', f, r['url']], check=True)
+    return r['name'], f
+def cod_ab(iso3, level):
+    """OCHA common operational boundaries (HDX cod-ab-xxx), one admin level as GeoJSON"""
+    import zipfile
+    name, f = hdx_res('cod-ab-' + iso3.lower(), [i for i, r in enumerate(get('https://data.humdata.org/api/3/action/package_show?id=cod-ab-' + iso3.lower(), 'hdx_cod_' + iso3)['result']['resources']) if 'geojson' in (r['format'] + r['name']).lower()][0], 'cod_' + iso3)
+    z = zipfile.ZipFile(f)
+    return json.load(z.open([n for n in z.namelist() if n.endswith('_admin%d.geojson' % level)][0]))
+def sheet_rows(f, sheet=0, hi=0):
+    import openpyxl
+    ws = openpyxl.load_workbook(f, read_only=True)
+    ws = ws[sheet] if isinstance(sheet, str) else ws.worksheets[sheet]
+    rows = list(ws.iter_rows(values_only=True))
+    return [str(c or '').strip() for c in rows[hi]], rows[hi + 1:]
+def num_(v):
     try:
-        import openpyxl
-    except ImportError:
-        print('openpyxl not installed: Nigeria card without DTM areas'); return None
-    import zipfile, io
-    d = os.path.join(CACHE, 'dtm'); os.makedirs(d, exist_ok=True)
+        return int(float(v))
+    except (TypeError, ValueError):
+        return 0
+
+def layer_nga():
     by, rounds = {}, []
-    for k, (pkg, label) in enumerate(DTM_NGA):
-        meta_ = get('https://data.humdata.org/api/3/action/package_show?id=' + pkg, 'dtm_pkg%d' % k)['result']['resources'][0]
-        f = os.path.join(d, 'site%d.xlsx' % (k + 1))
-        if REFRESH or not os.path.exists(f):
-            subprocess.run(['curl', '-sfL', '-m', '300', '-o', f, meta_['url']], check=True)
-        rounds.append(meta_['name'])
-        rows = list(openpyxl.load_workbook(f, read_only=True).worksheets[0].iter_rows(values_only=True))
-        h = [str(x or '') for x in rows[0]]
+    for k, pkg in enumerate(['nigeria-site-assessment-data', 'nigeria-displacement-data-north-central-west-site-assessment-iom-dtm']):
+        name, f = hdx_res(pkg); rounds.append(name)
+        h, rows = sheet_rows(f)
         col = lambda pre: [i for i, x in enumerate(h) if x.startswith(pre)][0]
-        pi, ni, li, si, di = col('1.1.b.3 Population Type'), col('Number of Individuals'), col('LGA Pcode'), col('State'), col('A.1 Date')
-        for r in rows[1:]:
+        pi, ni, li = col('1.1.b.3 Population Type'), col('Number of Individuals'), col('LGA Pcode')
+        for r in rows:
             pc, pt = str(r[li] or ''), str(r[pi] or '')
-            try:
-                n = int(float(r[ni] or 0))
-            except (TypeError, ValueError):
+            if not pc.startswith('NGA') or not pt.startswith('IDPs'):
                 continue
-            if not pc.startswith('NGA'):
-                continue
-            a = by.setdefault('NG' + pc[3:], {'idp': 0, 'camp': 0, 'camps': 0, 'ret': 0})
-            if pt.startswith('IDPs'):
-                a['idp'] += n
-                if pt == 'IDPs in Camps':
-                    a['camp'] += n; a['camps'] += 1
-            elif pt.startswith('Returnee'):
-                a['ret'] += n
-    zf = os.path.join(d, 'nga_adm.geojson.zip')
-    if REFRESH or not os.path.exists(zf):
-        subprocess.run(['curl', '-sfL', '-m', '300', '-o', zf, NGA_ADM], check=True)
-    z = zipfile.ZipFile(zf)
-    adm2 = json.load(z.open([n for n in z.namelist() if n.endswith('nga_admin2.geojson')][0]))
-    adm1 = json.load(z.open([n for n in z.namelist() if n.endswith('nga_admin1.geojson')][0]))
-    return {'by': by, 'adm2': adm2, 'adm1': adm1, 'rounds': rounds}
+            a = by.setdefault('NG' + pc[3:], {'idp': 0, 'camp': 0, 'camps': 0})
+            a['idp'] += num_(r[ni])
+            if pt == 'IDPs in Camps':
+                a['camp'] += num_(r[ni]); a['camps'] += 1
+    return {'kind': 'areas', 'level': 2, 'by': by, 'camp': True, 'parent': 'state', 'unit': 'local government area',
+            'who': 'IOM’s Displacement Tracking Matrix (DTM)', 'src': 'IOM DTM site assessments (' + '; '.join(rounds) + ')',
+            'cover': 'DTM covers the north of the country, so this is not a national total.'}
+
+def layer_eth():
+    name, f = hdx_res('ethiopia-baseline-assessment-data-iom-dtm')
+    h, rows = sheet_rows(f)
+    wi = h.index('OCHA Woreda P-Code'); ti = [i for i, x in enumerate(h) if x.startswith('1.3.b.1: Settlement/site type')][0]
+    ni = [i for i, x in enumerate(h) if x.startswith('2.1.b.7')][0]
+    by = {}
+    for r in rows:
+        pc = str(r[wi] or '')
+        if not pc.startswith('ET'):
+            continue
+        a = by.setdefault(pc, {'idp': 0, 'camp': 0, 'camps': 0}); n = num_(r[ni]); a['idp'] += n
+        if re.search(r'camp|collective', str(r[ti] or ''), re.I):
+            a['camp'] += n; a['camps'] += 1
+    return {'kind': 'areas', 'level': 3, 'by': by, 'camp': True, 'campWord': 'camps and collective centres', 'parent': 'region', 'unit': 'woreda',
+            'who': 'IOM’s Displacement Tracking Matrix (DTM)', 'src': 'IOM DTM, ' + name,
+            'cover': 'The site assessment covers the sites DTM visited, not every IDP in the country.'}
+
+def layer_mli():
+    name, f = hdx_res('mali-baseline-assessment-data-iom-dtm')
+    h, rows = sheet_rows(f, 'PDIs')
+    ci, ti = h.index('Cercle PCODE'), h.index('Grand Total')
+    by = {}
+    for r in rows:
+        pc = str(r[ci] or '')
+        if pc.startswith('ML'):
+            by.setdefault(pc, {'idp': 0, 'camp': 0, 'camps': 0})['idp'] += num_(r[ti])
+    return {'kind': 'areas', 'level': 2, 'by': by, 'camp': False, 'parent': 'region', 'unit': 'cercle',
+            'who': 'IOM’s Displacement Tracking Matrix (DTM)', 'src': 'IOM DTM, ' + name, 'cover': ''}
+
+def layer_ukr():
+    name, f = hdx_res('ukraine-idp-estimates')
+    h, rows = sheet_rows(f)
+    ci, ni = h.index('admin1Pcode'), h.index('idp_stock_rounded')
+    by = {}
+    for r in rows:
+        pc = str(r[ci] or '')
+        if pc.startswith('UA'):
+            by.setdefault(pc, {'idp': 0, 'camp': 0, 'camps': 0})['idp'] += num_(r[ni])
+    return {'kind': 'areas', 'level': 1, 'by': by, 'camp': False, 'parent': 'oblast', 'unit': 'oblast',
+            'who': 'IOM’s Displacement Tracking Matrix (DTM)', 'src': 'IOM DTM, ' + name + ' (estimates by oblast where IDPs live now)', 'cover': ''}
+
+def layer_cod():
+    name, f = hdx_res('drc-displacement-deplace-site-assessment-ocha')
+    h, rows = sheet_rows(f, 'Data')
+    ci, ni, hi = h.index('admin2_id'), h.index('person'), h.index('hebergement_label')
+    by = {}
+    for r in rows:
+        pc = str(r[ci] or '')
+        if not pc.startswith('CD'):
+            continue
+        a = by.setdefault(pc, {'idp': 0, 'camp': 0, 'camps': 0}); n = num_(r[ni]); a['idp'] += n
+        if re.search(r'site|camp|centre collectif', str(r[hi] or ''), re.I):
+            a['camp'] += n; a['camps'] += 1
+    return {'kind': 'areas', 'level': 2, 'by': by, 'camp': True, 'campWord': 'sites and collective centres', 'campCount': 'movements', 'parent': 'province', 'unit': 'territory',
+            'who': 'OCHA and partners (population movement tracking)', 'src': 'OCHA DR Congo, people displaced and still displaced' + (lambda m_: ', ' + m_.group(1).replace('juin', 'June').replace('mai', 'May').replace('avril', 'April').replace('mars', 'March') + ' ' + m_.group(2) if m_ else '')(re.search(r'([a-zéû]+)_(20\d\d)', name)), 'cover': 'Counts of people displaced and still displaced, as tracked by OCHA and partners.'}
+
+def layer_som():
+    name, f = hdx_res('cccm-somalia-idp-site-master-list-q2-2024')
+    h, rows = sheet_rows(f, 'CCCM IDP Site List (Verified)', 1)
+    la, lo, ri = h.index('Latitude'), h.index('Longitude'), h.index('Region')
+    ni = [i for i, x in enumerate(h) if x.startswith('Individual')][0]; si = h.index('IDP Site')
+    sites = []
+    for r in rows:
+        try:
+            lat, lon = float(r[la]), float(r[lo])
+        except (TypeError, ValueError):
+            continue
+        sites.append((lon, lat, num_(r[ni]), str(r[si] or ''), str(r[ri] or '')))
+    return {'kind': 'sites', 'level': 1, 'sites': sites, 'camp': False, 'parent': 'region', 'unit': 'site',
+            'who': 'the CCCM Cluster Somalia (camp coordination and camp management)', 'src': 'CCCM Cluster Somalia, ' + re.sub(r'\.xlsx?$', '', name, flags=re.I),
+            'cover': 'Verified IDP sites; people living outside sites, with host families or renting, are not in this list.'}
+
+LAYERS = {}
+try:
+    import openpyxl  # noqa: F401
+    for iso_, fn in [('NGA', layer_nga), ('ETH', layer_eth), ('MLI', layer_mli), ('UKR', layer_ukr), ('COD', layer_cod), ('SOM', layer_som)]:
+        try:
+            L_ = fn()
+            L_['adm'] = cod_ab(iso_, L_['level']) if L_['kind'] == 'areas' else None
+            L_['adm1'] = cod_ab(iso_, 1)
+            LAYERS[iso_] = L_
+        except Exception as e:  # one country failing should not stop the rest
+            print('no IDP layer for', iso_, '-', e)
+except ImportError:
+    print('openpyxl not installed: country cards without the IDP site layers')
 
 def gj_polys(geom):
     if geom['type'] == 'Polygon':
@@ -313,22 +403,35 @@ def country_map(iso, name, L):
         if 0 <= x <= W and 0 <= y <= H:
             pts.append([round(x), round(y), G.index(POPT[a['pop_type']]), T.index(LOCSUB.get(str(a['loc_subtype']), 'Other')), a['gis_name']])
     res = {'w': W, 'h': H, 'land': land, 'near': near, 'pts': pts, 'off': len(L) - len(pts)}
-    if iso == 'NGA' and NGA_DTM:
-        # [path, pcode, LGA, state, IDPs, IDPs in camps, camps, returnees] for every LGA; states as outlines with a label point
-        areas = []
-        for f in NGA_DTM['adm2']['features']:
-            pr = f['properties']; a = NGA_DTM['by'].get(pr['adm2_pcode'], {})
-            areas.append([path(gj_polys(f['geometry'])), pr['adm2_pcode'], pr['adm2_name'], pr['adm1_name'],
-                          a.get('idp', 0), a.get('camp', 0), a.get('camps', 0), a.get('ret', 0)])
-        states = []
-        for f in NGA_DTM['adm1']['features']:
-            pr = f['properties']; x, y = P(pr['center_lon'], pr['center_lat'])
-            states.append([path(gj_polys(f['geometry'])), pr['adm1_name'], round(x), round(y)])
-        res['areas'] = areas; res['states'] = states
-        res['areas_src'] = 'IOM DTM site assessments (' + '; '.join(NGA_DTM['rounds']) + '), via HDX. Boundaries: OCHA/HDX common operational datasets.'
+    Ly = LAYERS.get(iso)
+    if Ly:
+        lv = Ly['level']
+        if Ly['kind'] == 'areas':
+            # [path, pcode, area, parent, IDPs, IDPs in camps, camps]
+            res['areas'] = []
+            for f in Ly['adm']['features']:
+                pr = f['properties']; a = Ly['by'].get(pr['adm%d_pcode' % lv], {})
+                res['areas'].append([path(gj_polys(f['geometry'])), pr['adm%d_pcode' % lv], pr['adm%d_name' % lv], pr.get('adm1_name', ''),
+                                     a.get('idp', 0), a.get('camp', 0), a.get('camps', 0)])
+        else:
+            # [x, y, people, name, parent]
+            res['sites'] = []
+            for lon, lat, n, nm, reg in Ly['sites']:
+                x, y = P(lon, lat)
+                if 0 <= x <= W and 0 <= y <= H:
+                    res['sites'].append([round(x, 1), round(y, 1), n, nm, reg])
+        res['states'] = []
+        for f in Ly['adm1']['features']:
+            pr = f['properties']
+            cx, cy = (pr.get('center_lon'), pr.get('center_lat'))
+            if cx is None:
+                ring_ = max(gj_polys(f['geometry']), key=lambda pp: len(pp[0]))[0]
+                cx = sum(v[0] for v in ring_) / len(ring_); cy = sum(v[1] for v in ring_) / len(ring_)
+            x, y = P(cx, cy)
+            res['states'].append([path(gj_polys(f['geometry'])), pr['adm1_name'], round(x), round(y)])
+        res['layer'] = {k: Ly.get(k, '') for k in ('kind', 'camp', 'campWord', 'campCount', 'parent', 'unit', 'who', 'cover')}
+        res['areas_src'] = re.sub(r'\s+', ' ', re.sub(r'\.xlsx?$', '', Ly['src'], flags=re.I)) + ', via HDX. Boundaries: OCHA common operational datasets (HDX).'
     return res
-
-NGA_DTM = dtm_nigeria()
 
 # ---------- one profile per country ----------
 out = {}
@@ -347,12 +450,14 @@ for i, e in enumerate(ex):
     cname = {fold(name), fold(meta.get(iso, {}).get('name', ''))}
     named = sorted({l['gis_name'] for l in locby.get(iso, []) if len(l['gis_name']) > 3
                     and fold(l['gis_name']) not in cname and re.search(r'\b' + re.escape(fold(l['gis_name'])) + r'\b', text)})
-    # Nigeria: states and LGAs named in the example (for the area map)
+    # areas of the IDP layer (regions, districts...) named in the example, outlined on its map
     areas = []
-    if iso == 'NGA' and NGA_DTM:
-        for f in NGA_DTM['adm1']['features'] + NGA_DTM['adm2']['features']:
-            nm = f['properties'].get('adm2_name') or f['properties']['adm1_name']
-            if len(nm) > 4 and re.search(r'\b' + re.escape(fold(nm)) + r'\b', text) and nm not in areas:
+    Ly = LAYERS.get(iso)
+    if Ly:
+        feats = Ly['adm1']['features'] + (Ly['adm']['features'] if Ly.get('adm') else [])
+        for f in feats:
+            pr = f['properties']; nm = pr.get('adm%d_name' % Ly['level']) or pr.get('adm1_name')
+            if nm and len(nm) > 4 and fold(nm) not in cname and re.search(r'\b' + re.escape(fold(nm)) + r'\b', text) and nm not in areas:
                 areas.append(nm)
     s = story.get(str(i)) or {}
     p['examples'].append({'areas': areas,
