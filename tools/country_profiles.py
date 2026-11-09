@@ -489,8 +489,10 @@ def country_map(iso, name, L):
     def P(lon, lat):
         mx, my = merc(lon, lat)
         return (ox + (mx - x0) * k, oy + (y1 - my) * k)
-    def path(pgs):
+    def path(pgs, fine=False):
+        # fine: half-pixel precision for outlines that are drawn on top (country, regions); coarser for fills underneath
         d = []
+        step, nd = (1.0, 1) if fine else (2, 0)
         for pp in pgs:
             for r in pp:
                 q = [P(*v) for v in r]
@@ -499,20 +501,34 @@ def country_map(iso, name, L):
                     continue
                 last = None; seg = []
                 for v in q:
-                    v = (round(v[0]), round(v[1]))
-                    if last is None or abs(v[0] - last[0]) + abs(v[1] - last[1]) >= 2:
+                    v = (round(v[0], nd), round(v[1], nd)) if nd else (round(v[0]), round(v[1]))
+                    if last is None or abs(v[0] - last[0]) + abs(v[1] - last[1]) >= step:
                         seg.append(v); last = v
                 if len(seg) > 2:
                     d.append('M' + 'L'.join('%g %g' % v for v in seg) + 'Z')
         return ''.join(d)
     near = path([pp for nm, g in GEO.items() if g is not pg for pp in g])
-    land = path(pg) if pg else ''
+    land = path(pg, True) if pg else ''
+    # neighbours' names, placed in the middle of their largest landmass when it is in view
+    nlab = []
+    for nm, g in GEO.items():
+        if g is pg or not g:
+            continue
+        # the part of the neighbour that is in view: label the middle of its visible outline, pulled away from the edge
+        vis = [P(*v) for pp in g for v in pp[0]]
+        vis = [v for v in vis if 20 < v[0] < W - 20 and 16 < v[1] < H - 10]
+        if len(vis) < 12:
+            continue
+        x_ = sum(v[0] for v in vis) / len(vis); y_ = sum(v[1] for v in vis) / len(vis)
+        if any(abs(x_ - a) < 70 and abs(y_ - b) < 16 for a, b, _ in nlab):
+            continue
+        nlab.append([round(x_), round(y_), nm])
     pts = []
     for a in L:
         x, y = P(a['longitude_d'], a['latitude_d'])
         if 0 <= x <= W and 0 <= y <= H:
             pts.append([round(x), round(y), G.index(POPT[a['pop_type']]), T.index(LOCSUB.get(str(a['loc_subtype']), 'Other')), a['gis_name']])
-    res = {'w': W, 'h': H, 'land': land, 'near': near, 'pts': pts, 'off': len(L) - len(pts)}
+    res = {'w': W, 'h': H, 'land': land, 'near': near, 'nlab': nlab, 'pts': pts, 'off': len(L) - len(pts)}
     Ly = LAYERS.get(iso)
     if Ly:
         lv = Ly['level']
@@ -538,7 +554,7 @@ def country_map(iso, name, L):
                 ring_ = max(gj_polys(f['geometry']), key=lambda pp: len(pp[0]))[0]
                 cx = sum(v[0] for v in ring_) / len(ring_); cy = sum(v[1] for v in ring_) / len(ring_)
             x, y = P(cx, cy)
-            res['states'].append([path(gj_polys(f['geometry'])), pr['adm1_name'], round(x), round(y)])
+            res['states'].append([path(gj_polys(f['geometry']), True), pr['adm1_name'], round(x), round(y)])
         res['layer'] = {k: Ly.get(k, '') for k in ('kind', 'camp', 'campWord', 'campCount', 'parent', 'unit', 'who', 'cover')}
         res['areas_src'] = re.sub(r'\s+', ' ', re.sub(r'\.xlsx?$', '', Ly['src'], flags=re.I)) + ', via HDX. Boundaries: OCHA common operational datasets (HDX).'
     return res

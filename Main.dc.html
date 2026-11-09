@@ -370,6 +370,17 @@ a{color:#4cc3c9}a:hover{color:#8fe0e4}
 <div class="tiles"><sc-for list="{{dr.pops}}" as="it" hint-placeholder-count="1"><span class="tile"><img src="{{it.icon}}" alt="" class="ico">{{it.t}}</span></sc-for></div>
 </section>
 <section class="psec">
+<h3 class="phead">Where it was done</h3>
+<div class="tiles"><span class="tile" style="{{dr.whereStyle}}"><img src="{{dr.whereIcon}}" alt="" class="ico">{{dr.whereScope}}</span></div>
+<sc-if value="{{dr.hasWhereText}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 14px; line-height: 1.55; color: #e6eef8">{{dr.whereText}}</p>
+</sc-if>
+<sc-if value="{{dr.hasWhereSrc}}" hint-placeholder-val="{{ false }}">
+<a href="{{dr.whereSrc}}" target="_blank" rel="noopener" style="font-size: 13px; color: #4cc3c9">{{dr.whereSrcText}} ↗</a>
+</sc-if>
+<p class="pnote">{{dr.whereNote}}</p>
+</section>
+<section class="psec">
 <h3 class="phead">Recommendations applied</h3>
 <sc-if value="{{dr.hasRecs}}" hint-placeholder-val="{{ false }}">
 <div class="recs"><sc-for list="{{dr.recs}}" as="rc" hint-placeholder-count="1"><a href="{{rc.url}}" target="_blank" rel="noopener" class="rec"><img src="{{rc.img}}" alt="{{rc.alt}}"><span class="rect"><span class="recc">{{rc.code}}<span class="recy">{{rc.year}} ↗</span></span><span class="recn">{{rc.name}}</span></span></a></sc-for></div>
@@ -448,7 +459,7 @@ a{color:#4cc3c9}a:hover{color:#8fe0e4}
 </sc-if>
 <section class="psec">
 <h3 class="phead">GAIN examples, year by year</h3>
-<div class="ccyears"><sc-for list="{{cc.years}}" as="yr" hint-placeholder-count="2"><div class="ccyr"><div class="ccy">{{yr.y}}</div><div class="ccyl"><sc-for list="{{yr.ex}}" as="x" hint-placeholder-count="1"><button class="ccex" type="button" style="{{x.style}}" onClick="{{x.pick}}"><span style="{{x.dot}}"></span><span style="min-width: 0">{{x.t}}</span><span style="{{x.hereStyle}}">{{x.here}}</span></button></sc-for><sc-if value="{{yr.none}}" hint-placeholder-val="{{ false }}"><span class="ccnone">No example this round</span></sc-if></div></div></sc-for></div>
+<div class="ccyears"><sc-for list="{{cc.years}}" as="yr" hint-placeholder-count="2"><div class="ccyr"><div class="ccy">{{yr.y}}</div><div class="ccyl"><sc-for list="{{yr.ex}}" as="x" hint-placeholder-count="1"><button class="ccex" type="button" style="{{x.style}}" onClick="{{x.pick}}"><span style="{{x.numStyle}}">{{x.num}}</span><span style="{{x.dot}}"></span><span style="min-width: 0; display: flex; flex-direction: column; gap: 2px"><span>{{x.t}}</span><span style="{{x.wStyle}}">{{x.w}}</span></span><span style="{{x.hereStyle}}">{{x.here}}</span></button></sc-for><sc-if value="{{yr.none}}" hint-placeholder-val="{{ false }}"><span class="ccnone">No example this round</span></sc-if></div></div></sc-for></div>
 <p class="pnote">Blue: country-led · teal: institution-led. Click an example to open its card.</p>
 </section>
 <sc-if value="{{cc.hasPop}}" hint-placeholder-val="{{ false }}">
@@ -1348,6 +1359,8 @@ class Component extends DCLogic {
       self.setState({ ready: true });
       var mh = /^#example-(\d+)$/.exec(location.hash || '');
       if (mh && self.rows[+mh[1] - 1]) self.setState({ sel: +mh[1] - 1, sx: null, sy: null, hover: null });
+      // where each example was done, read from its report (tools/coverage/); drafts until the Secretariat checks them
+      fetch('./assets/countries/coverage.json').then(function (r) { return r.json(); }).then(function (j) { self.cover = j.examples || {}; self.setState({ covTick: 1 }); }).catch(function () { self.cover = {}; });
       var mc = /^#country-([A-Za-z]{3})$/.exec(location.hash || '');
       if (mc) self.openCty(null, mc[1].toUpperCase());
       // follow later changes to the address too (a pasted #country-XXX or #example-N link)
@@ -1405,6 +1418,28 @@ class Component extends DCLogic {
     this.setState(all ? { cty: null, sel: -1, hover: null } : { cty: null });
     try { history.replaceState(null, '', keep ? '#example-' + (st.sel + 1) : location.pathname + location.search); } catch (e) {}
   }
+  whereOf(id1) {
+    // id1: the example's 1-based number; returns {scope, label, places, text, ...} or null when not researched yet
+    var c = (this.cover || {})[id1];
+    if (!c) return null;
+    var places = [].concat(c.sites || [], c.lgas || [], c.states || []);
+    var short = function (a) { return a.length > 4 ? a.slice(0, 3).join(', ') + ' and ' + (a.length - 3) + ' more' : a.join(', '); };
+    var label = c.scope === 'abroad' ? 'Outside the country' + (c.sites && c.sites.length ? ': ' + short(c.sites) : '') : c.scope === 'national' ? 'Whole country' : c.scope === 'sites' ? (c.sites && c.sites.length ? short(c.sites) : (c.states && c.states.length ? 'Camps in ' + short(c.states) : 'Specific camps or sites'))
+      : c.scope === 'subnational' ? (places.length ? short([].concat(c.lgas || [], c.states || []).length ? [].concat(c.lgas || [], c.states || []) : places) : 'Some areas') : c.scope === 'not_geographic' ? 'Not tied to a place' : 'Not known yet';
+    return { scope: c.scope, label: label, c: c };
+  }
+  // five colour steps for IDP numbers, lighter = more (reads well on the dark map); breaks at rounded quantiles
+  ctyClasses(vals) {
+    var PAL = ['#343d86', '#5050ae', '#7a66cf', '#a88be6', '#e0d3ff'];
+    var v = vals.filter(function (x) { return x > 0; }).sort(function (a, b) { return a - b; });
+    var nice = function (x) { if (x < 10) return Math.ceil(x); var e = Math.pow(10, Math.floor(Math.log10(x))), m2 = x / e; return (m2 <= 1 ? 1 : m2 <= 2 ? 2 : m2 <= 2.5 ? 2.5 : m2 <= 5 ? 5 : 10) * e; };
+    var br = [];
+    if (v.length) [0.2, 0.4, 0.6, 0.8].forEach(function (q) { var b = nice(v[Math.min(v.length - 1, Math.floor(q * v.length))]); if (!br.length || b > br[br.length - 1]) br.push(b); });
+    var col = function (x) { if (!(x > 0)) return null; var i = 0; while (i < br.length && x >= br[i]) i++; return PAL[Math.round(i * (PAL.length - 1) / Math.max(1, br.length))]; };
+    var f = function (n) { return n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(n); };
+    var legend = br.length ? br.map(function (b, i) { return { t: (i === 0 ? 'under ' + f(b) : f(br[i - 1]) + '–' + f(b)), c: PAL[Math.round(i * (PAL.length - 1) / Math.max(1, br.length))] }; }).concat([{ t: f(br[br.length - 1]) + ' or more', c: PAL[PAL.length - 1] }]) : [];
+    return { col: col, legend: legend };
+  }
   ctyMapSvg(m, p, here, layer) {
     var GC = ['#f2a65a', '#74cf8e', '#b48ef0', '#f7d58e', '#e6e1d3', '#8b98b3'];
     var TN = this.ctyDoc.location_types;
@@ -1412,32 +1447,39 @@ class Component extends DCLogic {
     p.examples.forEach(function (e) { (e.places || []).forEach(function (n) { named[n] = 1; if (here && e.id === here.id) mine[n] = 1; }); });
     var r = m.pts.length > 2000 ? 1.8 : m.pts.length > 400 ? 2.4 : 3.6;
     var o = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + m.w + ' ' + m.h + '" width="' + m.w + '" height="' + m.h + '">',
-      '<rect width="100%" height="100%" fill="#0b1736"/>',
-      '<path d="' + m.near + '" fill="rgba(207,224,244,0.05)" stroke="rgba(207,224,244,0.16)" stroke-width="0.6"/>',
-      '<path d="' + m.land + '" fill="#16285a" stroke="#4a64a0" stroke-width="1.2"/>'];
+      '<defs><radialGradient id="sea" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#11214d"/><stop offset="1" stop-color="#070f27"/></radialGradient>',
+      '<filter id="glow" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="5"/></filter>',
+      '<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.55"/></filter></defs>',
+      '<rect width="100%" height="100%" fill="url(#sea)"/>',
+      '<path d="' + m.near + '" fill="#142450" stroke="#2a3f73" stroke-width="0.6" stroke-linejoin="round"/>'];
+    (m.nlab || []).forEach(function (t) { var hw = String(t[2]).length * 3.3; if (t[0] - hw < 4 || t[0] + hw > m.w - 4) return; o.push('<text x="' + t[0] + '" y="' + t[1] + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-style="italic" letter-spacing="0.6" fill="#5d71a3">' + String(t[2]).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</text>'); });
+    o.push('<path d="' + m.land + '" fill="none" stroke="#6f93e0" stroke-width="7" stroke-opacity="0.45" filter="url(#glow)"/>',
+      '<path d="' + m.land + '" fill="#1d2e63" filter="url(#shadow)"/>');
     // IDP layer (IOM DTM, CCCM, OCHA): areas shaded by IDPs, or one dot per IDP site sized by its people
     var Lr = m.layer || {}, hasA = !!(m.areas && m.areas.length), hasS = !!(m.sites && m.sites.length), areaMode = hasA || hasS;
     var fk = function (t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, ''); };
     var myAreas = here && here.areas ? here.areas : [];
     if (hasA) {
-      var vi = layer === 'camp' && Lr.camp ? 5 : 4, vmax = Math.max.apply(null, m.areas.map(function (a) { return a[vi]; })) || 1;
+      var vi = layer === 'camp' && Lr.camp ? 5 : 4, K = this.ctyClasses(m.areas.map(function (a) { return a[vi]; }));
       m.areas.forEach(function (a) {
-        var v = a[vi], op = v > 0 ? (0.14 + 0.82 * Math.sqrt(v / vmax)).toFixed(2) : 0;
-        if (v > 0) o.push('<path d="' + a[0] + '" fill="#b48ef0" fill-opacity="' + op + '" stroke="#0b1736" stroke-width="0.3"/>');
+        var c = K.col(a[vi]);
+        if (c) o.push('<path d="' + a[0] + '" fill="' + c + '" stroke="#1d2e63" stroke-width="0.4" stroke-linejoin="round"/>');
       });
     }
-    if (areaMode) m.states.forEach(function (st2) { o.push('<path d="' + st2[0] + '" fill="none" stroke="rgba(207,224,244,0.45)" stroke-width="0.8"/>'); });
+    if (areaMode) m.states.forEach(function (st2) { o.push('<path d="' + st2[0] + '" fill="none" stroke="#e6ecfa" stroke-opacity="0.5" stroke-width="0.9" stroke-linejoin="round"/>'); });
     if (hasS) {
       // regions shaded by the people in their sites, so many small sites (as in Mogadishu) still read as a lot
       var rt = {}; m.sites.forEach(function (x) { rt[fk(x[4])] = (rt[fk(x[4])] || 0) + x[2]; });
-      var rmax = Math.max.apply(null, Object.keys(rt).map(function (k) { return rt[k]; })) || 1;
-      m.states.forEach(function (st2) { var v = rt[fk(st2[1])] || 0; if (v) o.push('<path d="' + st2[0] + '" fill="#b48ef0" fill-opacity="' + (0.08 + 0.42 * Math.sqrt(v / rmax)).toFixed(2) + '" stroke="none"/>'); });
+      var KR = this.ctyClasses(Object.keys(rt).map(function (k) { return rt[k]; }));
+      m.states.forEach(function (st2) { var c = KR.col(rt[fk(st2[1])] || 0); if (c) o.push('<path d="' + st2[0] + '" fill="' + c + '" fill-opacity="0.55" stroke="none"/>'); });
+      m.states.forEach(function (st2) { o.push('<path d="' + st2[0] + '" fill="none" stroke="#e6ecfa" stroke-opacity="0.5" stroke-width="0.9" stroke-linejoin="round"/>'); });
       var smax = Math.max.apply(null, m.sites.map(function (x) { return x[2]; })) || 1;
       m.sites.slice().sort(function (a, b) { return b[2] - a[2]; }).forEach(function (x) {
         var rr = Math.max(1.3, 13 * Math.sqrt(x[2] / smax));
-        o.push('<circle cx="' + x[0] + '" cy="' + x[1] + '" r="' + rr.toFixed(1) + '" fill="#b48ef0" fill-opacity="0.55" stroke="#e9ddff" stroke-width="0.5"/>');
+        o.push('<circle cx="' + x[0] + '" cy="' + x[1] + '" r="' + rr.toFixed(1) + '" fill="#e0d3ff" fill-opacity="0.38" stroke="#f5f0ff" stroke-width="0.6"/>');
       });
     }
+    o.push('<path d="' + m.land + '" fill="none" stroke="#9db8f0" stroke-width="1.3" stroke-linejoin="round"/>');
     if (hasA) m.areas.forEach(function (a) { if (myAreas.indexOf(a[2]) >= 0) o.push('<path d="' + a[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
     if (areaMode) m.states.forEach(function (st2) { if (myAreas.indexOf(st2[1]) >= 0) o.push('<path d="' + st2[0] + '" fill="none" stroke="#ffd166" stroke-width="2.4"/>'); });
     m.pts.forEach(function (q) {
@@ -1445,9 +1487,9 @@ class Component extends DCLogic {
       if (areaMode && q[2] === 2 && (hasS || !/formal/i.test(TN[q[3]]))) return;
       if (areaMode && q[2] === 2) { o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (r + 0.6) + '" fill="#ffffff" stroke="#0b1736" stroke-width="0.8"/>'); return; }
       var c = GC[q[2]] || '#8b98b3', t = TN[q[3]];
-      if (/centre/i.test(t)) o.push('<rect x="' + (q[0] - r) + '" y="' + (q[1] - r) + '" width="' + 2 * r + '" height="' + 2 * r + '" fill="' + c + '"/>');
-      else if (/communities/i.test(t)) o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="none" stroke="' + c + '" stroke-width="1.2"/>');
-      else o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="' + c + '" fill-opacity="0.9"/>');
+      if (/centre/i.test(t)) o.push('<rect x="' + (q[0] - r) + '" y="' + (q[1] - r) + '" width="' + 2 * r + '" height="' + 2 * r + '" rx="0.8" fill="' + c + '" stroke="#0b1736" stroke-width="0.7"/>');
+      else if (/communities/i.test(t)) o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="#0b1736" fill-opacity="0.35" stroke="' + c + '" stroke-width="1.3"/>');
+      else o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="' + c + '" stroke="#0b1736" stroke-width="0.7"/>');
     });
     var esc = function (t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
     var boxes = [], label = function (q, col, wt, size) {
@@ -1478,6 +1520,34 @@ class Component extends DCLogic {
     var seen = {};
     m.pts.forEach(function (q) { if (named[q[4]] && !seen[q[4]]) { seen[q[4]] = 1; o.push('<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (mine[q[4]] ? 9 : 7) + '" fill="none" stroke="#ffd166" stroke-width="2.2"/>'); label(q, '#ffd166', 700, mine[q[4]] ? 16 : 14); } });
     if (m.pts.length <= 60 && !areaMode) m.pts.forEach(function (q) { if (!named[q[4]]) label(q, '#cfe0f4', 400, 13); });
+    // GAIN examples placed on the map: numbered like the list beside it (teal; the open example in gold)
+    var placed = this._ctyPlaced || [], nat = [], slot = {};
+    var badge = function (x, y, n, mine) {
+      var k = Math.round(x / 6) + ':' + Math.round(y / 6), off = (slot[k] = (slot[k] || 0) + 1) - 1;
+      x += off * 19;
+      o.push('<circle cx="' + x + '" cy="' + y + '" r="10" fill="' + (mine ? '#ffd166' : '#4cc3c9') + '" stroke="#0b1736" stroke-width="2"/><text x="' + x + '" y="' + (y + 4) + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0a1430">' + n + '</text>');
+    };
+    placed.forEach(function (pl) {
+      var c = pl.c, col = pl.mine ? '#ffd166' : '#4cc3c9', spots = [];
+      if (pl.scope === 'national') { nat.push(pl); return; }
+      (c.lgas || []).forEach(function (nm) { (m.areas || []).forEach(function (a) { if (fk(a[2]) === fk(nm)) { o.push('<path d="' + a[0] + '" fill="none" stroke="' + col + '" stroke-width="2" stroke-dasharray="4 3"/>'); } }); });
+      (c.states || []).forEach(function (nm) { (m.states || []).forEach(function (st5) { if (fk(st5[1]) === fk(nm)) { o.push('<path d="' + st5[0] + '" fill="none" stroke="' + col + '" stroke-width="2" stroke-dasharray="4 3"/>'); spots.push([st5[2], st5[3]]); } }); });
+      (c.sites || []).forEach(function (nm) {
+        var q = m.pts.find(function (q2) { return fk(q2[4]) === fk(nm) || fk(q2[4]).indexOf(fk(nm)) === 0; }) || (m.sites || []).find(function (q3) { return fk(q3[3]) === fk(nm); });
+        if (q) spots.unshift([q[0], q[1]]);
+      });
+      // no region outline for this country: fall back to a UNHCR place with the region's or town's name
+      if (!spots.length) [].concat(c.lgas || [], c.states || []).some(function (nm) {
+        var q = m.pts.find(function (q2) { return fk(q2[4]) === fk(nm); });
+        if (q) { spots.push([q[0], q[1]]); return true; }
+      });
+      if (!spots.length) return;
+      badge(spots[0][0], spots[0][1] - 16, pl.num, pl.mine);
+    });
+    if (nat.length) {
+      var txt = 'Whole country: ' + nat.map(function (x) { return x.num; }).join(', ');
+      o.push('<rect x="8" y="8" width="' + (txt.length * 7.2 + 16) + '" height="24" rx="4" fill="#0a1430" fill-opacity="0.85" stroke="#4cc3c9"/><text x="16" y="24" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#8fe0e4">' + esc(txt) + '</text>');
+    }
     o.push('</svg>');
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(o.join(''));
   }
@@ -1508,12 +1578,18 @@ class Component extends DCLogic {
     var y0 = ex.length ? ex[0].year : 2021;
     cc.region = ((p.region || '') + (p.subregion ? ' · ' + p.subregion : '')).toUpperCase();
     cc.sub = ex.length + ' GAIN example' + (ex.length === 1 ? '' : 's') + ', ' + y0 + '–2025 · ' + nC + ' country-led, ' + (ex.length - nC) + ' institution-led';
+    // examples that can be placed get a number, shared by the list and the map
+    var numOf = {}, placed = [], nn = 0;
+    ex.forEach(function (e) { var w = self.whereOf(e.id); if (w && /national|subnational|sites/.test(w.scope)) { numOf[e.id] = ++nn; placed.push({ num: nn, id: e.id, scope: w.scope, c: w.c, mine: !!(here && here.id === e.id) }); } });
+    this._ctyPlaced = placed;
     // the years, with this country's examples in each; the open example is marked
     cc.years = [2021, 2022, 2023, 2024, 2025].map(function (y) {
       var list = ex.filter(function (e) { return e.year === y; });
       return { y: String(y), none: !list.length, ex: list.map(function (e) {
-        var me = here && e.id === here.id;
-        return { t: e.title.length > 96 ? e.title.slice(0, 93) + '…' : e.title,
+        var me = here && e.id === here.id, wh = self.whereOf(e.id), nm = numOf[e.id];
+        return { num: nm || '', numStyle: nm ? "flex-shrink: 0; align-self: center; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #4cc3c9; color: #0a1430; font: 600 10px 'IBM Plex Mono', monospace" : 'display: none',
+          w: wh ? 'Where: ' + wh.label : 'Where: not checked yet', wStyle: "font: 400 11px 'IBM Plex Mono', monospace; color: " + (wh && wh.scope !== 'unknown' ? '#8fe0e4' : '#5a6884'),
+          t: e.title.length > 96 ? e.title.slice(0, 93) + '…' : e.title,
           dot: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; align-self: center; background: ' + (e.lead === 'Country-led' ? '#5b8fd9' : '#4cc3c9'),
           style: me ? 'border-color: #e0a93b; background: rgba(224,169,59,0.1)' : '', here: me ? 'OPEN NOW' : '', hereStyle: me ? "margin-left: auto; flex-shrink: 0; font: 500 10px 'IBM Plex Mono', monospace; letter-spacing: 0.08em; color: #e0a93b" : 'display: none',
           pick: function () { self.setState({ cty: null, sel: e.id - 1, sx: null, sy: null, hover: null }); } };
@@ -1552,7 +1628,7 @@ class Component extends DCLogic {
     if (m && m.w) {
       // the picture is built once per country and open example, not on every render
       var layer = st.ctyLayer || 'all';
-      var mk = p.iso + ':' + (here ? here.id : '') + ':' + layer;
+      var mk = p.iso + ':' + (here ? here.id : '') + ':' + layer + ':' + (st.covTick || 0);
       if (this._ctySvgKey !== mk) { this._ctySvgKey = mk; this._ctySvg = this.ctyMapSvg(m, p, here, layer === 'camp' ? 'camp' : 'all'); }
       cc.hasMap = true; cc.map = this._ctySvg;
       cc.mapAlt = 'Map of ' + p.name + ' with ' + m.pts.length + ' places where UNHCR records displaced or stateless people';
@@ -1592,11 +1668,13 @@ class Component extends DCLogic {
         cc.setA = function () { self.setState({ ctyLayer: 'all' }); }; cc.setB = function () { self.setState({ ctyLayer: 'camp' }); };
         var idpCamps = !hasS && m.pts.some(function (q) { return q[2] === 2 && /formal/i.test(self.ctyDoc.location_types[q[3]]); });
         cc.legend = [hasS ? { t: 'IDP site, sized by the people living there; regions shaded by their total', sw: 'display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: rgba(180,142,240,0.6); box-shadow: inset 0 0 0 1px #e9ddff' }
-          : { t: (camp ? 'IDPs in ' + campWord : 'IDPs') + ' per ' + Lr.unit + ' (darker = more)', sw: 'display: inline-block; width: 22px; height: 9px; background: linear-gradient(90deg, rgba(180,142,240,0.2), #b48ef0)' }]
+          : { t: (camp ? 'IDPs in ' + campWord : 'IDPs') + ' per ' + Lr.unit + ':', sw: 'display: none' }]
+          .concat(hasA ? this.ctyClasses(m.areas.map(function (a) { return a[camp ? 5 : 4]; })).legend.map(function (k) { return { t: k.t, sw: 'display: inline-block; width: 14px; height: 10px; border-radius: 2px; background: ' + k.c }; }) : [])
           .concat(idpCamps ? [{ t: 'white: IDP camp (UNHCR)', sw: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ffffff' }] : [])
           .concat(cc.legend.filter(function (x) { return !/^IDPs \(/.test(x.t) && !/ring: in communities/.test(x.t); }));
         if (myA.length) cc.legend.push({ t: 'gold outline: ' + myA.join(', ') + ', named in this example', sw: 'display: inline-block; width: 9px; height: 9px; box-shadow: inset 0 0 0 2px #ffd166' });
       }
+      if ((this._ctyPlaced || []).length) cc.legend.push({ t: 'numbered: where a GAIN example was done (numbers as in the list above; dashed outline = its regions)', sw: 'display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #4cc3c9' });
       cc.mapNote = 'UNHCR’s list of locations (gis.unhcr.org). A point is a place, not a count: one camp of 200,000 people and one town with a few families each show as one point.' + (m.off ? ' ' + m.off + ' further locations lie outside this view.' : '');
     } else if (m === null) { cc.hasMap = false; }
     else if (m && !m.w) { cc.hasMap = false; }
@@ -1688,7 +1766,7 @@ class Component extends DCLogic {
       closeEx: function () { self.setState({ sel: -1, hover: null }); if (/^#example-/.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } },
       loading: !st.ready, labels: [], legend: [], chartTitle: '',
       pv: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', hasImg: false, img: '', imgAlt: '', chips: [], closable: false, hoverHint: false, hint: '', style: 'display: none' },
-      dr: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', style: 'display: none', grid: '', hasImg: false, img: '', imgAlt: '', figStyle: '', imgStyle: '', cap: '', desc: '', descStyle: '', pops: [], recs: [], hasRecs: false, recNote: '', hasRecNote: false, srcs: [], chs: [], similar: [], hasSimilar: false, similarWhy: '', copy: null, copyLabel: '', hasCases: false, cases: [], casesHead: '', hasOthers: false, othersHead: '', others: [], hasCty: false, noCty: false, ctyName: '', ctyAria: '', metaA: '', metaB: '', openCty: null, ctyText: '', hasLink: false, link: '', linkText: '', hasCaseLink: false, caseLink: '', foot: '' },
+      dr: { show: false, meta: '', title: '', org: '', hasWhy: false, why: '', style: 'display: none', grid: '', hasImg: false, img: '', imgAlt: '', figStyle: '', imgStyle: '', cap: '', desc: '', descStyle: '', pops: [], recs: [], hasRecs: false, recNote: '', hasRecNote: false, srcs: [], chs: [], similar: [], hasSimilar: false, similarWhy: '', copy: null, copyLabel: '', hasCases: false, cases: [], casesHead: '', hasOthers: false, othersHead: '', others: [], whereStyle: '', whereIcon: '', whereScope: '', hasWhereText: false, whereText: '', hasWhereSrc: false, whereSrc: '', whereSrcText: '', whereNote: '', hasCty: false, noCty: false, ctyName: '', ctyAria: '', metaA: '', metaB: '', openCty: null, ctyText: '', hasLink: false, link: '', linkText: '', hasCaseLink: false, caseLink: '', foot: '' },
       cc: { show: false, hasAreas: false, hasToggle: false, lyrBText: '', areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, scrim: '', style: '', aria: '', back: null, backText: '', closeAll: null, region: '', name: '', sub: '', hasLede: false, lede: '', loading: false, years: [], hasPop: false, popHead: '', groups: [], popNote: '', hasMap: false, map: '', mapAlt: '', legend: [], mapNote: '', hasAreas: false, hasToggle: false, lyrBText: '', areaHead: '', areaRows: [], areaNote: '', lyrA: '', lyrB: '', lyrAOn: 'true', lyrBOn: 'false', setA: null, setB: null, methods: [], methodNote: '', hasOrigins: false, origins: '', copy: null, copyLabel: '', foot: '' },
       openFull: function () { var s3 = self.state || {}, sp = self.steps()[s3.active || 0]; if (sp && sp.feat != null) self.setState({ sel: sp.feat, hover: null }); },
       legendBox: 'display: none', exploreBox: 'display: none', seg: {}, mode: { text: '', style: 'display: none' }
@@ -1907,6 +1985,15 @@ class Component extends DCLogic {
           hasCases: csList.length > 0, cases: csList, casesHead: csHead,
           hasOthers: nOth > 0, othersHead: 'More from ' + (d.country || '') + ' in GAIN · ' + nOth + ' other example' + (nOth === 1 ? '' : 's') + ' · blue: country-led, teal: institution-led',
           others: others.slice(0, 12).map(function (r) { return { y: String(r.y), t: r.title.length > 110 ? r.title.slice(0, 107) + '…' : r.title, pick: self2._pick['e' + r.id], dot: 'display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; align-self: center; background: ' + (r.lead ? '#4cc3c9' : '#5b8fd9') }; }),
+          whereStyle: (function () { var w = self2.whereOf(d.id + 1); return !w || w.scope === 'unknown' ? 'color: #8b98b3; border-style: dashed' : ''; })(),
+          whereIcon: (function () { var w = self2.whereOf(d.id + 1); return self2.icon(!w || w.scope === 'unknown' ? 'dash' : w.scope === 'national' ? 'flag' : w.scope === 'not_geographic' ? 'gear' : 'target', !w || w.scope === 'unknown' ? '#8b98b3' : '#cfe0f4'); })(),
+          whereScope: (function () { var w = self2.whereOf(d.id + 1); return w ? w.label : 'Not checked yet'; })(),
+          hasWhereText: !!(self2.whereOf(d.id + 1) || {}).c && !!self2.whereOf(d.id + 1).c.summary,
+          whereText: (function () { var w = self2.whereOf(d.id + 1); if (!w) return ''; return w.c.summary + (w.c.sample ? ' Sample: ' + w.c.sample + '.' : ''); })(),
+          hasWhereSrc: !!((self2.whereOf(d.id + 1) || {}).c || {}).source_url,
+          whereSrc: ((self2.whereOf(d.id + 1) || {}).c || {}).source_url || '',
+          whereSrcText: (function () { var u = ((self2.whereOf(d.id + 1) || {}).c || {}).source_url || ''; return 'Source: ' + u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]; })(),
+          whereNote: (function () { var w = self2.whereOf(d.id + 1); if (!w) return 'GAIN does not ask where an example was done. We are reading the reports to find out; this one has not been checked yet.'; return 'Draft, read from the ' + (w.c.source_url ? 'report or project page' : 'GAIN answer') + (w.c.confidence ? ' (' + w.c.confidence + ' confidence)' : '') + '; GAIN does not ask this, and the EGRISS Secretariat has not checked it yet.'; })(),
           hasCty: !!d.country, noCty: !d.country, ctyName: (d.country || 'Regional / global').toUpperCase(), ctyAria: 'Open the country card for ' + (d.country || ''),
           metaA: 'GAIN ' + d.y + ' · ', metaB: ' · ' + (d.lead === 0 ? 'COUNTRY-LED' : 'INSTITUTION-LED'),
           openCty: function () { self2.openCty(d.id + 1, null); }, ctyText: 'Open the ' + (d.country || '') + ' country card',
