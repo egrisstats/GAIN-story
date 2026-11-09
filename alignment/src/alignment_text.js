@@ -9,11 +9,19 @@
   var ACR = { R: 'IRRS', I: 'IRIS', S: 'IROSS' };
   var FULL = { IRRS: 'International Recommendations on Refugee Statistics', IRIS: 'International Recommendations on IDP Statistics', IROSS: 'International Recommendations on Statelessness Statistics' };
   var GROUPS = { R: 'refugees, asylum seekers, people under temporary protection or returnees', I: 'internally displaced people', S: 'stateless people' };
-  var WHERE = { desc: 'their description', web: 'public web pages', similar: 'a similar GAIN example', other: 'other sources' };
+  var WHERE = { desc: 'their description', web: 'online', similar: 'a similar GAIN example', other: 'other sources' };
+  var FOUNDIN = { desc: 'in their description ', web: 'online ', similar: 'in a similar GAIN example ', other: 'in other sources ', '': '' };
   var USE = { l0: 'the same organisation reported using them for this or related work', l1: 'it is built on an instrument that follows the recommendations', l2: 'EGRISS or an EGRISS member supported it, or it mentions the recommendations' };
-  var WEB = { supports_use: 'public web pages point to use of the recommendations', against_use: 'public web pages point away from use', unclear: 'public web pages do not settle it' };
+  var WEB = { supports_use: 'point to use of the recommendations', against_use: 'point away from use', unclear: 'do not settle it' };
   var PEER_TAGS = [['org', 'from the same organisation'], ['country', 'from the same country'], ['region_source', 'with the same source in the same region'], ['source', 'with the same source']];
 
+  // organisation names stored in capitals read as shouting: normal case, acronyms kept
+  function niceOrg(o) {
+    o = String(o || ''); var letters = o.replace(/[^A-Za-zÀ-ÿ]/g, ''); if (!letters || letters.replace(/[^A-ZÀ-Þ]/g, '').length / letters.length < 0.7) return o;
+    var small = /^(of|and|for|the|on|in|de|del|la|las|los|el|y|et|du|des|le)$/i;
+    return o.toLowerCase().replace(/[\wÀ-ÿ']+/g, function (w, i) { return i > 0 && small.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1); })
+      .replace(/\(([^)]+)\)/g, function (m, x) { return '(' + x.toUpperCase() + ')'; });
+  }
   function lc(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
   function join(a, word) { word = word || 'and'; return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join('; ') + '; ' + word + ' ' + a[a.length - 1]; }
   function joinShort(a, word) { word = word || 'and'; return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' ' + word + ' ' + a[a.length - 1]; }
@@ -55,7 +63,7 @@
    */
   function rationale(rules, spec, q, d, opts) {
     opts = opts || {};
-    var a = d.answers || {}, o = d.outcome, org = q.organisation || 'The organisation', acr = acronyms(a.populations);
+    var a = d.answers || {}, o = d.outcome, org = niceOrg(q.organisation) || 'The organisation', acr = acronyms(a.populations);
     var states = a.states || {}; if (!a.states) (a.ticks || []).forEach(function (t) { states[t] = 'found'; });
     var crit = a.kind && spec.kinds[a.kind] ? rules.criteriaFor(spec, a.kind) : [];
     var found = crit.filter(function (c) { return states[c.id] === 'found'; }), notFound = crit.filter(function (c) { return states[c.id] === 'not'; }), unsure = crit.filter(function (c) { return states[c.id] === 'unsure'; });
@@ -70,9 +78,20 @@
       var groups = String(a.populations || '').split('').map(function (p) { return GROUPS[p]; }).filter(Boolean);
       p1 += 'It is about producing statistics and covers ' + (joinShort(groups) || 'the groups the recommendations cover') + '.' + (a.q2 === 'other' ? ' They follow another framework that draws on the recommendations.' : '');
       var shows = found.filter(function (c) { return !c.use; }), signs = found.filter(function (c) { return c.use; });
-      var where = function (c) { var w = (a.where || {})[c.id]; return WHERE[w] ? ' (seen in ' + WHERE[w] + ')' : ''; };
-      if (shows.length) p1 += ' Checking it against the ' + joinShort(acr.map(function (x) { return FULL[x] + ' (' + x + ')'; })) + ', we found that ' + join(shows.map(function (c) { return clause(c) + where(c); })) + '.';
-      if (signs.length) p1 += ' We also found signs they already use them: ' + join(signs.map(function (c) { return clause(c) + where(c); })) + '.';
+      var wh = function (c) { var w = (a.where || {})[c.id]; return FOUNDIN[w] != null ? w : ''; };
+      // group the items by where they were seen, so each source is named once, one sentence per source
+      var bySource = function (list) {
+        return ['desc', 'web', 'similar', 'other', ''].map(function (w) { return [w, list.filter(function (c) { return wh(c) === w; })]; }).filter(function (g) { return g[1].length; });
+      };
+      var cap = function (t) { return t.charAt(0).toUpperCase() + t.slice(1); };
+      bySource(shows).forEach(function (g, i) {
+        var said = join(g[1].map(clause));
+        p1 += i === 0 ? ' Checking it against the ' + joinShort(acr.map(function (x) { return FULL[x] + ' (' + x + ')'; })) + ', we found ' + FOUNDIN[g[0]] + 'that ' + said + '.'
+          : ' ' + (g[0] ? cap(FOUNDIN[g[0]]) + 'we also found that ' : 'We also found that ') + said + '.';
+      });
+      bySource(signs).forEach(function (g) {
+        p1 += ' ' + (g[0] ? cap(FOUNDIN[g[0]]) + 'there are signs they already use them: ' : 'There are signs they already use them: ') + join(g[1].map(clause)) + '.';
+      });
       if (!shows.length && !signs.length) p1 += ' We did not find any of the recommendations’ markers in what we could check.';
       if (notFound.length) p1 += ' We did not find that ' + join(notFound.map(clause), 'or') + '.';
       if (unsure.length) p1 += ' We could not tell whether ' + join(unsure.map(clause), 'or') + '.';
@@ -87,12 +106,13 @@
     else p2 = 'There is too little evidence to change their answer, so we kept it. No email is sent.';
     var ctx = [], pc = peerContext(q, opts.peerUsed || function (p) { return p.used; });
     if (pc) ctx.push(pc.text);
-    if (q.web && WEB[q.web.signal]) ctx.push(WEB[q.web.signal]);
+    var docs = q.web && q.web.docs, wsig = docs && docs.signal ? docs.signal : (q.web && q.web.signal);
+    if (WEB[wsig]) ctx.push((docs ? 'the documents online ' : 'public web pages ') + WEB[wsig]);
     if (ctx.length) p2 += ' For comparison, ' + ctx.join('; ') + '.';
     var paras = o === 'edit' ? paragraphs(found, acr) : [], ex = opts.excerpts || {}, quoted = paras.filter(function (p) { return ex[p]; });
     if (paras.length) p2 += ' The email cites ' + joinShort(paras.map(paraName)) + (quoted.length ? ', quoting the official wording' + (quoted.length < paras.length ? ' for ' + quoted.length + ' of them' : '') : '') + '.';
     if (d.note) p2 += ' Reviewer’s note: ' + String(d.note).trim().replace(/([^.!?])$/, '$1.');
-    return { p1: p1, p2: p2, text: p1 + '\n\n' + p2, recs: acr, found: found, notFound: notFound, unsure: unsure, paragraphs: paras, quoted: quoted, peers: pc, web: q.web ? q.web.signal : null };
+    return { p1: p1, p2: p2, text: p1 + '\n\n' + p2, recs: acr, found: found, notFound: notFound, unsure: unsure, paragraphs: paras, quoted: quoted, peers: pc, web: wsig || null };
   }
-  return { rationale: rationale, acronyms: acronyms, paraName: paraName, FULL: FULL };
+  return { rationale: rationale, acronyms: acronyms, paraName: paraName, niceOrg: niceOrg, FULL: FULL };
 });

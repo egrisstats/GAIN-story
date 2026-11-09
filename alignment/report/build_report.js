@@ -31,18 +31,18 @@ const OUT = { edit: 'Count as using · tell them', aligned: 'Aligned · not coun
   outscope: 'Keep · not statistics (check if valid)', deliberate: 'Keep · they chose not to use them', nocat: 'Keep · no matching groups' };
 const ORDER = ['edit', 'aligned', 'outreach', 'keep', 'deliberate', 'nocat', 'outscope'];
 const ANS = { no: 'Not used', dk: 'Don’t know' };
-const WEB = { supports_use: 'Points to use', against_use: 'Points away from use', unclear: 'Unclear' };
-const WHERE = { desc: 'Their description', web: 'Web', similar: 'Similar example', other: 'Other' };
+const WEB = { supports_use: 'Points to use', against_use: 'Points away from use', unclear: 'Doesn’t settle it' };
+const WHERE = { desc: 'Their description', web: 'Online', similar: 'Similar example', other: 'Other' };
 const peerUsed = (p) => (p.qkey && dec[p.qkey] && dec[p.qkey].outcome) ? dec[p.qkey].outcome === 'edit' : p.used;
 
 const rows = Object.keys(queue).sort((a, b) => (queue[a].organisation || '').localeCompare(queue[b].organisation || '') || queue[a].title.localeCompare(queue[b].title)).map((k) => {
   const q = queue[k], d = dec[k];
   const docs = (q.web && q.web.docs) || null, sig = (docs && docs.signal) || (q.web && q.web.signal);
   const h = q.history || {}, fmtB = (b) => b && b.examples ? b.used + ' of ' + b.examples + ' used' + (Object.keys(b.by_rec).filter((x) => !/know|named/.test(x)).length ? ' (' + Object.entries(b.by_rec).filter(([x]) => !/know/.test(x)).map(([x, n]) => x + ' ' + n).join(', ') + ')' : '') : 'none';
-  const base = { key: k, organisation: q.organisation || '', country: q.country || 'Regional or global', region: q.region || '', title: q.title, answer: ANS[q.answer] || q.answer, kind: q.kind_name || q.source || '',
+  const base = { key: k, organisation: T.niceOrg(q.organisation) || '', country: q.country || 'Regional or global', region: q.region || '', title: q.title, answer: ANS[q.answer] || q.answer, kind: q.kind_name || q.source || '',
     web: WEB[sig] || 'Not checked', docs_read: docs ? (docs.documents || []).filter((d) => d.read).length : 0, online: docs ? (docs.summary || []).join(' ') : ((q.web && q.web.summary) || ''),
-    org_before: (h.org || []).filter((x) => x.year !== '2026').map((x) => x.year + ' ' + (x.used ? (x.recs || 'used').replace(/;/g, '+') : 'no')).join(', ') || 'none',
-    country_before: fmtB(h.country) };
+    org_before: (h.org || []).filter((x) => x.year !== '2026').map((x) => x.year + ' ' + (x.used ? (x.recs && x.recs !== 'Not named' ? x.recs.replace(/;/g, '+') : 'used, not named') : 'not used')).join(', '),
+    country_before: q.country ? fmtB(h.country) : '' };
   if (!d || !d.outcome) return Object.assign(base, { outcome: 'open', outcome_label: 'To review' });
   const g = T.rationale(R, spec, q, d, { excerpts, peerUsed });
   const a = d.answers || {}, where = a.where || {};
@@ -70,6 +70,12 @@ const P = (text, o = {}) => new D.Paragraph({ spacing: { after: 120 }, ...o, chi
 const B = (t) => new D.TextRun({ text: t, bold: true, font });
 const H = (text, level) => new D.Paragraph({ heading: level, children: [new D.TextRun({ text, font })] });
 const bullet = (text) => new D.Paragraph({ numbering: { reference: 'bullets', level: 0 }, spacing: { after: 60 }, children: [].concat(text).map((t) => typeof t === 'string' ? new D.TextRun({ text: t, font }) : t) });
+// "the same organisation reported … ; 13 of 17 examples from Colombia used them (IRIS 12, IRRS 1)"
+function usedBefore(r) {
+  const org = r.org_before ? 'the same organisation reported ' + r.org_before : 'the same organisation has no earlier examples';
+  const cty = !r.country_before ? 'a regional example, so no country record' : r.country_before === 'none' ? 'no other examples from ' + r.country : r.country_before.replace(/^(\d+ of \d+) used/, '$1 examples from ' + r.country + ' used them');
+  return org + '; ' + cty + '.';
+}
 const reviewed = rows.filter((r) => r.outcome !== 'open'), open = rows.filter((r) => r.outcome === 'open');
 const count = (o) => rows.filter((r) => r.outcome === o).length;
 const total = model.examples_2026, inRev = rows.length, usingReported = total ? total - inRev : null;
@@ -101,15 +107,15 @@ ORDER.forEach((o) => {
     body.push(new D.Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: [new D.TextRun({ text: r.title, bold: true, font, color: NAVY })] }));
     body.push(new D.Paragraph({ keepNext: true, spacing: { after: 80 }, children: [new D.TextRun({ text: [r.organisation, r.country, 'said: ' + r.answer.toLowerCase(), r.kind].filter(Boolean).join(' · '), font, size: 18, color: '5F6B87' })] }));
     r.why.split(/\n\s*\n/).forEach((para) => body.push(P(para.trim())));
-    if (r.online) body.push(P([B('Online (' + r.web.toLowerCase() + (r.docs_read ? ', ' + r.docs_read + (r.docs_read === 1 ? ' document read' : ' documents read') : '') + '): '), r.online], { spacing: { after: 80 } }));
-    body.push(P([B('Used before: '), 'same organisation ' + r.org_before + '; same country ' + r.country_before + '.'], { spacing: { after: 80 } }));
+    if (r.online) body.push(P([B('Online: ' + r.web.toLowerCase() + (r.docs_read ? ' (' + r.docs_read + (r.docs_read === 1 ? ' document read)' : ' documents read)') : '') + '. '), r.online], { spacing: { after: 80 } }));
+    body.push(P([B('Used before: '), usedBefore(r)], { spacing: { after: 80 } }));
     const facts = [r.recommendations && 'Recommendations: ' + r.recommendations, r.paragraphs && 'Paragraphs cited: ' + r.paragraphs, r.quoted && 'Official wording quoted: ' + r.quoted, 'Email: ' + r.email, r.reviewed_on && 'Reviewed on ' + r.reviewed_on].filter(Boolean);
     body.push(new D.Paragraph({ spacing: { after: 200 }, border: { bottom: { style: D.BorderStyle.SINGLE, size: 4, color: 'DDE4EF', space: 6 } }, children: [new D.TextRun({ text: facts.join(' · '), font, size: 18, color: '5F6B87' })] }));
   });
 });
 if (open.length) {
   body.push(H('4. Still to review (' + open.length + ')', D.HeadingLevel.HEADING_1));
-  open.forEach((r) => body.push(bullet([B(r.title), ' · ' + r.organisation + ' · ' + r.country + ' · said: ' + r.answer.toLowerCase() + ' · online: ' + r.web.toLowerCase() + ' · same organisation before: ' + r.org_before])));
+  open.forEach((r) => body.push(bullet([B(r.title), ' · ' + r.organisation + ' · ' + r.country + ' · said: ' + r.answer.toLowerCase() + ' · online: ' + r.web.toLowerCase() + ' · same organisation, earlier rounds: ' + (r.org_before || 'none')])));
 }
 const outreach = reviewed.filter((r) => r.outcome === 'edit' || r.outcome === 'outreach');
 if (outreach.length) {

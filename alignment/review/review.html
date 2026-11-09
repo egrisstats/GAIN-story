@@ -259,7 +259,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 .doc { border: 1px solid var(--line); border-radius: var(--r-m); padding: 8px 10px; }
 .doc summary { cursor: pointer; font-size: var(--fs-s); font-weight: 600; color: var(--ink); }
 .doc .src { font: 500 var(--fs-xs) var(--mono); color: var(--ink-3); margin-left: 6px; }
-.doc dl { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 3px 10px; margin: 8px 0 0; font-size: var(--fs-xs); }
+.doc dl { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 3px 10px; margin: 8px 0 0; font-size: var(--fs-xs); }
 .doc dt { color: var(--ink-3); font-weight: 600; }
 .doc dd { margin: 0; color: var(--ink-2); }
 .wsum { margin: 0; padding-left: 18px; font-size: var(--fs-s); display: grid; gap: 3px; }
@@ -344,7 +344,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   </section>
 
   <section id="view-over" hidden>
-    <div class="panel overp"><div class="ph"><div><h2>All examples in the review, and what was used before</h2>
+    <div class="panel overp"><div class="ph"><div><h2>Every example in the review, and which recommendations were used before</h2>
       <div class="sub">One row per example: what they answered, which recommendations the same organisation and the same country used in earlier GAIN rounds, how similar examples in the region were answered, and what the documents online show. Click a row to open it.</div></div>
       <label class="hint">Show <select id="ofilter"><option value="all">All</option><option value="open">To review</option><option value="done">Reviewed</option></select></label></div>
       <div class="tblwrap" id="overtbl"></div></div>
@@ -591,7 +591,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   // older decisions only have ticks: read them as 'found'
   function withStates(d) { if (!d.states) { d.states = {}; (d.ticks || []).forEach(function (t) { d.states[t] = 'found'; }); } if (!d.where) d.where = {}; return d; }
   function syncTicks(d) { d.ticks = Object.keys(d.states).filter(function (k) { return d.states[k] === 'found'; }); }
-  var WHERE = { desc: 'Their description', web: 'Web', similar: 'Similar example', other: 'Other' };
+  var WHERE = { desc: 'Their description', web: 'Online', similar: 'Similar example', other: 'Other' };
   function guessWhere(why) { var w = String(why || ''); return /^GAIN \d{4}|reported use|other example|submission reports/i.test(w) ? 'similar' : 'desc'; }
   function select(k, opts) {
     if (S.sel !== k) { S.peerTag = null; S.peerAll = false; }
@@ -612,14 +612,21 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   }
 
   // evidence: what the web says
-  var SIG = { supports_use: ['supports', 'Points to use'], against_use: ['against', 'Points away from use'], unclear: ['unclear', 'Unclear'] };
+  var SIG = { supports_use: ['supports', 'Points to use'], against_use: ['against', 'Points away from use'], unclear: ['unclear', 'Doesn’t settle it'] };
   // checklist items the documents read online give evidence for
   function docHits(q) {
     var out = [], d = q.web && q.web.docs; if (!d) return out;
     (d.documents || []).forEach(function (x) { if (x.read) (x.checklist || []).forEach(function (id) { if (!out.some(function (o) { return o.id === id; })) out.push({ id: id, title: (x.title || 'a document').slice(0, 60) }); }); });
     return out;
   }
-  var CKL = { d0: 'groups by name', d1: 'identified the recommended way', d2: 'recommended statistics', p0: 'good practice 1', p1: 'good practice 2', e0: 'topic', e1: 'audience', l0: 'used before', l1: 'recommended instrument', l2: 'EGRISS link' };
+  var CKL = { d0: 'groups by name', d1: 'identified the recommended way', d2: 'recommended statistics', e0: 'topic', e1: 'audience', l0: 'used before', l1: 'recommended instrument', l2: 'EGRISS link' };
+  // practice items differ by kind: use the item itself, shortened
+  function ckLabel(id, q) {
+    if (CKL[id]) return CKL[id];
+    var k = (S.draft && S.draft.kind) || (q && q.suggest && q.suggest.kind && q.suggest.kind.value), c = k && S.spec && S.spec.kinds[k] ? window.AlignmentRules.criteriaFor(S.spec, k).filter(function (x) { return x.id === id; })[0] : null;
+    if (!c) return 'good practice';
+    var t = c.text.split(/[:,]/)[0]; return t.charAt(0).toLowerCase() + t.slice(1);
+  }
   function webCard(q) {
     var w = q.web;
     if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">No web check yet for this example. Ask Claude to run the web check on the queue.</div></section>';
@@ -628,15 +635,15 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (d) {
       var docs = (d.documents || []);
       var list = docs.map(function (x) {
-        var u = safeUrl(x.url), src = { respondent: 'their link', web: 'web search', search: 'web search' }[x.source] || '';
-        var hits = (x.checklist || []).map(function (id) { return '<span class="rc">' + esc(CKL[id] || id) + '</span>'; }).join('');
-        return '<details class="doc"' + (x.read ? '' : ' style="opacity:.6"') + '><summary>' + esc(x.title || u || 'Document') + '<span class="src">' + esc([src, x.year].filter(Boolean).join(' · ')) + (x.read ? '' : ' · could not open') + '</span></summary>' +
-          '<dl>' + [['What it is', x.what], ['Groups', x.groups], ['Identified by', x.identified_by], ['Statistics', x.statistics], ['Mentions', x.mentions], ['Note', x.note]].filter(function (r2) { return r2[1]; }).map(function (r2) { return '<dt>' + r2[0] + '</dt><dd>' + esc(r2[1]) + '</dd>'; }).join('') +
-          (hits ? '<dt>Shows</dt><dd>' + hits + '</dd>' : '') + (x.quote ? '<dt>Quote</dt><dd>“' + esc(x.quote) + '”</dd>' : '') + '</dl>' +
+        var u = safeUrl(x.url), src = { respondent: 'their own link', web: 'found online', search: 'found online' }[x.source] || '';
+        var hits = (x.checklist || []).map(function (id) { return '<span class="rc">' + esc(ckLabel(id, q)) + '</span>'; }).join('');
+        return '<details class="doc"' + (x.read ? '' : ' style="opacity:.6"') + '><summary>' + esc(x.title || u || 'Document') + '<span class="src">' + esc([src, x.year].filter(Boolean).join(' · ')) + (x.read ? '' : ' · couldn’t open this link') + '</span></summary>' +
+          '<dl>' + [['What it is', x.what], ['Groups', x.groups], ['Identified by', x.identified_by], ['Statistics produced', x.statistics], ['Mentions the recommendations', x.mentions], ['Note', x.note]].filter(function (r2) { return r2[1]; }).map(function (r2) { return '<dt>' + r2[0] + '</dt><dd>' + esc(r2[1]) + '</dd>'; }).join('') +
+          (hits ? '<dt>Checklist items it shows</dt><dd>' + hits + '</dd>' : '') + (x.quote ? '<dt>Quote</dt><dd>“' + esc(x.quote) + '”</dd>' : '') + '</dl>' +
           (u ? '<div style="margin-top:6px"><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">Open the document</a></div>' : '') + '</details>';
       }).join('');
       var n = docs.filter(function (x) { return x.read; }).length;
-      return head + '<div class="eyebrow">What the documents show · ' + n + ' read</div><ul class="wsum">' + (d.summary || []).map(function (b2) { return '<li>' + esc(b2) + '</li>'; }).join('') + '</ul>' +
+      return head + '<div class="eyebrow">What the documents show (' + n + ' read)</div><ul class="wsum">' + (d.summary || []).map(function (b2) { return '<li>' + esc(b2) + '</li>'; }).join('') + '</ul>' +
         (d.reason ? '<div class="hint">' + esc(d.reason) + '</div>' : '') + (list ? '<div class="docs">' + list + '</div>' : '') + '</section>';
     }
     var links = (w.links || []).map(function (l) { var u = safeUrl(l.url); return u ? '<li><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(l.title || u) + '</a> <span class="k">' + esc([l.kind, l.year].filter(Boolean).join(' · ')) + '</span></li>' : ''; }).join('');
@@ -669,12 +676,12 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var name = { org: 'examples from the same organisation', country: 'examples from the same country', region_source: 'examples from the same region and source', source: 'examples with the same source' }[tag];
     var p = ps.length < 2 ? ['none', 'Too few similar examples'] : sh >= .6 ? ['supports', Math.round(sh * 100) + '% of ' + name + ' used them'] : sh <= .3 ? ['against', Math.round(sh * 100) + '% of ' + name + ' used them'] : ['mixed', Math.round(sh * 100) + '% of ' + name + ' used them'];
     rows.push(['Similar examples', p]); if (p[0] === 'supports' || p[0] === 'against') lean.push(p[0]);
-    var w = q.web ? (SIG[q.web.signal] || SIG.unclear) : ['none', 'Not checked'];
-    var wl = [w[0], w[1]]; rows.push(['Web', wl]); if (w[0] === 'supports' || w[0] === 'against') lean.push(w[0]);
+    var wsg = q.web && q.web.docs && q.web.docs.signal ? q.web.docs.signal : (q.web && q.web.signal), w = q.web ? (SIG[wsg] || SIG.unclear) : ['none', 'Not checked'];
+    var wl = [w[0], w[1]]; rows.push(['Online', wl]); if (w[0] === 'supports' || w[0] === 'against') lean.push(w[0]);
     var sup = lean.filter(function (x) { return x === 'supports'; }).length, ag = lean.length - sup;
     var v = !lean.length ? 'Not enough to compare yet.' : !ag ? 'The checks agree: this looks like use of the recommendations.' : !sup ? 'The checks agree: this does not look like use.' : 'The checks disagree. Look again at the evidence before you save.';
     return '<section class="card"><h3>Do the checks agree?</h3><div class="checks">' + rows.map(function (r) {
-      return '<div class="chk"><span class="w">' + r[0] + '</span><span>' + esc(r[1][1]) + '</span><span class="sig ' + r[1][0] + '">' + ({ supports: 'Suggests use', against: 'Suggests no use', mixed: 'Mixed', unclear: 'Unclear', none: 'Not enough' }[r[1][0]]) + '</span></div>';
+      return '<div class="chk"><span class="w">' + r[0] + '</span><span>' + esc(r[1][1]) + '</span><span class="sig ' + r[1][0] + '">' + ({ supports: 'Suggests use', against: 'Suggests no use', mixed: 'Mixed', unclear: 'Doesn’t settle it', none: 'Not enough' }[r[1][0]]) + '</span></div>';
     }).join('') + '</div><div class="verdict">' + esc(v) + '</div><div class="hint">A hint only: the decision is the reviewer’s, and the respondent’s answer is never overwritten.</div></section>';
   }
 
@@ -717,17 +724,17 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (res.outcome && !goList) t += '<div class="stop">The review stops here: <b>' + esc(OUT[res.outcome].label) + '</b>. No checklist is needed.</div>';
     if (goList) {
       t += '<div class="section-h"><span class="n">3</span><h3 style="flex:1">What the example shows</h3><span class="hint" id="ckCount"></span></div><div class="checklist">';
-      t += '<div class="kindrow"><label><b>It is:</b> <select id="kind"><option value="">Choose the kind of example…</option>' + Object.keys(spec.kinds).map(function (kk) { return '<option value="' + kk + '"' + (a.kind === kk ? ' selected' : '') + '>' + esc(spec.kinds[kk].name) + '</option>'; }).join('') + '</select></label>' +
+      t += '<div class="kindrow"><label><b>This example is:</b> <select id="kind"><option value="">Choose the kind of example…</option>' + Object.keys(spec.kinds).map(function (kk) { return '<option value="' + kk + '"' + (a.kind === kk ? ' selected' : '') + '>' + esc(spec.kinds[kk].name) + '</option>'; }).join('') + '</select></label>' +
         '<span class="hint">The list depends on the kind of example. Pick what it really is, even if their data source answer says otherwise.</span>' + suggLine('kind', function (v) { return spec.kinds[v] ? spec.kinds[v].name : v; }) + '</div>';
       if (a.kind) {
         var crit = window.AlignmentRules.criteriaFor(spec, a.kind), sugT = {}, last = null, done = 0;
         ((q.suggest && q.suggest.ticks) || []).forEach(function (x) { sugT[x.id] = x.why; });
-        docHits(q).forEach(function (x) { if (!sugT[x.id]) sugT[x.id] = 'online: ' + x.title; else sugT[x.id] += ' · also online: ' + x.title; });
-        var GH = { distinctive: ['Follows the recommendations’ approach', 'the strongest evidence'], practice: ['Good practice', 'supporting evidence'], event: ['The event', ''], use: ['Signs they already use them', 'strong evidence'] };
+        docHits(q).forEach(function (x) { if (!sugT[x.id]) sugT[x.id] = 'online, in “' + x.title + '”'; else sugT[x.id] += ' · also online, in “' + x.title + '”'; });
+        var GH = { distinctive: ['Follows the recommendations’ approach', 'strong items'], practice: ['Good practice', 'supporting items'], event: ['The event', ''], use: ['Signs they already use them', 'strong items'] };
         crit.forEach(function (c) {
           if (c.group !== last) { last = c.group; t += '<div class="crit-group">' + esc(GH[c.group][0]) + (GH[c.group][1] ? ' <span class="muted">· ' + GH[c.group][1] + '</span>' : '') + '</div>'; }
           var stt = a.states[c.id] || '', src = a.where[c.id] || ''; if (stt) done++;
-          t += '<div class="ck ' + stt + '"><div><div class="ct">' + esc(c.text) + '</div>' + (c.refs ? '<div class="refs">' + esc(c.refs) + '</div>' : '') + (sugT[c.id] ? '<div class="sugg">Suggested: found · ' + esc(sugT[c.id]) + '</div>' : '') +
+          t += '<div class="ck ' + stt + '"><div><div class="ct">' + esc(c.text) + '</div>' + (c.refs ? '<div class="refs">' + esc(c.refs) + '</div>' : '') + (sugT[c.id] ? '<div class="sugg">Suggested: found' + (/^online/.test(sugT[c.id]) ? ' ' : ' · ') + esc(sugT[c.id]) + '</div>' : '') +
             (stt === 'found' ? '<div class="seen"><span class="hint">Seen in:</span>' + Object.keys(WHERE).map(function (w) { return '<button data-where="' + c.id + '" data-v="' + w + '" aria-pressed="' + (src === w) + '">' + WHERE[w] + '</button>'; }).join('') + '</div>' : '') + '</div>' +
             '<span class="tri" role="group" aria-label="' + esc(c.text) + '">' + [['found', 'Found'], ['not', 'Not found'], ['unsure', 'Can’t tell']].map(function (x) { return '<button data-state="' + c.id + '" data-v="' + x[0] + '" aria-pressed="' + (stt === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</span></div>';
         });
@@ -764,7 +771,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       var txt = a.rationale != null ? a.rationale : gen.text;
       why = '<section class="card why"><h3>Why we decided this <span class="hint">' + (a.rationale != null ? 'edited by you' : 'written from the checklist') + '</span></h3>' +
         '<textarea id="dwhy" rows="9" aria-label="Why we decided this">' + esc(txt) + '</textarea>' +
-        '<div class="hint">Saved with the decision and used in the yearly report. Edit it if something needs saying in your own words.' + (a.rationale != null ? ' <button class="linkbtn" id="whyReset">Go back to the text written from the checklist</button>' : '') + '</div></section>';
+        '<div class="hint">Saved with the decision and used in the yearly report. Edit it if something needs saying in your own words.' + (a.rationale != null ? ' <button class="linkbtn" id="whyReset">Use the checklist text again</button>' : '') + '</div></section>';
     }
     box.innerHTML = '<div class="detail">' + h + t + c + why + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
   }
@@ -773,26 +780,26 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   var RCOL = { IRRS: '#3b71b9', IRIS: '#4cc3c9', IROSS: '#c9873a', Mixed: '#7a63b8', 'Not named': '#8db8e3', 'No or don’t know': 'transparent' };
   function recChips(list) {
     if (!list.length) return '<span class="hint">None in GAIN 2021 to 2025</span>';
-    return list.map(function (h) { var rc = h.used ? (h.recs || 'Used') : ''; return '<span class="rc ' + (rc ? esc(rc.split(';')[0]) : 'no') + '" title="' + esc(h.title) + '">' + esc(h.year) + ' ' + esc(rc ? rc.replace(/;/g, '+') : 'no') + '</span>'; }).join('');
+    return list.map(function (h) { var rc = h.used ? (h.recs || 'Used') : ''; return '<span class="rc ' + (rc ? esc(rc.split(';')[0].split(' ')[0]) : 'no') + '" title="' + esc(h.title) + '">' + esc(h.year) + ' ' + esc(rc ? (rc === 'Not named' ? 'used, not named' : rc.replace(/;/g, '+')) : 'not used') + '</span>'; }).join('');
   }
   function recBar(b) {
-    if (!b || !b.examples) return '<span class="hint">None</span>';
+    if (!b || !b.examples) return '<span class="hint">No examples</span>';
     var keys = ['IRRS', 'IRIS', 'IROSS', 'Mixed', 'Not named', 'No or don’t know'];
     return '<div class="mbar" title="' + esc(keys.filter(function (k) { return b.by_rec[k]; }).map(function (k) { return k + ': ' + b.by_rec[k]; }).join(' · ')) + '">' + keys.map(function (k) { var n = b.by_rec[k] || 0; return n ? '<i style="width:' + (100 * n / b.examples) + '%;background:' + RCOL[k] + '"></i>' : ''; }).join('') + '</div>' +
-      '<span class="hint">' + b.used + ' of ' + b.examples + ' used · ' + keys.filter(function (k) { return b.by_rec[k] && k !== 'No or don’t know'; }).map(function (k) { return k + ' ' + b.by_rec[k]; }).join(', ') + '</span>';
+      '<span class="hint">' + b.used + ' of ' + b.examples + ' used · ' + keys.filter(function (k) { return b.by_rec[k] && k !== 'No or don’t know'; }).map(function (k) { return (k === 'Not named' ? 'used, not named' : k) + ' ' + b.by_rec[k]; }).join(', ') + '</span>';
   }
-  function webSig(q) { var d = q.web && q.web.docs, s = d && d.signal ? d.signal : (q.web && q.web.signal); var x = SIG[s] || ['none', q.web ? 'Unclear' : 'Not checked']; var n = d ? (d.documents || []).filter(function (z) { return z.read; }).length : 0; return '<span class="sig ' + x[0] + '">' + x[1] + '</span>' + (n ? '<div class="hint">' + n + ' document' + (n > 1 ? 's' : '') + ' read</div>' : ''); }
+  function webSig(q) { var d = q.web && q.web.docs, s = d && d.signal ? d.signal : (q.web && q.web.signal); var x = SIG[s] || ['none', q.web ? 'Doesn’t settle it' : 'Not checked']; var n = d ? (d.documents || []).filter(function (z) { return z.read; }).length : 0; return '<span class="sig ' + x[0] + '">' + x[1] + '</span>' + (n ? '<div class="hint">' + n + ' document' + (n > 1 ? 's' : '') + ' read</div>' : ''); }
   function renderOver() {
     var f = ($('ofilter') || {}).value || 'all';
     var ks = keys().filter(function (k) { return f === 'all' || (f === 'open' ? !outcomeOf(k) : !!outcomeOf(k)); })
       .sort(function (a, b) { var A = S.queue[a], B = S.queue[b]; return (A.country || 'zz').localeCompare(B.country || 'zz') || (A.organisation || '').localeCompare(B.organisation || ''); });
-    $('overtbl').innerHTML = ks.length ? '<table class="otbl"><thead><tr><th>Country</th><th>Example</th><th>They said</th><th>Same organisation before</th><th>Same country before</th><th>Same region and source</th><th>Online</th><th>Outcome</th></tr></thead><tbody>' +
+    $('overtbl').innerHTML = ks.length ? '<table class="otbl"><thead><tr><th>Country</th><th>Example</th><th>They said</th><th>Same organisation, earlier rounds</th><th>Same country, all rounds</th><th>Same region and source, all rounds</th><th>Online</th><th>Outcome</th></tr></thead><tbody>' +
       ks.map(function (k) {
         var q = S.queue[k], h = q.history || {}, past = (h.org || []).filter(function (x) { return x.year !== '2026'; }), now = (h.org || []).filter(function (x) { return x.year === '2026'; });
         return '<tr class="row" data-open="' + esc(k) + '"><td>' + esc(q.country || 'Regional or global') + '<div class="hint">' + esc(q.region || '') + '</div></td>' +
           '<td><div class="t">' + esc(q.title.length > 110 ? q.title.slice(0, 110) + '…' : q.title) + '</div><div class="hint">' + esc(q.organisation) + ' · ' + esc(q.kind_name || '') + '</div></td>' +
           '<td><span class="ans ' + (q.answer === 'dk' ? 'dk' : 'no') + '" style="white-space:nowrap">' + (q.answer === 'dk' ? 'Don’t know' : 'Not used') + '</span></td>' +
-          '<td>' + recChips(past) + (now.length ? '<div class="hint" style="margin-top:4px">This year: ' + now.map(function (x) { return x.used ? x.recs.replace(/;/g, '+') : 'no'; }).join(', ') + '</div>' : '') + '</td>' +
+          '<td>' + recChips(past) + (now.length ? '<div class="hint" style="margin-top:4px">Its other 2026 examples: ' + now.map(function (x) { return x.used ? x.recs.replace(/;/g, '+') : 'not used'; }).join(', ') + '</div>' : '') + '</td>' +
           '<td>' + recBar(h.country) + '</td><td>' + recBar(h.region_source) + '</td><td>' + webSig(q) + '</td><td>' + pill(outcomeOf(k)) + '</td></tr>';
       }).join('') + '</tbody></table>' : '<div class="empty"><b>Nothing here.</b><span>No example matches this filter.</span></div>';
     var by = {};
@@ -801,7 +808,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       var x = by[c];
       return '<section class="card"><h3>' + esc(c) + ' <span class="hint">' + x.keys.length + ' in this review</span></h3>' + recBar(x.h) +
         '<div class="hint">' + x.keys.map(function (k) { return esc(S.queue[k].organisation.replace(/\s*\(.*?\)\s*$/, '')); }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(' · ') + '</div></section>';
-    }).join('') + '</div><div class="legend" style="margin-top:10px">' + ['IRRS', 'IRIS', 'IROSS', 'Mixed', 'Not named'].map(function (k) { return '<span><i style="background:' + RCOL[k] + '"></i>' + k + '</span>'; }).join('') + '<span><i style="box-shadow:inset 0 0 0 1px var(--ink-3)"></i>No or don’t know</span></div>';
+    }).join('') + '</div><div class="legend" style="margin-top:10px">' + ['IRRS', 'IRIS', 'IROSS', 'Mixed', 'Not named'].map(function (k) { return '<span><i style="background:' + RCOL[k] + '"></i>' + (k === 'Not named' ? 'Used, not named' : k) + '</span>'; }).join('') + '<span><i style="box-shadow:inset 0 0 0 1px var(--ink-3)"></i>No or don’t know</span></div>';
   }
   document.addEventListener('change', function (e) { if (e.target.id === 'ofilter') renderOver(); });
   document.addEventListener('click', function (e) { var tr = e.target.closest('tr[data-open]'); if (tr) { S.view = 'queue'; document.querySelectorAll('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t.dataset.view === 'queue'); }); select(tr.getAttribute('data-open'), { scroll: true }); } });
@@ -850,7 +857,14 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var other = ps.filter(function (p) { return p.tags.indexOf('org') < 0 && match(p); }).sort(function (x, y) { return y.tags.length - x.tags.length || +y.year - +x.year; }).slice(0, 3);
     return { own: own, other: other };
   }
-  function exRef(p) { return '“' + p.title + '” (' + [p.org, p.country, 'GAIN ' + p.year].filter(Boolean).join(', ') + ')'; }
+  // organisation names stored in capitals read as shouting in an email: write them in normal case, keeping acronyms
+  function niceOrg(o) {
+    o = String(o || ''); var letters = o.replace(/[^A-Za-zÀ-ÿ]/g, ''); if (!letters || letters.replace(/[^A-ZÀ-Þ]/g, '').length / letters.length < 0.7) return o;
+    var small = /^(of|and|for|the|on|in|de|del|la|las|los|el|y|et|du|des|le)$/i;
+    return o.toLowerCase().replace(/[\wÀ-ÿ']+/g, function (w, i) { return i > 0 && small.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1); })
+      .replace(/\(([^)]+)\)/g, function (m, x) { return '(' + x.toUpperCase() + ')'; });
+  }
+  function exRef(p) { return '“' + p.title + '” (' + [niceOrg(p.org), p.country, 'GAIN ' + p.year].filter(Boolean).join(', ') + ')'; }
   function similarPara(ks, acr, forOutreach) {
     var own = [], other = [], seen = {};
     ks.forEach(function (k) { var x = similarUsed(k, acr); x.own.forEach(function (p) { if (!seen[p.title]) { seen[p.title] = 1; own.push(p); } }); x.other.forEach(function (p) { if (!seen[p.title]) { seen[p.title] = 1; other.push(p); } }); });
@@ -878,7 +892,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var A = Object.keys(allAcr), sim = similarPara(ks, A, false);
     var quoted = refs.filter(function (x) { return x.quoted; });
     var refBlock = (quoted.length ? '\n\nWhat the recommendations say:\n' + quoted.map(function (x) { return x.line; }).join('\n') : '') + '\n\nThe full recommendations: ' + A.map(function (x) { return x + ' ' + RECS[x].url; }).join(', ');
-    return 'Subject: GAIN 2026: an update to your submission\n\nDear [Name],\n\nThank you for ' + org + '’s GAIN 2026 submission. ' +
+    return 'Subject: GAIN 2026: how we recorded your example' + (ks.length > 1 ? 's' : '') + '\n\nDear [Name],\n\nThank you for ' + niceOrg(org) + '’s GAIN 2026 submission. ' +
       (anyNo ? 'You indicated that the recommendations were not used. ' : 'You indicated that you did not know whether the recommendations were used. ') +
       'We looked at ' + (ks.length > 1 ? 'each example' : 'the example') + ' against the recommendations, and here is what we found.\n\n' + blocks.join('\n\n') +
       (sim ? '\n\n' + sim : '') + refBlock +
@@ -890,7 +904,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var titles = ks.map(function (k) { return '“' + S.queue[k].title + '”'; }), sim = similarPara(ks, A, true);
     var cover = [], seen = {};
     Object.keys(kinds).forEach(function (kd) { window.AlignmentRules.criteriaFor(S.spec, kd).filter(function (c) { return c.group === 'distinctive' || c.group === 'practice'; }).forEach(function (c) { if (!seen[c.text]) { seen[c.text] = 1; var rr = refsFor(c.refs, A); cover.push('- ' + c.text + (rr ? ' (' + rr + ')' : '')); } }); });
-    return 'Subject: GAIN 2026: the EGRISS recommendations for your work on ' + S.queue[ks[0]].title + '\n\nDear [Name],\n\nThank you for ' + org + '’s GAIN 2026 submission. You mentioned you are not familiar with the EGRISS recommendations. For work like ' + listJoin(titles) +
+    return 'Subject: GAIN 2026: the EGRISS recommendations for your work on ' + S.queue[ks[0]].title + '\n\nDear [Name],\n\nThank you for ' + niceOrg(org) + '’s GAIN 2026 submission. You mentioned you are not familiar with the EGRISS recommendations. For work like ' + listJoin(titles) +
       ', the ' + recName(A) + ' may be useful.' + (cover.length ? ' For this kind of work, they cover:\n' + cover.slice(0, 5).join('\n') : '') + '\n\n' + A.map(function (x) { return RECS[x].name + ': ' + RECS[x].url; }).join('\n') +
       (sim ? '\n\n' + sim : '') +
       '\n\nThe e-learning course [link] gives a short introduction, and we would be glad to set up a call.\n\nWith thanks,\n[names], EGRISS Secretariat';

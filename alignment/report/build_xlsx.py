@@ -30,7 +30,7 @@ ex.title = "Examples"
 cols = [("Organisation", 28), ("Country", 16), ("Region", 14), ("Example", 46), ("Kind of example", 20), ("They answered", 13),
         ("Outcome", 30), ("Recommendations", 15), ("Strong items found", 11), ("Not found", 9), ("Can't tell", 9), ("Seen in", 22),
         ("Similar examples that used them", 14), ("Online", 16), ("Documents read", 10), ("What the documents show", 60),
-        ("Same organisation before", 24), ("Same country before", 26), ("Paragraphs cited", 30), ("Official wording quoted", 16),
+        ("Same organisation, earlier rounds", 24), ("Same country, all rounds", 26), ("Paragraphs cited", 30), ("Official wording quoted", 16),
         ("Email", 14), ("Reviewed on", 12), ("Reviewer note", 26), ("Why we decided this", 90)]
 for i, (name, w) in enumerate(cols, 1):
     c = ex.cell(row=1, column=i, value=name)
