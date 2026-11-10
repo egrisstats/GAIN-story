@@ -48,15 +48,27 @@
       (PUB.evidence ? ' · descriptions file from ' + esc(PUB.evidence.pulled_at.slice(0, 10)) + ' open' : ' · <b>no descriptions file open</b>');
   }
 
+  // The same files are published on two sites; a publish on one can lag behind the other (GitHub's deploy step
+  // sometimes stalls). Read this site's copy and the other site's, and use whichever is newer.
+  var MIRRORS = ['https://egrisstats.github.io/GAIN-story/dashboard/data/', 'https://mitrovif.github.io/GAIN-story/dashboard/data/'];
+  function freshest(file, stamp) {
+    var bases = [PUB.base].concat(location.protocol === 'https:' ? MIRRORS.filter(function (m) { return new URL(m).host !== location.host; }) : []);
+    return Promise.all(bases.map(function (b) {
+      return fetch(b + file + '?x=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    })).then(function (js) {
+      var best = null; js.forEach(function (j) { if (j && (!best || String(stamp(j) || '') > String(stamp(best) || ''))) best = j; });
+      return best;
+    });
+  }
   function loadQueue() {
-    return fetch(PUB.base + 'review_queue.json?x=' + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
+    return freshest('review_queue.json', function (j) { return j.meta && (j.meta.published_at || j.meta.pulled_at); }).then(function (j) { if (!j) throw new Error('no queue'); return j; }).then(function (j) {
       var q = {}; (j.queue || []).forEach(function (e) { q[e.key] = e; });
       S.queue = q; S.meta = j.meta || null; PUB.form = j.meta && j.meta.form || null; S.loaded = true; clearTimeout(timer); note('');
       applyEvidence(); render();
     });
   }
   function loadDecisions() {
-    return fetch(PUB.base + 'review_decisions.json?x=' + Date.now()).then(function (r) { return r.ok ? r.json() : { decisions: {} }; }).then(function (j) {
+    return freshest('review_decisions.json', function (j) { return j.fetched_at; }).then(function (j) { return j || { decisions: {} }; }).then(function (j) {
       PUB.fetched = j.fetched_at || null; S.dec = mergeDecisions(j.decisions || {}); S.decLoaded = true;
       Object.keys(S.dec).forEach(function (k) { var r = S.dec[k].reviewer; if (r) S.names[r] = r; });
       S.storeNote = storeNote(); render();
@@ -64,7 +76,7 @@
   }
   loadQueue().catch(function () { clearTimeout(timer); note('The review queue (data/review_queue.json) didn’t load. It is written by the publish workflow; if the page has just been set up, wait for the next publish.'); $('qlist').innerHTML = '<div class="empty"><b>No review queue yet.</b><span>The publish workflow writes it from Kobo every 15 minutes during collection.</span></div>'; });
   loadDecisions().catch(function () {});
-  PUB.refresh = setInterval(function () { loadDecisions().catch(function () {}); }, 5 * 60000);
+  PUB.refresh = setInterval(function () { loadDecisions().catch(function () {}); loadQueue().catch(function () {}); }, 5 * 60000);
 
   // ---------- the evidence file ----------
   function applyEvidence() {
