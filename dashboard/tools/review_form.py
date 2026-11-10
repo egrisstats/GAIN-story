@@ -33,14 +33,23 @@ def call(method, path, body=None):
         return json.loads(txt) if txt else {}
 
 
-def content():
+def content(compact=True):
+    """compact (the default): the reviewer sees one short message and the Submit button; every answer is a
+    hidden field the review page fills in through the link. compact=False shows every field (the first layout)."""
     survey = [{"type": "start", "name": "start"}, {"type": "end", "name": "end"}]
+    if compact:
+        survey.append({"type": "note", "name": "intro", "label": [
+            "**Press Submit, below, to share this decision with your colleagues.**\n\nExample: ${title}\n\n"
+            "The review page has filled in everything else. After Submit you go back to the review."]})
     for q in FORM["questions"]:
+        if compact:
+            survey.append({"type": "hidden", "name": q["name"]})
+            continue
         row = {"type": q["type"], "name": q["name"], "label": [q["label"]], "required": bool(q.get("required"))}
         if q["type"] == "text" and q["name"] in ("rationale", "note", "ticks"):
             row["appearance"] = "multiline"
         survey.append(row)
-    choices = [{"list_name": ln, "name": c["name"], "label": [c["label"]]} for ln, cs in FORM["choices"].items() for c in cs]
+    choices = [] if compact else [{"list_name": ln, "name": c["name"], "label": [c["label"]]} for ln, cs in FORM["choices"].items() for c in cs]
     return {"schema": "1", "survey": survey, "choices": choices, "settings": {"default_language": "English (en)"}, "translations": ["English (en)"], "translated": ["label"]}
 
 
@@ -74,7 +83,7 @@ def main():
         sys.exit("KOBO_TOKEN is needed")
     rf = CFG.setdefault("review_form", {"asset_uid": "", "_note": "The decisions form of the standalone review page, made by review_form.py."})
     uid = rf.get("asset_uid")
-    body = {"name": FORM["title"], "asset_type": "survey", "content": content()}
+    body = {"name": FORM["title"], "asset_type": "survey", "content": content(compact="--full" not in sys.argv)}
     if uid:
         call("PATCH", f"/api/v2/assets/{uid}/", body)
         print("updated", uid)
