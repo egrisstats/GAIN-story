@@ -439,8 +439,8 @@ footer a { color: var(--ink-2); }
     </div>
     <div class="rfoot">
       <button class="btn" type="button" id="alignShow">Show them in Latest examples</button>
-      <a class="btn" id="alignOpen" target="_blank" rel="noopener" title="Private page for the Secretariat reviewers: descriptions, suggestions and email drafts. You need to be invited to open it.">Open the review page ↗</a>
-      <span>Secretariat only. This page shows outcomes, never descriptions, partners or emails.</span>
+      <a class="btn" id="alignOpen" target="_blank" rel="noopener" title="The review page: queue, checklist, email drafts and the report. No sign-in. Descriptions show only after you open the Secretariat’s evidence file.">Open the review page ↗</a>
+      <span>No sign-in needed. This page shows outcomes, never descriptions, partners or emails.</span>
     </div>
   </section>
 
@@ -473,7 +473,7 @@ footer a { color: var(--ink-2); }
   // ---------- configuration ----------
   var params = new URLSearchParams(location.search);
   var CONFIG = {
-    reviewPage: 'https://claude.ai/artifact/EkHaCHd9JSdC7ECfoYG1Su',
+    reviewPage: 'review/',
     src: params.get('src'),                      // live export (CSV or JSON); also tried: data/gain2026.csv
     live: 'data/gain2026.csv',
     // other published copies of the same Kobo pull; the page reads whichever was taken from Kobo most recently
