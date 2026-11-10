@@ -7,3 +7,8 @@ alignment/review/tree.css
 dashboard/tools/.cache/
 alignment/reports/
 tools/.cache/
+dashboard/data/review_queue.json
+dashboard/data/review_decisions.json
+dashboard/review/index.html
+dashboard/review/decision_tree.json
+dashboard/review/excerpts.json

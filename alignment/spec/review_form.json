@@ -1,0 +1,38 @@
+{
+  "_note": "The Kobo form the standalone review page saves to. One submission = one action on one example. Created and updated by dashboard/tools/review_form.py; read back by review_sync.py. No personal data: 'reviewer' is optional initials.",
+  "title": "GAIN 2026 alignment review decisions",
+  "questions": [
+    {"name": "example_key", "type": "text", "label": "Example key", "required": true},
+    {"name": "title", "type": "text", "label": "Example title"},
+    {"name": "answer", "type": "select_one answer", "label": "What they answered"},
+    {"name": "action", "type": "select_one action", "label": "Action", "required": true},
+    {"name": "outcome", "type": "select_one outcome", "label": "Outcome"},
+    {"name": "score", "type": "integer", "label": "Points"},
+    {"name": "use_sign", "type": "select_one yesno", "label": "A sign they already use the recommendations"},
+    {"name": "q1", "type": "select_one yesno", "label": "a. Is it about producing statistics?"},
+    {"name": "q2", "type": "select_one reason", "label": "b. Do they say why they did not use the recommendations?"},
+    {"name": "q4", "type": "select_one yesno", "label": "c. Does it cover refugees, IDPs or stateless people?"},
+    {"name": "populations", "type": "text", "label": "Groups covered (R, I, S)"},
+    {"name": "kind", "type": "text", "label": "Kind of example"},
+    {"name": "ticks", "type": "text", "label": "Checklist (item:state:where; ...)"},
+    {"name": "rationale", "type": "text", "label": "Why we decided this"},
+    {"name": "rationale_edited", "type": "select_one yesno", "label": "Reason edited by the reviewer"},
+    {"name": "note", "type": "text", "label": "Reviewer note"},
+    {"name": "reviewer", "type": "text", "label": "Your initials (optional)"},
+    {"name": "saved_at", "type": "text", "label": "Saved at (from the page)"},
+    {"name": "spec_version", "type": "text", "label": "Decision tree version"},
+    {"name": "source", "type": "text", "label": "Saved from"}
+  ],
+  "choices": {
+    "action": [{"name": "save", "label": "Save the decision"}, {"name": "undo", "label": "Undo the decision"}, {"name": "sent", "label": "Email sent"}, {"name": "unsent", "label": "Email not sent"}],
+    "answer": [{"name": "no", "label": "Not used"}, {"name": "dk", "label": "Don't know"}],
+    "yesno": [{"name": "yes", "label": "Yes"}, {"name": "no", "label": "No"}],
+    "reason": [{"name": "none", "label": "No reason given"}, {"name": "other", "label": "They follow another framework"}, {"name": "unaware", "label": "They don't know the recommendations"}, {"name": "deliberate", "label": "They decided not to use them"}],
+    "outcome": [
+      {"name": "edit", "label": "Count as using, tell them"}, {"name": "aligned", "label": "Aligned, not counted as use"},
+      {"name": "outreach", "label": "Keep their answer, send the recommendations"}, {"name": "keep", "label": "Keep their answer"},
+      {"name": "outscope", "label": "Keep, not statistics (check if valid)"}, {"name": "deliberate", "label": "Keep, they chose not to use them"},
+      {"name": "nocat", "label": "Keep, no matching groups"}
+    ]
+  }
+}

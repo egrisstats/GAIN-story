@@ -177,12 +177,9 @@ def suggest(ex, siblings, prior):
     return sg
 
 
-def main():
-    if len(sys.argv) != 2:
-        sys.exit(__doc__)
-    out = pathlib.Path(sys.argv[1]).expanduser().resolve()
-    if REPO in out.parents:
-        sys.exit("Refusing: the queue holds respondents' descriptions; write it outside this public repository.")
+def build():
+    """{"meta", "queue"} for every example that said No or Don't know. Holds descriptions and partners:
+    callers must keep it out of the repo (main refuses) or strip those fields (review_sync.py)."""
     asset, subs = K.load()
     labels = K.label_maps(asset)
     N = resolve_names(asset)
@@ -238,8 +235,18 @@ def main():
             })
     meta = {"pulled_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "examples": n_ex, "in_review": len(queue), "spec_version": SPEC.get("version")}
-    out.write_text(json.dumps({"meta": meta, "queue": queue}, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"{len(queue)} of {n_ex} examples enter the review -> {out}")
+    return {"meta": meta, "queue": queue}
+
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    out = pathlib.Path(sys.argv[1]).expanduser().resolve()
+    if REPO in out.parents:
+        sys.exit("Refusing: the queue holds respondents' descriptions; write it outside this public repository.")
+    q = build()
+    out.write_text(json.dumps(q, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"{len(q['queue'])} of {q['meta']['examples']} examples enter the review -> {out}")
 
 
 if __name__ == "__main__":

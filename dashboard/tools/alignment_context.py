@@ -76,17 +76,12 @@ def okeys(org):
     return {k for k in keys if k}
 
 
-def main():
-    args = sys.argv[1:]
-    if len(args) not in (2, 3, 4):
-        sys.exit(__doc__)
-    qpath, out = pathlib.Path(args[0]), pathlib.Path(args[-1]).resolve()
-    if ROOT in out.parents:
-        sys.exit("Write the enriched queue outside the repo: it holds respondent descriptions.")
-    research = json.loads(pathlib.Path(args[1]).read_text())["items"] if len(args) >= 3 else {}
-    docs_file = json.loads(pathlib.Path(args[2]).read_text()) if len(args) == 4 else {}
+def enrich(q, research_file=None, docs_file=None):
+    """Add region, kind, peers and history to every example in q (in place) and, when given, the web
+    research and the documents read. research_file and docs_file are the parsed JSON files."""
+    research = (research_file or {}).get("items", {})
+    docs_file = docs_file or {}
     docs = docs_file.get("items", {})
-    q = json.loads(qpath.read_text())
 
     # the GAIN story data: [year, institution-led, framework, country, organisation, title, ., ., note] and a parallel
     # list whose first value says whether the example uses the recommendations
@@ -149,7 +144,21 @@ def main():
             e.setdefault("web", {})
             e["web"]["docs"] = {"summary": d.get("summary", []), "signal": d.get("signal"), "reason": d.get("signal_reason", ""),
                                 "documents": d.get("documents", []), "read_on": docs_file.get("read_on")}
-    q["meta"]["context"] = {"past_examples": len(past), "examples_2026": len(now), "web_searched_on": (json.loads(pathlib.Path(args[1]).read_text()).get("searched_on") if research else None)}
+    q["meta"]["context"] = {"past_examples": len(past), "examples_2026": len(now), "web_searched_on": (research_file or {}).get("searched_on") if research else None,
+                            "documents_read_on": docs_file.get("read_on") if docs else None}
+    return q
+
+
+def main():
+    args = sys.argv[1:]
+    if len(args) not in (2, 3, 4):
+        sys.exit(__doc__)
+    qpath, out = pathlib.Path(args[0]), pathlib.Path(args[-1]).resolve()
+    if ROOT in out.parents:
+        sys.exit("Write the enriched queue outside the repo: it holds respondent descriptions.")
+    q = enrich(json.loads(qpath.read_text()),
+               json.loads(pathlib.Path(args[1]).read_text()) if len(args) >= 3 else None,
+               json.loads(pathlib.Path(args[2]).read_text()) if len(args) == 4 else None)
     out.write_text(json.dumps(q, ensure_ascii=False))
     print(len(q["queue"]), "examples enriched ->", out)
 

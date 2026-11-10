@@ -52,6 +52,10 @@ jobs:
           cp dashboard/index.html _site/dashboard/
           cp -r dashboard/assets/recs _site/dashboard/assets/
           cp dashboard/data/gain2026_DEMO.csv dashboard/data/gain_history.json dashboard/data/repeat_review.csv dashboard/data/alignment_review.csv _site/dashboard/data/
+          # the standalone alignment review page (dashboard/review/): built from alignment/review, with the decision tree and excerpts beside it
+          mkdir -p _site/dashboard/review
+          python3 alignment/review/build.py --public _site/dashboard/review/index.html
+          cp alignment/spec/decision_tree.json alignment/spec/excerpts.json _site/dashboard/review/
       - name: Pull GAIN 2026 submissions from Kobo (no respondent details)
         # without the KOBO_TOKEN secret, or before kobo_config.json is filled in, this skips and the tracker shows demo data
         env:
@@ -59,6 +63,17 @@ jobs:
         run: |
           python3 dashboard/tools/kobo_to_csv.py
           if [ -f dashboard/data/gain2026.csv ]; then mv dashboard/data/gain2026.csv dashboard/data/gain2026_meta.json _site/dashboard/data/; fi
+      - name: Review queue and decisions for the alignment review page (titles and answers only, no descriptions)
+        # the queue of No / Don't know examples with similar examples and history, and the decisions saved through
+        # the Kobo review form; the tracker's alignment_review.csv comes from the same decisions. Skips without the secret.
+        env:
+          KOBO_TOKEN: ${{ secrets.KOBO_TOKEN }}
+        run: |
+          if [ -n "$KOBO_TOKEN" ] && [ -f _site/dashboard/data/gain2026.csv ]; then
+            cp _site/dashboard/data/gain2026.csv dashboard/data/gain2026.csv
+            python3 dashboard/tools/review_sync.py public _site/dashboard/data
+            rm -f dashboard/data/gain2026.csv
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

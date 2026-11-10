@@ -289,6 +289,14 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   .flow { grid-template-columns: minmax(0, 1fr); } .flow .arrow { transform: rotate(90deg); }
   .mark .tag { display: none; }
 }
+.toolbar { background: var(--panel); border-bottom: 1px solid var(--line); }
+.toolbar .wrap { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding-top: 8px; padding-bottom: 8px; font-size: var(--fs-s); }
+.toolbar .lbl { color: var(--ink-2); }
+.toolbar .btn { padding: 4px 10px; font-size: var(--fs-s); }
+@media print {
+  body.print-detail > *:not(main), body.print-detail main > *:not(#view-queue), body.print-detail #view-queue > *:not(.grid), body.print-detail .queue, body.print-detail .dock, body.print-detail details.how { display: none !important; }
+  body.print-detail .grid { display: block; } body.print-detail .panel { border: 0; }
+}
 </style>
 
 <header class="brand">
@@ -303,6 +311,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   </div>
 </header>
 <div class="status"><div class="wrap" id="status">Loading the review queue…</div></div>
+<!--PUBLIC-TOOLBAR-->
 
 <main class="wrap">
   <div class="note" id="note" hidden></div>
@@ -377,6 +386,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     IRIS: { name: 'International Recommendations on IDP Statistics', url: 'https://egrisstats.org/recommendations/international-recommendations-on-idp-statistics-iris/' },
     IROSS: { name: 'International Recommendations on Statelessness Statistics', url: 'https://egrisstats.org/recommendations/international-recommendations-on-statelessness-statistics-iross/' }
   };
+  /*PUBLIC*/
   var OUT = {
     edit: { label: 'Count as using · tell them', cls: 'edit' }, outreach: { label: 'Keep their answer · send the recommendations', cls: 'outreach' },
     aligned: { label: 'Aligned · not counted as use', cls: 'aligned' }, keep: { label: 'Keep their answer', cls: 'keep' },
@@ -407,6 +417,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     .catch(function () { note('The decision tree (decision_tree.json) didn’t load, so the questions can’t be shown. Reload the page; if it persists, ask Claude to republish the review page.'); });
 
   var timer = setTimeout(function () { if (!S.loaded) note('The review store hasn’t answered yet. The queue will appear as soon as it does; if nothing shows after a minute, check your connection.'); }, 10000);
+  // @store-claude
   Promise.resolve(window.claude && window.claude.use ? Promise.all([window.claude.use('db'), window.claude.use('user')]) : [null, null]).then(function (r) {
     S.db = r[0]; S.user = r[1];
     if (!S.db) { clearTimeout(timer); note('This view can’t reach the review store. Open the page signed in to claude.ai with access shared by the Secretariat.'); $('qlist').innerHTML = '<div class="empty"><b>No access to the review store.</b><span>Ask the page owner to share it with you as a Contributor.</span></div>'; return; }
@@ -431,6 +442,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (!ids.length) return;
     S.user.profiles(ids).then(function (ps) { ids.forEach(function (id) { S.names[id] = (ps[id] && ps[id].name) || 'A reviewer'; }); render(); }).catch(function () {});
   }
+  // @store-end
 
   // ---------- helpers ----------
   function keys() {
@@ -462,7 +474,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var web = m && m.context && m.context.web_searched_on;
     $('status').innerHTML = '<span><b>' + ks.length + '</b> in the review' + (m ? ' of ' + m.examples + ' GAIN 2026 examples' : '') + '</span><span><b>' + open + '</b> to review</span><span><b>' + (ks.length - open) + '</b> reviewed</span>' +
       (when ? '<span>Queue taken from Kobo on ' + esc(when) + '</span>' : '') + (web ? '<span>Web check run on ' + esc(web) + '</span>' : '') +
-      '<span class="muted">Suggestions and checks are hints; every decision is yours.</span>';
+      (S.storeNote ? '<span>' + S.storeNote + '</span>' : '') + '<span class="muted">Suggestions and checks are hints; every decision is yours.</span>';
   }
 
   // ---------- the tube ----------
@@ -636,7 +648,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   }
   function webCard(q) {
     var w = q.web;
-    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">No web check yet for this example. Ask Claude to run the web check on the queue.</div></section>';
+    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">' + (window.PUBLIC_PAGE ? 'Open the evidence file (top of the page) to see what was found online for this example.' : 'No web check yet for this example. Ask Claude to run the web check on the queue.') + '</div></section>';
     var d = w.docs, sigKey = d && d.signal ? d.signal : w.signal, s = SIG[sigKey] || SIG.unclear;
     var head = '<section class="card"><h3>Online <span class="sig ' + s[0] + '" title="' + esc(d && d.reason || '') + '">' + s[1] + '</span></h3>';
     if (d) {
@@ -714,7 +726,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var facts = [['Their answer', q.answer_text || ANS[q.answer] || q.answer, 'PRO09'], ['Data source', [q.source, q.sources_more].filter(Boolean).join('; '), 'PRO08'], ['Groups covered', q.population, 'PRO07'],
       ['Partners', q.partners, 'PRO18'], ['Recommendations they know', q.known_publications, 'ACT04']];
     h += '<details open><summary class="eyebrow" style="cursor:pointer">What they told us</summary><div style="display:grid;gap:10px;margin-top:8px"><div class="facts">' + facts.map(function (f) { return '<div class="fact"><div class="k" title="Kobo question ' + f[2] + '">' + esc(f[0]) + '</div><div class="v">' + (f[1] ? esc(f[1]) : '<span class="muted">Not given</span>') + '</div></div>'; }).join('') + '</div>' +
-      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : '<span class="muted">No description given.</span>') + '</div></div></details>';
+      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : window.PUBLIC_PAGE ? '<span class="muted">Open the evidence file (top of the page) to see their description and what was found online.</span>' : '<span class="muted">No description given.</span>') + '</div></div></details>';
     if (!spec) { box.innerHTML = '<div class="detail">' + h + '<div class="empty">Loading the decision tree…</div></div>'; return; }
     var res = decideFor(k, a), st = spec.steps, o2 = st[1].options;
     var go2 = a.q1 === true, go3 = go2 && o2[a.q2 || 'none'].then === 'continue', goList = go3 && a.q4 === true;
@@ -765,11 +777,12 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       var nextQ = a.q1 == null ? 'question a' : a.q4 == null ? 'question c' : 'the kind of example';
       r = '<div class="result"><span class="hint">Answer ' + nextQ + ' to see where this example goes.</span></div>';
     }
-    var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) : 'Not saved yet';
+    var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) + (saved.pending ? ' · waiting for Kobo' : '') : 'Not saved yet';
     var nxt = nextOpen(k), can = !!res.outcome && !S.readOnly;
     var noteBox = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>';
     var save = '<div class="save"><button class="btn primary" id="saveNext"' + (can && nxt ? '' : ' disabled') + ' title="' + (nxt ? 'Save, then open the next example not reviewed yet' : 'No other example is waiting') + '">Save and go to next</button>' +
       '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Undo this decision</button>' : '') +
+      (window.PUBLIC_PAGE ? '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button>' : '') +
       '<span class="savest" id="saveStatus">' + esc(S.readOnly ? 'You can read this review but not save decisions.' : who) + '</span></div>';
     var why = '';
     if (res.outcome) {
@@ -826,23 +839,28 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       .map(function (p) { return p.replace(/^(IRRS|IRIS|IROSS) /, function (m, x) { return x + ' paragraph' + (/[ ,]|to/.test(p.slice(m.length)) ? 's ' : ' '); }); }).join(', ');
   }
   function acronyms(pops) { return String(pops || '').split('').map(function (p) { return window.AlignmentRules.REC_BY_POP[p]; }).filter(Boolean); }
-  function renderMails() {
+  function mailDrafts() {
     var by = {};
     keys().forEach(function (k) { var o = outcomeOf(k); if (o === 'edit' || o === 'outreach') { var q = S.queue[k]; (by[q.organisation] = by[q.organisation] || []).push(k); } });
-    var orgs = Object.keys(by).sort();
-    if (!orgs.length) { $('mails').innerHTML = '<div class="panel empty"><b>No drafts yet.</b><span>A draft appears here for each organisation with at least one example saved as Count as using or Send the recommendations. One email covers all of its examples.</span></div>'; return; }
-    $('mails').innerHTML = orgs.map(function (org, i) {
+    return Object.keys(by).sort().map(function (org) {
       var ks = by[org], edits = ks.filter(function (k) { return outcomeOf(k) === 'edit'; }), outs = ks.filter(function (k) { return outcomeOf(k) === 'outreach'; });
       var parts = [];
       if (edits.length) parts.push(editMail(org, edits));
       if (outs.length) parts.push(outreachMail(org, outs));
       var sent = ks.every(function (k) { return S.dec[k].notified_on; });
-      return '<section class="panel mail"><div class="row"><div><div class="eyebrow">' + ks.length + ' example' + (ks.length > 1 ? 's' : '') + '</div><h2>' + esc(org) + '</h2></div>' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (sent ? '<span class="pill edit">Sent ' + esc(S.dec[ks[0]].notified_on) + '</span>' : '') +
-        '<button class="btn primary" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
-        parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') +
-        mailNotes(ks, Object.keys(ks.reduce(function (m, k) { acronyms((S.dec[k].answers || {}).populations).forEach(function (x) { m[x] = 1; }); return m; }, {}))) +
-        (edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + '</section>';
+      var acr = Object.keys(ks.reduce(function (m, k) { acronyms((S.dec[k].answers || {}).populations).forEach(function (x) { m[x] = 1; }); return m; }, {}));
+      return { org: org, ks: ks, edits: edits, parts: parts, sent: sent ? S.dec[ks[0]].notified_on : null, notes: mailNotes(ks, acr), notesText: mailNotes(ks, acr).replace(/<[^>]+>/g, '').replace(/\s+\n/g, '\n').trim() };
+    });
+  }
+  function renderMails() {
+    var ds = mailDrafts();
+    if (!ds.length) { $('mails').innerHTML = '<div class="panel empty"><b>No drafts yet.</b><span>A draft appears here for each organisation with at least one example saved as Count as using or Send the recommendations. One email covers all of its examples.</span></div>'; return; }
+    $('mails').innerHTML = ds.map(function (d, i) {
+      return '<section class="panel mail"><div class="row"><div><div class="eyebrow">' + d.ks.length + ' example' + (d.ks.length > 1 ? 's' : '') + '</div><h2>' + esc(d.org) + '</h2></div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (d.sent ? '<span class="pill edit">Sent ' + esc(d.sent) + '</span>' : '') +
+        '<button class="btn primary" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(d.ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (d.sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
+        d.parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') + d.notes +
+        (d.edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + '</section>';
     }).join('');
   }
   // what the referenced paragraphs say: the official wording when excerpts.json has it, else the criterion's plain summary
@@ -1007,6 +1025,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (e.target.id === 'dwhy' && S.draft) S.draft.rationale = e.target.value;
   });
 
+  // @actions-claude
   var saving = false;
   function save(then) {
     if (saving || !S.db || !S.sel) return;
@@ -1034,5 +1053,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     ks.reduce(function (p, k) { return p.then(function () { return S.db.collection('decisions').doc(k).update({ notified_on: unset ? null : today }); }); }, Promise.resolve())
       .catch(function (e) { note('The sent date wasn’t saved (' + e.code + '). Try again in a moment.'); });
   }
+  // @actions-end
+  /*STORE*/
 })();
 </script>

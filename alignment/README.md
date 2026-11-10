@@ -38,3 +38,31 @@ From the International Recommendations on Refugee Statistics (2018), on IDP Stat
 ## Data
 
 No respondent data are kept here. The dashboard reads the GAIN Kobo export and prior rounds; see [`spec/kobo_fields.md`](spec/kobo_fields.md).
+
+## The review page for colleagues (no sign-in)
+
+The standalone review page is published with the tracker at `dashboard/review/` on GitHub Pages. It is built
+by the publish workflow from [`review/review.html`](review/review.html) with `review/build.py --public`,
+and reads two files the workflow writes from Kobo every 15 minutes with `dashboard/tools/review_sync.py`:
+
+| File | What it holds |
+|---|---|
+| `dashboard/data/review_queue.json` | every example that said No or Don't know: titles, organisations, select answers, region, kind, similar examples and history. Never descriptions, partners or web findings. |
+| `dashboard/data/review_decisions.json` | the decisions saved through the Kobo review form, one current decision per example |
+
+**Evidence file.** The descriptions and what was found online never go online. The Secretariat makes one file,
+keeps it on its own drive, and reviewers open it on the page (it stays in their browser):
+
+```
+KOBO_TOKEN=... python3 dashboard/tools/review_sync.py evidence ~/Desktop/review-evidence.json [research.json] [documents.json]
+```
+
+**Saving.** The page saves through a Kobo form (`alignment/spec/review_form.json`, made once with
+`dashboard/tools/review_form.py`, which lets anyone submit without an account). Save opens the form prefilled in a
+new tab; the reviewer presses Submit. The decision shows on everyone's page after the next publish (about 20 minutes),
+and on the reviewer's own computer straight away. Undo and "mark as sent" work the same way.
+
+**Downloads.** Emails (.txt), the yearly report (Word and Excel, built in the browser from
+[`report/report_lib.js`](report/report_lib.js)), a backup of the decisions (.json), and a printable checklist per example.
+
+The private page on claude.ai (same `review.html`, built without `--public`) keeps working for the Secretariat.

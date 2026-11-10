@@ -56,5 +56,9 @@
   },
   "skip_validation_status": [
     "validation_status_not_approved"
-  ]
+  ],
+  "review_form": {
+    "_note": "The decisions form of the standalone review page (dashboard/review/), made by dashboard/tools/review_form.py from alignment/spec/review_form.json. Reviewers submit to it without an account; the publish workflow reads it with KOBO_TOKEN.",
+    "asset_uid": "a44XxVhhGUbREcVYxtpuQU"
+  }
 }
