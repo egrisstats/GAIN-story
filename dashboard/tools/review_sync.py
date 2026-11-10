@@ -101,8 +101,9 @@ def fold(log):
             dec.pop(k, None)
             continue
         if act in ("sent", "unsent"):
-            if k in dec:
-                dec[k]["notified_on"] = (r.get("saved_at") or r["_submission_time"])[:10] if act == "sent" else None
+            for kk in k.split("|"):
+                if kk in dec:
+                    dec[kk]["notified_on"] = (r.get("saved_at") or r["_submission_time"])[:10] if act == "sent" else None
             continue
         if r.get("outcome") not in OUTCOMES:
             continue

@@ -256,7 +256,7 @@ footer a { color: var(--ink-2); }
       <h1>GAIN 2026 · response tracker</h1>
       <div class="sub">Global Annual Implementation (GAIN) survey on the use of the IRRS, IRIS and IROSS · collection 3–22 November 2026</div>
     </div>
-    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading the latest Kobo data…</span><button class="btn" id="refreshBtn" type="button" title="Look for a newer copy of the Kobo data">Check now</button></div>
+    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">Loading the latest Kobo data…</span><button class="btn" id="refreshBtn" type="button" title="Look for a newer copy of the Kobo data">Check now</button><button class="btn" id="reviewTop" type="button" title="Review the examples that said No or Don’t know to the recommendations">Review answers →</button></div>
   </header>
 
   <section class="snow" aria-label="Every GAIN 2026 example as a point of light">
@@ -447,10 +447,10 @@ footer a { color: var(--ink-2); }
     </div>
     <div class="rfoot">
       <button class="btn" type="button" id="alignShow">Show them in Latest examples</button>
-<button class="btn" type="button" id="alignOpen" aria-expanded="false" aria-controls="reviewBox" title="Review the No and Don’t know answers here: queue, checklist, email drafts and the report. No sign-in.">Review them here ▾</button>
+<button class="btn" type="button" id="alignOpen" title="Review the No and Don’t know answers: one example at a time, with email drafts and the report. No sign-in.">Review these answers →</button>
       <span>No sign-in needed. Descriptions show only after you open the Secretariat’s evidence file.</span>
     </div>
-    <div id="reviewBox" hidden style="margin-top:12px"><iframe id="reviewFrame" title="Secretariat review of No and Don’t know answers" style="width:100%;height:88vh;min-height:640px;border:1px solid var(--line);border-radius:var(--r-l);background:#fff;display:block"></iframe></div>
+    
   </section>
 
   <section class="panel" aria-labelledby="hFeed">
@@ -475,6 +475,7 @@ footer a { color: var(--ink-2); }
   </footer>
 </div>
 <div class="tip" id="tip" role="tooltip"></div>
+<div id="reviewBox" hidden role="dialog" aria-modal="true" aria-label="Review of No and Don’t know answers" style="position:fixed;inset:0;z-index:1000;background:#fff"><iframe id="reviewFrame" title="Secretariat review of No and Don’t know answers" style="width:100%;height:100%;border:0;display:block"></iframe></div>
 
 <script>
 (function () {
@@ -1555,15 +1556,21 @@ footer a { color: var(--ink-2); }
     });
     document.getElementById('alignPanel').style.display = S.rows.length ? '' : 'none';
   }
-  // the review opens in place, inside this panel (the page at review/ is only ever shown here)
+  // the review opens over the dashboard, full screen (the page at review/ is only ever shown here);
+  // #review in the address opens it directly, and Back or Esc closes it
   function openReview(show) {
-    var box = document.getElementById('reviewBox'), fr = document.getElementById('reviewFrame'), b = document.getElementById('alignOpen');
+    var box = document.getElementById('reviewBox'), fr = document.getElementById('reviewFrame');
     if (show && !fr.getAttribute('src')) fr.src = CONFIG.reviewPage;
-    box.hidden = !show; b.setAttribute('aria-expanded', !!show); b.textContent = show ? 'Close the review ▴' : 'Review them here ▾';
-    if (show) document.getElementById('alignPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    box.hidden = !show; document.documentElement.style.overflow = show ? 'hidden' : '';
+    if (show && location.hash !== '#review') history.pushState(null, '', '#review');
+    if (!show && location.hash === '#review') history.replaceState(null, '', location.pathname + location.search);
+    if (show) fr.focus(); else { loadAlign && loadAlign(); }
   }
-  document.getElementById('alignOpen').addEventListener('click', function () { openReview(document.getElementById('reviewBox').hidden); });
-  if (location.hash === '#review') setTimeout(function () { openReview(true); }, 600);
+  document.querySelectorAll('#alignOpen, #reviewTop').forEach(function (b) { b.addEventListener('click', function () { openReview(true); }); });
+  window.addEventListener('message', function (e) { if (e.origin === location.origin && e.data === 'gain-review-close') openReview(false); });
+  window.addEventListener('popstate', function () { openReview(location.hash === '#review'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !document.getElementById('reviewBox').hidden) openReview(false); });
+  if (location.hash === '#review') setTimeout(function () { openReview(true); }, 300);
   document.getElementById('alignShow').addEventListener('click', function () { S.alignOnly = true; renderFeed(); document.getElementById('hFeed').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   function render(fast) {
     if (!S.rows.length && !S.loadedAt) return;

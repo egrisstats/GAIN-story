@@ -19,7 +19,8 @@
   function yn(v) { return v === true ? 'yes' : v === false ? 'no' : ''; }
 
   // pending entries are applied on top of the published decisions until Kobo has caught up:
-  // a newer saved_at from Kobo, or a publish made more than 40 minutes after the action, retires them
+  // a newer saved_at from Kobo retires them. A save Kobo still doesn't have 40 minutes on was probably never
+  // submitted: it stays here, flagged, until the reviewer submits it again or forgets it.
   function mergeDecisions(server) {
     var out = {}, p = readPending(), fetched = PUB.fetched ? Date.parse(PUB.fetched) : 0, changed = false;
     Object.keys(server).forEach(function (k) { out[k] = server[k]; });
@@ -27,9 +28,10 @@
       var x = p[k], s = server[k], at = Date.parse(x.saved_at || 0);
       var caught = (s && s.saved_at && Date.parse(s.saved_at) >= at && x.action === 'save') ||
         (x.action === 'sent' && s && s.notified_on) || (x.action === 'unsent' && s && !s.notified_on) || (x.action === 'undo' && !s && fetched > at) ||
-        (fetched - at > 40 * 60000);
+        (x.action !== 'save' && fetched - at > 40 * 60000);
+      var late = x.action === 'save' && fetched - at > 40 * 60000;
       if (caught) { delete p[k]; changed = true; return; }
-      if (x.action === 'save') out[k] = Object.assign({}, x.doc, { pending: true });
+      if (x.action === 'save') out[k] = Object.assign({}, x.doc, { pending: true, unsent: late });
       else if (x.action === 'undo') delete out[k];
       else if (x.action === 'sent' && out[k]) out[k] = Object.assign({}, out[k], { notified_on: x.saved_at.slice(0, 10), pending: true });
       else if (x.action === 'unsent' && out[k]) out[k] = Object.assign({}, out[k], { notified_on: null, pending: true });
@@ -38,11 +40,12 @@
     return out;
   }
   function pendingCount() { return Object.keys(PUB.pending).length; }
+  function lateCount() { return Object.keys(S.dec).filter(function (k) { return S.dec[k].unsent; }).length; }
   function storeNote() {
     var when = PUB.fetched ? new Date(PUB.fetched).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
     var n = pendingCount();
-    return (when ? 'Decisions from Kobo as of ' + when : 'No decisions from Kobo yet') + (n ? ' · <b>' + n + '</b> saved here, waiting for Kobo' : '') +
-      (PUB.evidence ? ' · evidence file from ' + esc(PUB.evidence.pulled_at.slice(0, 10)) + ' open' : ' · <b>no evidence file open</b>');
+    return (when ? 'Decisions from Kobo as of ' + when : 'No decisions from Kobo yet') + (n ? ' · <b>' + n + '</b> being shared' : '') + (lateCount() ? ' · <b style="color:var(--coral)">' + lateCount() + ' not received by Kobo: open and submit again</b>' : '') +
+      (PUB.evidence ? ' · descriptions file from ' + esc(PUB.evidence.pulled_at.slice(0, 10)) + ' open' : ' · <b>no descriptions file open</b>');
   }
 
   function loadQueue() {
@@ -70,8 +73,8 @@
     if (S.meta && ev.context) S.meta.context = Object.assign({}, S.meta.context || {}, ev.context);
   }
   function openEvidence(text) {
-    var j; try { j = JSON.parse(text); } catch (x) { note('That file isn’t the evidence file: it should be the review-evidence.json written by review_sync.py.'); return; }
-    if (!j || j.kind !== 'gain-review-evidence' || !j.items) { note('That file isn’t the evidence file: it should be the review-evidence.json written by review_sync.py.'); return; }
+    var j; try { j = JSON.parse(text); } catch (x) { note('That isn’t the descriptions file. It is called review-evidence.json; ask the Secretariat where it is kept.'); return; }
+    if (!j || j.kind !== 'gain-review-evidence' || !j.items) { note('That isn’t the descriptions file. It is called review-evidence.json; ask the Secretariat where it is kept.'); return; }
     PUB.evidence = j; try { sessionStorage.setItem(EVID_KEY, text); } catch (x) {}
     applyEvidence(); S.storeNote = storeNote(); note(''); render();
   }
@@ -95,22 +98,29 @@
   function askMe() { var i = $('meInput'); if (i && i.value.trim() && !S.me) setMe(i.value); return S.me; }
   if ($('meInput') && S.me) $('meInput').value = S.me;
   function submit(k, action, doc, extra) {
-    var q = S.queue[k], at = new Date().toISOString();
-    var fields = Object.assign({ example_key: k, title: (q.title || '').slice(0, 200), answer: q.answer, action: action, saved_at: at, reviewer: S.me || '', spec_version: S.spec && S.spec.version || '', source: 'page' }, extra || {});
-    var p = readPending(); p[k] = { action: action, saved_at: at, doc: doc || null }; writePending(p);
+    var ks = [].concat(k), q = S.queue[ks[0]], at = new Date().toISOString();
+    var fields = Object.assign({ example_key: ks.join('|'), title: (q.title || '').slice(0, 200), answer: q.answer, action: action, saved_at: at, reviewer: S.me || '', spec_version: S.spec && S.spec.version || '', source: 'page' }, extra || {});
+    var url = formUrl(fields);
+    var p = readPending(); ks.forEach(function (x) { p[x] = { action: action, saved_at: at, doc: doc || null, url: url }; }); writePending(p);
     S.dec = mergeDecisions(Object.keys(S.dec).reduce(function (m, x) { if (!S.dec[x].pending) m[x] = S.dec[x]; return m; }, {}));
     S.storeNote = storeNote();
-    var url = formUrl(fields);
     if (url) {
       var w = null; try { w = window.open(url, '_blank'); } catch (x) {}
       var n = $('note');
-      if (!w) { n.innerHTML = 'Your browser blocked the Kobo form window. <a href="' + esc(url) + '" target="_blank" rel="noopener">Open the Kobo form</a> and press Submit there, or allow pop-ups for this page.'; n.hidden = false; }
-      else { n.innerHTML = 'The Kobo form opened in a new tab: press <b>Submit</b> there. If it didn’t open, <a href="' + esc(url) + '" target="_blank" rel="noopener">open the Kobo form</a>.'; n.hidden = false; }
+      if (!w) { n.innerHTML = 'Your browser blocked the Kobo form. <a href="' + esc(url) + '" target="_blank" rel="noopener">Open the Kobo form</a> and press Submit there.'; n.hidden = false; }
+      else { n.innerHTML = 'One more step: press <b>Submit</b> in the Kobo tab that just opened. If it didn’t open, <a href="' + esc(url) + '" target="_blank" rel="noopener">open the Kobo form</a>.'; n.hidden = false; }
       return true;
     }
     note('The Kobo review form isn’t set up yet (no form link in the queue file), so this is saved on this computer only.');
     return false;
   }
+  // step 5 of the guided review: what is left to do, and whether Kobo has the decision
+  S.submitPanel = function (k, saved) {
+    var p = PUB.pending[k], link = p && p.url ? '<a class="btn" href="' + esc(p.url) + '" target="_blank" rel="noopener">Open the Kobo form again</a>' : '';
+    if (saved && saved.unsent) return '<div class="gsub warn"><h3>Kobo has not received this decision</h3><div>It is saved on this computer only. The Kobo tab was probably closed before Submit was pressed.</div><div class="save">' + link + '<button class="btn" data-forget="' + esc(k) + '">Forget this decision</button></div></div>';
+    if (saved && saved.pending) return '<div class="gsub"><h3>One more step: press Submit in the Kobo tab</h3><div>The form opened in a new tab with everything filled in. Press <b>Submit</b> there, then come back here.</div><div class="hint">Your decision shows here straight away, and for colleagues within about 20 minutes.</div><div class="save">' + link + '</div></div>';
+    return '<div class="gsub ok"><h3>Shared</h3><div>Kobo has this decision, and colleagues can see it.</div></div>';
+  };
   var saving = false;
   function save(then) {
     if (saving || !S.sel) return;
@@ -125,7 +135,7 @@
       rationale: a.rationale != null ? a.rationale : (S.genWhy || ''), rationale_edited: a.rationale != null };
     var sent = submit(S.sel, 'save', doc, { outcome: res.outcome, score: res.score, use_sign: yn(res.use_sign), q1: yn(a.q1), q2: a.q2 || 'none', q4: yn(a.q4),
       populations: a.populations || '', kind: a.kind || '', ticks: encodeTicks(a), rationale: doc.rationale, rationale_edited: yn(doc.rationale_edited), note: doc.note });
-    $('saveStatus').textContent = sent ? 'Saved here: ' + OUT[res.outcome].label + '. Press Submit in the Kobo tab; it shows for everyone within about 20 minutes.' : 'Saved on this computer only.';
+    if (guided()) S.step = 5;
     if (then) then(); else render();
   }
   function clearDecision() {
@@ -135,9 +145,8 @@
   }
   function markSent(ks) {
     var unset = ks.every(function (k) { return S.dec[k] && S.dec[k].notified_on; });
-    ks.forEach(function (k) { submit(k, unset ? 'unsent' : 'sent', null, {}); });
+    submit(ks, unset ? 'unsent' : 'sent', null, {});
     render();
-    if (ks.length > 1) note('One Kobo tab opened per example (' + ks.length + '): press Submit in each.');
   }
 
   // ---------- downloads: emails, report, checklist ----------
@@ -181,6 +190,9 @@
     var b = e.target.closest('button'); if (!b) return;
     if (b.id === 'dlDocx') downloadDocx(); else if (b.id === 'dlXlsx') downloadXlsx(); else if (b.id === 'dlMails') downloadMails(); else if (b.id === 'dlJson') downloadDecisions();
     else if (b.id === 'printChk') printChecklist(); else if (b.id === 'evOpen') $('evFile').click();
+    else if (b.dataset.forget) { var pp = readPending(); delete pp[b.dataset.forget]; writePending(pp); loadDecisions().then(function () { if (!S.dec[S.sel]) select(S.sel); }).catch(function () {}); }
+    else if (b.id === 'tubeBtn') { document.body.classList.toggle('show-tube'); renderTube(); }
+    else if (b.id === 'toDash') { if (window.top !== window.self) window.parent.postMessage('gain-review-close', location.origin); else location.href = '../'; }
     else if (b.id === 'evClose') { PUB.evidence = null; try { sessionStorage.removeItem(EVID_KEY); } catch (x) {} loadQueue().catch(function () {}); }
   });
   document.addEventListener('change', function (e) {

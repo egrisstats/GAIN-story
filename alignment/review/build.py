@@ -29,16 +29,18 @@ for mark in ("/*RULES*/", "/*TEXT*/", "<!--TREE-->", "/*TREECSS*/", "/*STORE*/",
 page = page.replace("/*RULES*/", rules).replace("/*TEXT*/", text).replace("<!--TREE-->", tree).replace("/*TREECSS*/", css)
 
 TOOLBAR = """<div class="toolbar"><div class="wrap">
-  <span class="lbl">Evidence file:</span>
-  <button class="btn primary" id="evOpen" title="The review-evidence.json the Secretariat keeps on its drive. It is read in your browser and never uploaded.">Open evidence file</button>
-  <button class="btn" id="evClose" title="Forget the evidence file in this tab">Close it</button>
-  <input type="file" id="evFile" accept=".json,application/json" hidden>
-  <span class="lbl" style="margin-left:auto">Download:</span>
-  <button class="btn" id="dlMails" title="Every email draft in one text file">Emails (.txt)</button>
-  <button class="btn" id="dlDocx" title="The yearly report: decisions and reasons, in Word">Report (Word)</button>
-  <button class="btn" id="dlXlsx" title="The yearly report as a workbook, one row per example">Report (Excel)</button>
-  <button class="btn" id="dlJson" title="A backup of every decision shown here">Decisions (.json)</button>
+  <button class="btn" id="toDash" title="Close the review and go back to the tracker">← Dashboard</button>
   <label class="lbl" title="Saved with your decisions so colleagues see who reviewed what. Nothing else about you is recorded.">Your initials <input id="meInput" maxlength="12" size="4" style="font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:6px"></label>
+  <button class="btn primary" id="evOpen" title="Holds what respondents wrote and what we found online. The file is called review-evidence.json; the Secretariat keeps it on its shared drive. It is read in your browser and never uploaded.">Open descriptions file</button>
+  <button class="btn" id="evClose" title="Forget the descriptions file in this tab">Close it</button>
+  <input type="file" id="evFile" accept=".json,application/json" hidden>
+  <span class="lbl" style="margin-left:auto">Reports:</span>
+  <button class="btn" id="dlMails" title="Every email draft in one text file">Emails</button>
+  <button class="btn" id="dlDocx" title="The yearly report: decisions and reasons, in Word">Word</button>
+  <button class="btn" id="dlXlsx" title="The yearly report as a workbook, one row per example">Excel</button>
+  <button class="btn" id="dlJson" title="A backup file of every decision shown here">Backup</button>
+  <button class="btn" id="tubeBtn" title="Show or hide the diagram of every example moving through the review">Diagram</button>
+  <a class="btn" href="../review-guide.pptx" download title="A short slide deck on how the review works and how to use this page">How it works (slides)</a>
 </div></div>"""
 
 if public:
@@ -48,6 +50,10 @@ if public:
     page = re.sub(r"  // @actions-claude\n.*?  // @actions-end\n", "", page, count=1, flags=re.S)
     page = page.replace("/*STORE*/", store).replace("/*PUBLIC*/", "window.PUBLIC_PAGE = true;\n" + report)
     page = page.replace("<!--PUBLIC-TOOLBAR-->", TOOLBAR)
+    # the how-to lists are replaced by the slide deck (dashboard/review-guide.pptx); the diagram opens on request
+    page, n_how = re.subn(r'\s*<details class="how".*?</details>\n', "\n", page, flags=re.S)
+    assert n_how == 4, n_how
+    page = page.replace("</style>\n\n<header", ".tubep { display: none; } body.show-tube .tubep { display: block; }\n</style>\n\n<header", 1)
     page = page.replace("<title>GAIN Alignment Review</title>", "<title>GAIN 2026 alignment review</title>")
     page = page.replace('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
     # the artifact host adds the document skeleton; the standalone page needs its own

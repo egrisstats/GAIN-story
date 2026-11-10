@@ -289,6 +289,23 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   .flow { grid-template-columns: minmax(0, 1fr); } .flow .arrow { transform: rotate(90deg); }
   .mark .tag { display: none; }
 }
+.grid.solo { grid-template-columns: minmax(0, 1fr); } .grid.solo .queue { display: none; }
+.gbar { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.gsteps { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+.gsteps button { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--ink-2); border-radius: 999px; padding: 4px 12px 4px 5px; font: 600 var(--fs-s) var(--sans); cursor: pointer; }
+.gsteps button span { width: 20px; height: 20px; border-radius: 50%; background: var(--panel-2); display: inline-grid; place-items: center; font: 600 var(--fs-xs) var(--mono); }
+.gsteps button i { font-weight: 400; color: var(--ink-3); }
+.gsteps button:disabled { opacity: .5; cursor: default; }
+.gsteps li.past button { border-color: var(--teal); } .gsteps li.past span { background: var(--sel); }
+.gsteps li.on button { background: var(--navy); border-color: var(--navy); color: var(--navy-ink); } .gsteps li.on span { background: var(--teal); color: var(--accent-ink); }
+.gintro { background: var(--band); border-radius: var(--r-m); padding: 10px 12px; font-size: var(--fs-s); }
+.gsplit { display: grid; grid-template-columns: minmax(280px, 42%) minmax(0, 1fr); gap: 18px; align-items: start; }
+.gev { position: sticky; top: 8px; max-height: calc(100vh - 170px); overflow: auto; display: grid; gap: 12px; padding-right: 6px; border-right: 1px solid var(--line); }
+.gev .evidence { grid-template-columns: minmax(0, 1fr); }
+.gstep { display: grid; gap: 14px; min-width: 0; }
+.gsub { border: 1px solid var(--line); border-radius: var(--r-m); padding: 16px; display: grid; gap: 10px; }
+.gsub.warn { border-color: var(--coral); background: #fff5f5; } .gsub.ok { border-color: var(--edit); background: var(--edit-bg); }
+@media (max-width: 900px) { .gsplit { grid-template-columns: minmax(0, 1fr); } .gev { position: static; max-height: none; border-right: 0; padding-right: 0; } }
 .toolbar { background: var(--panel); border-bottom: 1px solid var(--line); }
 .toolbar .wrap { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding-top: 8px; padding-bottom: 8px; font-size: var(--fs-s); }
 .toolbar .lbl { color: var(--ink-2); }
@@ -395,7 +412,9 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   };
   var Q2 = { none: 'No reason given', other: 'They follow another framework (national law, EU Regulation 862/2007, UN migration recommendations)', unaware: 'They don’t know the recommendations', deliberate: 'They decided not to use them' };
   var ANS = { no: 'Said: not used', dk: 'Said: don’t know' };
-  var S = { spec: null, queue: {}, dec: {}, meta: null, sel: null, view: 'queue', filter: 'open', draft: null, db: null, user: null, me: null, names: {}, readOnly: false, loaded: false, decLoaded: false, peerTag: null, peerAll: false };
+  var S = { spec: null, queue: {}, dec: {}, meta: null, sel: null, view: 'queue', filter: 'open', draft: null, db: null, user: null, me: null, names: {}, readOnly: false, loaded: false, decLoaded: false, peerTag: null, peerAll: false, step: 1, onePage: false };
+  try { S.onePage = !!localStorage.getItem('gainReviewOnePage'); } catch (x) {}
+  function guided() { return !!window.PUBLIC_PAGE && !S.onePage; }
   var $ = function (id) { return document.getElementById(id); };
   document.querySelectorAll('details.how').forEach(function (d) {
     try { if (localStorage.getItem('gainHowClosed_' + d.dataset.how)) d.open = false; } catch (x) {}
@@ -583,7 +602,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     renderStatus();
     ['queue', 'over', 'mails', 'sum'].forEach(function (v) { $('view-' + v).hidden = S.view !== v; });
     if (S.view === 'over') renderOver();
-    if (S.view === 'queue') { renderTube(); renderQueue(); renderDetail(); }
+    if (S.view === 'queue') { var gr = document.querySelector('#view-queue .grid'); if (gr) gr.classList.toggle('solo', guided() && !!S.sel && !!S.queue[S.sel]); renderTube(); renderQueue(); renderDetail(); }
     if (S.view === 'mails') renderMails();
     if (S.view === 'sum') renderSum();
     if (!S.sel && S.view === 'queue' && S.loaded && S.decLoaded && S.spec) {
@@ -613,7 +632,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   var WHERE = { desc: 'Their description', web: 'Online', similar: 'Similar example', other: 'Other' };
   function guessWhere(why) { var w = String(why || ''); return /^GAIN \d{4}|reported use|other example|submission reports/i.test(w) ? 'similar' : 'desc'; }
   function select(k, opts) {
-    if (S.sel !== k) { S.peerTag = null; S.peerAll = false; }
+    if (S.sel !== k) { S.peerTag = null; S.peerAll = false; S.step = (S.dec[k] && S.dec[k].outcome) ? 4 : 1; }
     S.sel = k;
     var d = S.dec[k], q = S.queue[k];
     S.draft = withStates(d && d.answers ? JSON.parse(JSON.stringify(d.answers)) : blankDraft(q));
@@ -648,7 +667,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   }
   function webCard(q) {
     var w = q.web;
-    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">' + (window.PUBLIC_PAGE ? 'Open the evidence file (top of the page) to see what was found online for this example.' : 'No web check yet for this example. Ask Claude to run the web check on the queue.') + '</div></section>';
+    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">' + (window.PUBLIC_PAGE ? (q.description ? 'Not checked online yet.' : 'Open the descriptions file (top of the page) to see what was found online for this example.') : 'No web check yet for this example. Ask Claude to run the web check on the queue.') + '</div></section>';
     var d = w.docs, sigKey = d && d.signal ? d.signal : w.signal, s = SIG[sigKey] || SIG.unclear;
     var head = '<section class="card"><h3>Online <span class="sig ' + s[0] + '" title="' + esc(d && d.reason || '') + '">' + s[1] + '</span></h3>';
     if (d) {
@@ -718,16 +737,19 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   }
   function renderDetail() {
     var k = S.sel, q = S.queue[k], box = $('detail');
-    if (!q) { box.innerHTML = '<div class="empty"><b>Pick an example from the queue or the tube.</b><span>Its evidence and the questions open here.</span></div>'; return; }
+    if (!q) { var left = keys().filter(function (x) { return !outcomeOf(x); }).length; box.innerHTML = '<div class="empty"><b>' + (guided() ? (left ? left + ' example' + (left > 1 ? 's' : '') + ' to review.' : 'Every example is reviewed.') : 'Pick an example from the queue or the tube.') + '</b><span>' + (guided() ? 'Start with the next one, or pick any example from the list.' : 'Its evidence and the questions open here.') + '</span>' + (guided() && left ? '<div><button class="btn primary" id="gStart">Start with the next example →</button></div>' : '') + '</div>'; return; }
     var spec = S.spec, a = S.draft, saved = S.dec[k];
     var h = '<div class="case"><div class="eyebrow">' + esc(q.organisation || '') + '</div><h2>' + esc(q.title) + '</h2><div class="meta"><span class="ans ' + (q.answer === 'dk' ? 'dk' : 'no') + '">' + esc(ANS[q.answer] || q.answer) + '</span>' +
       '<span>' + esc(q.country || 'Regional or global') + (q.region ? ' · ' + esc(q.region) : '') + '</span><span>' + esc(q.kind_name || q.source || '') + '</span>' + (q.phase ? '<span>' + esc(q.phase) + '</span>' : '') + (q.survey ? '<span title="Submitted through the ' + esc(q.survey) + ' survey">' + esc(q.survey) + ' survey</span>' : '') + pill(outcomeOf(k)) + '</div></div>';
-    h += '<div class="section-h"><span class="n">1</span><h3>Look at the evidence</h3></div><div class="evidence">' + webCard(q) + peersCard(q) + '</div>';
+    var head = (window.PUBLIC_PAGE ? '<div class="gbar"><button class="linkbtn" id="backList">← All examples</button><button class="linkbtn" id="modeBtn">' + (guided() ? 'Show everything on one page' : 'Guide me step by step') + '</button></div>' : '') + h; h = '';
+    var evCards = '<div class="evidence">' + webCard(q) + peersCard(q) + '</div>';
+    if (!guided()) h += '<div class="section-h"><span class="n">1</span><h3>Look at the evidence</h3></div>' + evCards;
     var facts = [['Their answer', q.answer_text || ANS[q.answer] || q.answer, 'PRO09'], ['Data source', [q.source, q.sources_more].filter(Boolean).join('; '), 'PRO08'], ['Groups covered', q.population, 'PRO07'],
       ['Partners', q.partners, 'PRO18'], ['Recommendations they know', q.known_publications, 'ACT04']];
     h += '<details open><summary class="eyebrow" style="cursor:pointer">What they told us</summary><div style="display:grid;gap:10px;margin-top:8px"><div class="facts">' + facts.map(function (f) { return '<div class="fact"><div class="k" title="Kobo question ' + f[2] + '">' + esc(f[0]) + '</div><div class="v">' + (f[1] ? esc(f[1]) : '<span class="muted">Not given</span>') + '</div></div>'; }).join('') + '</div>' +
-      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : window.PUBLIC_PAGE ? '<span class="muted">Open the evidence file (top of the page) to see their description and what was found online.</span>' : '<span class="muted">No description given.</span>') + '</div></div></details>';
-    if (!spec) { box.innerHTML = '<div class="detail">' + h + '<div class="empty">Loading the decision tree…</div></div>'; return; }
+      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : window.PUBLIC_PAGE ? '<span class="muted">Open the descriptions file (top of the page) to see what they wrote and what was found online.</span>' : '<span class="muted">No description given.</span>') + '</div></div></details>';
+    if (guided()) h += evCards;
+    if (!spec) { box.innerHTML = '<div class="detail">' + head + h + '<div class="empty">Loading the decision tree…</div></div>'; return; }
     var res = decideFor(k, a), st = spec.steps, o2 = st[1].options;
     var go2 = a.q1 === true, go3 = go2 && o2[a.q2 || 'none'].then === 'continue', goList = go3 && a.q4 === true;
     var t = '<div class="section-h"><span class="n">2</span><h3 style="flex:1">Before you start</h3>' + (q.suggest ? '<span class="hint">You can change any of them</span><button class="btn" id="useSugg">Use the suggestions</button>' : '') + '</div>';
@@ -741,6 +763,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         .map(function (x) { return '<option value="' + x[0] + '"' + (gv === x[0] ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select>' +
       (q.suggest && q.suggest.populations ? '<div class="sugg">Suggested: <b>' + esc({ R: 'IRRS groups', I: 'IDPs (IRIS)', S: 'Stateless people (IROSS)', RI: 'IRRS and IRIS groups', RS: 'IRRS and IROSS groups', IS: 'IRIS and IROSS groups', RIS: 'All three' }[q.suggest.populations] || q.suggest.populations) + '</b>' + (q.suggest.q4 ? ' · ' + esc(q.suggest.q4.why) : '') + '</div>' : '') + '</div></div>';
     if (res.outcome && !goList) t += '<div class="stop">The review stops here: <b>' + esc(OUT[res.outcome].label) + '</b>. No checklist is needed.</div>';
+    var tq = t; t = '';
     if (goList) {
       t += '<div class="section-h"><span class="n">3</span><h3 style="flex:1">What the example shows</h3><span class="hint" id="ckCount"></span></div><div class="checklist">';
       t += '<div class="kindrow"><label><b>This example is:</b> <select id="kind"><option value="">Choose the kind of example…</option>' + Object.keys(spec.kinds).map(function (kk) { return '<option value="' + kk + '"' + (a.kind === kk ? ' selected' : '') + '>' + esc(spec.kinds[kk].name) + '</option>'; }).join('') + '</select></label>' +
@@ -777,7 +800,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       var nextQ = a.q1 == null ? 'question a' : a.q4 == null ? 'question c' : 'the kind of example';
       r = '<div class="result"><span class="hint">Answer ' + nextQ + ' to see where this example goes.</span></div>';
     }
-    var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) + (saved.pending ? ' · waiting for Kobo' : '') : 'Not saved yet';
+    var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) + (saved.unsent ? ' · NOT received by Kobo: submit it again' : saved.pending ? ' · being shared with colleagues' : '') : 'Not saved yet';
     var nxt = nextOpen(k), can = !!res.outcome && !S.readOnly;
     var noteBox = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>';
     var save = '<div class="save"><button class="btn primary" id="saveNext"' + (can && nxt ? '' : ' disabled') + ' title="' + (nxt ? 'Save, then open the next example not reviewed yet' : 'No other example is waiting') + '">Save and go to next</button>' +
@@ -793,7 +816,23 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         '<textarea id="dwhy" rows="9" aria-label="Why we decided this">' + esc(txt) + '</textarea>' +
         '<div class="hint">Saved with the decision and used in the yearly report. Edit it if something needs saying in your own words.' + (a.rationale != null ? ' <button class="linkbtn" id="whyReset">Use the checklist text again</button>' : '') + '</div></section>';
     }
-    box.innerHTML = '<div class="detail">' + h + t + c + why + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>';
+    if (!guided()) { box.innerHTML = '<div class="detail">' + head + h + tq + t + c + why + noteBox + '<div class="dock" aria-live="polite">' + r + save + '</div></div>'; return; }
+    // guided: one step at a time, the evidence beside it
+    var s = S.step || 1;
+    if (s === 3 && !goList) s = S.step = res.outcome ? 4 : 2;
+    if (s === 5 && !saved) s = S.step = 4;
+    var strip = '<ol class="gsteps">' + ['Read', 'Three questions', 'Checklist', 'Decide', 'Submit'].map(function (n, i) {
+      var x = i + 1, off = x === 3 && !goList && !!res.outcome;
+      return '<li class="' + (x === s ? 'on' : x < s ? 'past' : '') + '"><button data-step="' + x + '"' + ((x === 5 && !saved) || off ? ' disabled' : '') + '><span>' + x + '</span>' + n + (off ? ' <i>not needed</i>' : '') + '</button></li>';
+    }).join('') + '</ol>';
+    var prev = s === 4 && !goList ? 2 : s - 1, next = s === 2 && !goList ? 4 : s + 1, nextOk = s === 1 || (s === 2 && (goList || !!res.outcome)) || (s === 3 && !!res.outcome);
+    var right = s === 2 ? tq : s === 3 ? t : s === 4 ? c + why + noteBox : (S.submitPanel ? S.submitPanel(k, saved) : '');
+    var body = s === 1 ? '<div class="gintro"><b>Read what they told us and what we found.</b> It stays beside you in the next steps.</div>' + h : '<div class="gsplit"><aside class="gev" aria-label="The evidence">' + h + '</aside><div class="gstep">' + right + '</div></div>';
+    var nav = '<div class="save">' + (s > 1 ? '<button class="btn" data-step="' + prev + '">← Back</button>' : '') +
+      (s < 4 ? '<button class="btn primary" data-step="' + next + '"' + (nextOk ? '' : ' disabled') + '>Next →</button>' + (nextOk ? '' : '<span class="savest">' + (s === 2 ? 'Answer the questions to go on.' : 'Choose the kind of example to go on.') + '</span>') : '') +
+      (s === 4 ? '<button class="btn primary" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn">Undo this decision</button>' : '') + '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') +
+      (s === 5 ? '<button class="btn primary" id="gNext">' + (nxt ? 'Next example →' : 'Back to the list') + '</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') + '</div>';
+    box.innerHTML = '<div class="detail">' + head + strip + body + '<div class="dock" aria-live="polite">' + r + nav + '</div></div>';
   }
 
   // ---------- overview: every example, and what the same organisation and country used before ----------
@@ -860,7 +899,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (d.sent ? '<span class="pill edit">Sent ' + esc(d.sent) + '</span>' : '') +
         '<button class="btn primary" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(d.ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (d.sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
         d.parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') + d.notes +
-        (d.edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + '</section>';
+        (d.edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + (window.PUBLIC_PAGE ? '<div class="hint">This page never reads contact details. Find the focal point’s name and email in Kobo.</div>' : '') + '</section>';
     }).join('');
   }
   // what the referenced paragraphs say: the official wording when excerpts.json has it, else the criterion's plain summary
@@ -1003,6 +1042,10 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       renderDetail(); renderTube(); return;
     }
     if (b.id === 'whyReset' && S.draft) { delete S.draft.rationale; renderDetail(); return; }
+    if (b.dataset.step) { S.step = +b.dataset.step; renderDetail(); $('detail').scrollIntoView({ block: 'start' }); return; }
+    if (b.id === 'backList') { S.sel = null; S.draft = null; render(); return; }
+    if (b.id === 'modeBtn') { S.onePage = !S.onePage; try { if (S.onePage) localStorage.setItem('gainReviewOnePage', '1'); else localStorage.removeItem('gainReviewOnePage'); } catch (x) {} render(); return; }
+    if (b.id === 'gStart' || b.id === 'gNext') { var n2 = b.id === 'gNext' ? nextOpen(S.sel) : keys().filter(function (x) { return !outcomeOf(x); })[0]; if (n2) { select(n2); } else { S.sel = null; S.draft = null; render(); } return; }
     if (b.id === 'saveBtn') { save(); return; }
     if (b.id === 'saveNext') { var nx = nextOpen(S.sel); save(function () { if (nx) { select(nx); $('detail').scrollIntoView({ block: 'start' }); } }); return; }
     if (b.id === 'clearBtn') { clearDecision(); return; }

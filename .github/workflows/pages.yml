@@ -56,6 +56,7 @@ jobs:
           mkdir -p _site/dashboard/review
           python3 alignment/review/build.py --public _site/dashboard/review/index.html
           cp alignment/spec/decision_tree.json alignment/spec/excerpts.json _site/dashboard/review/
+          cp dashboard/review-guide.pptx _site/dashboard/   # the how-to slides linked from the review (alignment/review/guide_deck.js)
       - name: Pull GAIN 2026 submissions from Kobo (no respondent details)
         # without the KOBO_TOKEN secret, or before kobo_config.json is filled in, this skips and the tracker shows demo data
         env:
