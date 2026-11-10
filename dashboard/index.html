@@ -447,9 +447,10 @@ footer a { color: var(--ink-2); }
     </div>
     <div class="rfoot">
       <button class="btn" type="button" id="alignShow">Show them in Latest examples</button>
-      <a class="btn" id="alignOpen" target="_blank" rel="noopener" title="The review page: queue, checklist, email drafts and the report. No sign-in. Descriptions show only after you open the Secretariat’s evidence file.">Open the review page ↗</a>
-      <span>No sign-in needed. This page shows outcomes, never descriptions, partners or emails.</span>
+<button class="btn" type="button" id="alignOpen" aria-expanded="false" aria-controls="reviewBox" title="Review the No and Don’t know answers here: queue, checklist, email drafts and the report. No sign-in.">Review them here ▾</button>
+      <span>No sign-in needed. Descriptions show only after you open the Secretariat’s evidence file.</span>
     </div>
+    <div id="reviewBox" hidden style="margin-top:12px"><iframe id="reviewFrame" title="Secretariat review of No and Don’t know answers" style="width:100%;height:88vh;min-height:640px;border:1px solid var(--line);border-radius:var(--r-l);background:#fff;display:block"></iframe></div>
   </section>
 
   <section class="panel" aria-labelledby="hFeed">
@@ -481,7 +482,7 @@ footer a { color: var(--ink-2); }
   // ---------- configuration ----------
   var params = new URLSearchParams(location.search);
   var CONFIG = {
-    reviewPage: 'review/',
+    reviewPage: 'review/?embed=1',
     src: params.get('src'),                      // live export (CSV or JSON); also tried: data/gain2026.csv
     live: 'data/gain2026.csv',
     // other published copies of the same Kobo pull; the page reads whichever was taken from Kobo most recently
@@ -1554,7 +1555,15 @@ footer a { color: var(--ink-2); }
     });
     document.getElementById('alignPanel').style.display = S.rows.length ? '' : 'none';
   }
-  document.getElementById('alignOpen').href = CONFIG.reviewPage;
+  // the review opens in place, inside this panel (the page at review/ is only ever shown here)
+  function openReview(show) {
+    var box = document.getElementById('reviewBox'), fr = document.getElementById('reviewFrame'), b = document.getElementById('alignOpen');
+    if (show && !fr.getAttribute('src')) fr.src = CONFIG.reviewPage;
+    box.hidden = !show; b.setAttribute('aria-expanded', !!show); b.textContent = show ? 'Close the review ▴' : 'Review them here ▾';
+    if (show) document.getElementById('alignPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.getElementById('alignOpen').addEventListener('click', function () { openReview(document.getElementById('reviewBox').hidden); });
+  if (location.hash === '#review') setTimeout(function () { openReview(true); }, 600);
   document.getElementById('alignShow').addEventListener('click', function () { S.alignOnly = true; renderFeed(); document.getElementById('hFeed').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   function render(fast) {
     if (!S.rows.length && !S.loadedAt) return;

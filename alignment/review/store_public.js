@@ -83,8 +83,8 @@
     var root = PUB.form.root || 'data';
     var qs = Object.keys(fields).filter(function (n) { return fields[n] != null && fields[n] !== ''; })
       .map(function (n) { return 'd[/' + root + '/' + n + ']=' + encodeURIComponent(String(fields[n])); });
-    // back to this page after Submit; the Kobo server refuses local (http) return addresses, so only when published
-    if (location.protocol === 'https:') qs.push('returnUrl=' + encodeURIComponent(location.href.split('#')[0].split('?')[0]));
+    // back to the dashboard, review open, after Submit; the Kobo server refuses local (http) return addresses, so only when published
+    if (location.protocol === 'https:') qs.push('returnUrl=' + encodeURIComponent(new URL('../#review', location.href).href));
     return PUB.form.url + (PUB.form.url.indexOf('?') >= 0 ? '&' : '?') + qs.join('&');
   }
   function setMe(v) {
@@ -188,3 +188,5 @@
     if (e.target.id === 'evFile' && e.target.files && e.target.files[0]) { var f = e.target.files[0], rd = new FileReader(); rd.onload = function () { openEvidence(String(rd.result)); }; rd.readAsText(f); e.target.value = ''; }
   });
   window.addEventListener('focus', function () { loadDecisions().catch(function () {}); });
+  // opened on its own rather than inside the dashboard: send the visitor to the dashboard, review open
+  if (window.top === window.self && !/[?&]standalone=1/.test(location.search) && location.protocol === 'https:') location.replace(new URL('../#review', location.href).href);

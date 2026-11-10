@@ -29,7 +29,6 @@ for mark in ("/*RULES*/", "/*TEXT*/", "<!--TREE-->", "/*TREECSS*/", "/*STORE*/",
 page = page.replace("/*RULES*/", rules).replace("/*TEXT*/", text).replace("<!--TREE-->", tree).replace("/*TREECSS*/", css)
 
 TOOLBAR = """<div class="toolbar"><div class="wrap">
-  <a class="btn" href="../" title="Back to the GAIN 2026 submissions tracker">← Submissions tracker</a>
   <span class="lbl">Evidence file:</span>
   <button class="btn primary" id="evOpen" title="The review-evidence.json the Secretariat keeps on its drive. It is read in your browser and never uploaded.">Open evidence file</button>
   <button class="btn" id="evClose" title="Forget the evidence file in this tab">Close it</button>
