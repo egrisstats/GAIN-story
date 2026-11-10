@@ -306,6 +306,14 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 .gsub { border: 1px solid var(--line); border-radius: var(--r-m); padding: 16px; display: grid; gap: 10px; }
 .gsub.warn { border-color: var(--coral); background: #fff5f5; } .gsub.ok { border-color: var(--edit); background: var(--edit-bg); }
 @media (max-width: 900px) { .gsplit { grid-template-columns: minmax(0, 1fr); } .gev { position: static; max-height: none; border-right: 0; padding-right: 0; } }
+.coach { background: #fff8e6; border: 1px solid #f0d58a; border-radius: var(--r-m); padding: 9px 12px; font-size: var(--fs-s); }
+.coach.top { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.intro { position: fixed; inset: 0; z-index: 50; background: rgba(20, 35, 76, .55); display: grid; place-items: center; padding: 16px; }
+.intro .box { background: var(--panel); border-radius: 10px; max-width: 620px; width: 100%; padding: 26px 28px 20px; display: grid; gap: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.intro h2 { font: 700 24px var(--display); } .intro p { margin: 0; } .intro ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.intro .n { font: 500 var(--fs-xs) var(--mono); color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+.intro .flow { display: flex; flex-wrap: wrap; gap: 6px; } .intro .flow span { background: var(--band); border-radius: 999px; padding: 3px 10px; font-size: var(--fs-s); font-weight: 600; }
+.intro .foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; } .intro .dots { margin-right: auto; display: flex; gap: 5px; } .intro .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); } .intro .dots i.on { background: var(--teal); }
 .toolbar { background: var(--panel); border-bottom: 1px solid var(--line); }
 .toolbar .wrap { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding-top: 8px; padding-bottom: 8px; font-size: var(--fs-s); }
 .toolbar .lbl { color: var(--ink-2); }
@@ -474,6 +482,13 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var all = keys(), i = all.indexOf(k);
     return all.slice(i + 1).concat(all.slice(0, Math.max(i, 0))).filter(function (x) { return x !== k && !outcomeOf(x); })[0] || null;
   }
+  // the practice example: one already decided, opened at step 1 with its answers filled in; nothing is saved
+  function startPractice() {
+    var ks = keys(), pick = ks.filter(function (k) { return outcomeOf(k) === 'edit'; })[0] || ks.filter(function (k) { return outcomeOf(k) === 'aligned'; })[0] || ks.filter(outcomeOf)[0];
+    if (!pick) { note('No example is decided yet, so there is nothing to practise on. Review the first one with the slides open beside you.'); return; }
+    S.onePage = false; select(pick, { practice: true });
+  }
+  S.startPractice = startPractice;
   function decideFor(k, a) {
     var q = S.queue[k];
     var kind = a.kind || (a.q4 === false ? ((q.suggest && q.suggest.kind && q.suggest.kind.value) || Object.keys(S.spec.kinds)[0]) : null);
@@ -605,7 +620,9 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (S.view === 'queue') { var gr = document.querySelector('#view-queue .grid'); if (gr) gr.classList.toggle('solo', guided() && !!S.sel && !!S.queue[S.sel]); renderTube(); renderQueue(); renderDetail(); }
     if (S.view === 'mails') renderMails();
     if (S.view === 'sum') renderSum();
-    if (!S.sel && S.view === 'queue' && S.loaded && S.decLoaded && S.spec) {
+    // the one-page layout opens the first example by itself, once; the guided layout starts from the list
+    if (!S.sel && !S.autoDone && !guided() && S.view === 'queue' && S.loaded && S.decLoaded && S.spec) {
+      S.autoDone = true;
       var first = keys().filter(function (k) { return !outcomeOf(k); })[0] || keys()[0];
       if (first) select(first);
     }
@@ -633,6 +650,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   function guessWhere(why) { var w = String(why || ''); return /^GAIN \d{4}|reported use|other example|submission reports/i.test(w) ? 'similar' : 'desc'; }
   function select(k, opts) {
     if (S.sel !== k) { S.peerTag = null; S.peerAll = false; S.step = (S.dec[k] && S.dec[k].outcome) ? 4 : 1; }
+    S.practice = !!(opts && opts.practice); if (S.practice) S.step = 1;
     S.sel = k;
     var d = S.dec[k], q = S.queue[k];
     S.draft = withStates(d && d.answers ? JSON.parse(JSON.stringify(d.answers)) : blankDraft(q));
@@ -737,7 +755,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   }
   function renderDetail() {
     var k = S.sel, q = S.queue[k], box = $('detail');
-    if (!q) { var left = keys().filter(function (x) { return !outcomeOf(x); }).length; box.innerHTML = '<div class="empty"><b>' + (guided() ? (left ? left + ' example' + (left > 1 ? 's' : '') + ' to review.' : 'Every example is reviewed.') : 'Pick an example from the queue or the tube.') + '</b><span>' + (guided() ? 'Start with the next one, or pick any example from the list.' : 'Its evidence and the questions open here.') + '</span>' + (guided() && left ? '<div><button class="btn primary" id="gStart">Start with the next example →</button></div>' : '') + '</div>'; return; }
+    if (!q) { var left = keys().filter(function (x) { return !outcomeOf(x); }).length; box.innerHTML = '<div class="empty"><b>' + (guided() ? (left ? left + ' example' + (left > 1 ? 's' : '') + ' to review.' : 'Every example is reviewed.') : 'Pick an example from the queue or the tube.') + '</b><span>' + (guided() ? 'Start with the next one, or pick any example from the list.' : 'Its evidence and the questions open here.') + '</span>' + (guided() ? '<div class="save">' + (left ? '<button class="btn primary" id="gStart">Start with the next example →</button>' : '') + '<button class="btn" id="practiceGo">Try the practice example</button></div>' : '') + '</div>'; return; }
     var spec = S.spec, a = S.draft, saved = S.dec[k];
     var h = '<div class="case"><div class="eyebrow">' + esc(q.organisation || '') + '</div><h2>' + esc(q.title) + '</h2><div class="meta"><span class="ans ' + (q.answer === 'dk' ? 'dk' : 'no') + '">' + esc(ANS[q.answer] || q.answer) + '</span>' +
       '<span>' + esc(q.country || 'Regional or global') + (q.region ? ' · ' + esc(q.region) : '') + '</span><span>' + esc(q.kind_name || q.source || '') + '</span>' + (q.phase ? '<span>' + esc(q.phase) + '</span>' : '') + (q.survey ? '<span title="Submitted through the ' + esc(q.survey) + ' survey">' + esc(q.survey) + ' survey</span>' : '') + pill(outcomeOf(k)) + '</div></div>';
@@ -823,15 +841,23 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (s === 5 && !saved) s = S.step = 4;
     var strip = '<ol class="gsteps">' + ['Read', 'Three questions', 'Checklist', 'Decide', 'Submit'].map(function (n, i) {
       var x = i + 1, off = x === 3 && !goList && !!res.outcome;
-      return '<li class="' + (x === s ? 'on' : x < s ? 'past' : '') + '"><button data-step="' + x + '"' + ((x === 5 && !saved) || off ? ' disabled' : '') + '><span>' + x + '</span>' + n + (off ? ' <i>not needed</i>' : '') + '</button></li>';
+      return '<li class="' + (x === s ? 'on' : x < s ? 'past' : '') + '"><button data-step="' + x + '"' + ((x === 5 && (!saved || S.practice)) || off ? ' disabled' : '') + '><span>' + x + '</span>' + n + (off ? ' <i>not needed</i>' : '') + '</button></li>';
     }).join('') + '</ol>';
     var prev = s === 4 && !goList ? 2 : s - 1, next = s === 2 && !goList ? 4 : s + 1, nextOk = s === 1 || (s === 2 && (goList || !!res.outcome)) || (s === 3 && !!res.outcome);
-    var right = s === 2 ? tq : s === 3 ? t : s === 4 ? c + why + noteBox : (S.submitPanel ? S.submitPanel(k, saved) : '');
-    var body = s === 1 ? '<div class="gintro"><b>Read what they told us and what we found.</b> It stays beside you in the next steps.</div>' + h : '<div class="gsplit"><aside class="gev" aria-label="The evidence">' + h + '</aside><div class="gstep">' + right + '</div></div>';
+    var COACH = { 1: 'Start here. Read what they wrote, what we found online, and how similar examples answered. Nothing to fill in yet.',
+      2: 'Three quick questions decide whether the checklist is needed. A “no” to a, or a stated reason at b, ends the review here.',
+      3: 'Each item is something the recommendations ask for. Mark what you can see in the evidence, and say where you saw it. Strong items count double.',
+      4: 'The page compares the checklist with similar examples and what is online, then writes the reason. In a real review you would press Save here, then Submit in the Kobo tab.' };
+    var coach = S.practice ? '<div class="coach"><b>Practice · step ' + s + ' of 4.</b> ' + COACH[Math.min(s, 4)] + '</div>' : '';
+    if (S.practice && s === 5) s = S.step = 4;
+    var right = coach + (s === 2 ? tq : s === 3 ? t : s === 4 ? c + why + noteBox : (S.submitPanel ? S.submitPanel(k, saved) : ''));
+    var body = s === 1 ? (coach || '<div class="gintro"><b>Read what they told us and what we found.</b> It stays beside you in the next steps.</div>') + h : '<div class="gsplit"><aside class="gev" aria-label="The evidence">' + h + '</aside><div class="gstep">' + right + '</div></div>';
     var nav = '<div class="save">' + (s > 1 ? '<button class="btn" data-step="' + prev + '">← Back</button>' : '') +
       (s < 4 ? '<button class="btn primary" data-step="' + next + '"' + (nextOk ? '' : ' disabled') + '>Next →</button>' + (nextOk ? '' : '<span class="savest">' + (s === 2 ? 'Answer the questions to go on.' : 'Choose the kind of example to go on.') + '</span>') : '') +
-      (s === 4 ? '<button class="btn primary" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn">Undo this decision</button>' : '') + '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') +
+      (s === 4 && S.practice ? '<button class="btn primary" id="practiceEnd">Finish practice</button><span class="savest">Nothing here is saved.</span>' : '') +
+      (s === 4 && !S.practice ? '<button class="btn primary" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn">Undo this decision</button>' : '') + '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') +
       (s === 5 ? '<button class="btn primary" id="gNext">' + (nxt ? 'Next example →' : 'Back to the list') + '</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') + '</div>';
+    if (S.practice) head = '<div class="coach top"><b>Practice example.</b> This one is already decided. Walk through the steps to see how; change anything you like, nothing is saved. <button class="linkbtn" id="practiceEnd">Leave practice</button></div>' + head;
     box.innerHTML = '<div class="detail">' + head + strip + body + '<div class="dock" aria-live="polite">' + r + nav + '</div></div>';
   }
 
@@ -1043,7 +1069,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     }
     if (b.id === 'whyReset' && S.draft) { delete S.draft.rationale; renderDetail(); return; }
     if (b.dataset.step) { S.step = +b.dataset.step; renderDetail(); $('detail').scrollIntoView({ block: 'start' }); return; }
-    if (b.id === 'backList') { S.sel = null; S.draft = null; render(); return; }
+    if (b.id === 'backList' || b.id === 'practiceEnd') { S.practice = false; S.sel = null; S.draft = null; render(); return; }
+    if (b.id === 'practiceGo') { startPractice(); return; }
     if (b.id === 'modeBtn') { S.onePage = !S.onePage; try { if (S.onePage) localStorage.setItem('gainReviewOnePage', '1'); else localStorage.removeItem('gainReviewOnePage'); } catch (x) {} render(); return; }
     if (b.id === 'gStart' || b.id === 'gNext') { var n2 = b.id === 'gNext' ? nextOpen(S.sel) : keys().filter(function (x) { return !outcomeOf(x); })[0]; if (n2) { select(n2); } else { S.sel = null; S.draft = null; render(); } return; }
     if (b.id === 'saveBtn') { save(); return; }

@@ -202,3 +202,32 @@
   window.addEventListener('focus', function () { loadDecisions().catch(function () {}); });
   // opened on its own rather than inside the dashboard: send the visitor to the dashboard, review open
   if (window.top === window.self && !/[?&]standalone=1/.test(location.search) && location.protocol === 'https:') location.replace(new URL('../#review', location.href).href);
+
+  // ---------- first visit: three short cards on what this is, how a decision is made, and how saving works ----------
+  var INTRO_KEY = 'gainReviewIntroSeen', introAt = 0;
+  var INTRO = [
+    ['What we check', '<p>Some respondents say the recommendations were <b>not used</b>, or that they <b>don’t know</b>. Some of those examples follow the recommendations’ approach without naming them.</p><ul><li>You look at one example at a time and decide what the evidence shows.</li><li>Their own answer is never changed. If we count an example as using, we tell the organisation why.</li><li>Suggestions on the page are hints. Every decision is yours.</li></ul>'],
+    ['How a decision is made', '<div class="flow"><span>1 Read</span><span>2 Three questions</span><span>3 Checklist</span><span>4 Decide</span><span>5 Submit</span></div><ul><li>The evidence stays beside you while you answer.</li><li>Said <b>don’t know</b>: two strong items are enough to count it as using.</li><li>Said <b>not used</b>: we ask for more, including a sign they already use them.</li><li>Some evidence below that is recorded as <b>aligned</b>.</li></ul>'],
+    ['Before you start, and when you save', '<ul><li>Type <b>your initials</b> at the top, and press <b>Open descriptions file</b>: it holds what respondents wrote and what we found online. Ask the Secretariat where it is kept.</li><li>Saving takes two presses: <b>Save</b> here, then <b>Submit</b> in the Kobo tab that opens.</li><li>Colleagues see your decision within about 20 minutes.</li></ul>']
+  ];
+  function showIntro(i) {
+    introAt = i; var el = $('intro');
+    if (!el) { el = document.createElement('div'); el.id = 'intro'; el.className = 'intro'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'How the review works'); document.body.appendChild(el); }
+    var c = INTRO[i], last = i === INTRO.length - 1;
+    el.innerHTML = '<div class="box"><div class="n">How the review works · ' + (i + 1) + ' of ' + INTRO.length + '</div><h2>' + c[0] + '</h2>' + c[1] +
+      '<div class="foot"><span class="dots">' + INTRO.map(function (_, x) { return '<i class="' + (x === i ? 'on' : '') + '"></i>'; }).join('') + '</span>' +
+      (i ? '<button class="btn" id="introBack">← Back</button>' : '<button class="btn" id="introSkip">Skip</button>') +
+      (last ? '<button class="btn" id="introPractice">Try the practice example</button><button class="btn primary" id="introDone">Start reviewing</button>' : '<button class="btn primary" id="introNext">Next →</button>') + '</div></div>';
+    el.hidden = false; var f = el.querySelector('.btn.primary'); if (f) f.focus();
+  }
+  function closeIntro() { var el = $('intro'); if (el) el.hidden = true; try { localStorage.setItem(INTRO_KEY, '1'); } catch (x) {} }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'introNext') showIntro(introAt + 1); else if (b.id === 'introBack') showIntro(introAt - 1);
+    else if (b.id === 'introDone' || b.id === 'introSkip') closeIntro();
+    else if (b.id === 'introPractice') { closeIntro(); S.startPractice(); }
+    else if (b.id === 'howBtn') showIntro(0);
+  });
+  document.addEventListener('keydown', function (e) { var el = $('intro'); if (e.key === 'Escape' && el && !el.hidden) { e.stopPropagation(); closeIntro(); } }, true);
+  var seenIntro = false; try { seenIntro = !!localStorage.getItem(INTRO_KEY); } catch (x) {}
+  if (!seenIntro) showIntro(0);

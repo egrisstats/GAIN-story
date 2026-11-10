@@ -40,7 +40,8 @@ TOOLBAR = """<div class="toolbar"><div class="wrap">
   <button class="btn" id="dlXlsx" title="The yearly report as a workbook, one row per example">Excel</button>
   <button class="btn" id="dlJson" title="A backup file of every decision shown here">Backup</button>
   <button class="btn" id="tubeBtn" title="Show or hide the diagram of every example moving through the review">Diagram</button>
-  <a class="btn" href="../review-guide.pptx" download title="A short slide deck on how the review works and how to use this page">How it works (slides)</a>
+  <button class="btn" id="howBtn" title="Three short cards on how the review works, and a practice example">How it works</button>
+  <a class="btn" href="../review-guide.pptx" download title="The same guide as a slide deck, to keep or present">Slides</a>
 </div></div>"""
 
 if public:
