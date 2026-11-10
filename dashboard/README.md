@@ -223,3 +223,11 @@ and both repositories are public:
 
 Suggestions are hints, never decisions: every tick is confirmed by the reviewer, PRO09 as reported is
 never overwritten, and decisions go to the `*_reviewed` and `review_*` fields at the close of collection.
+
+### A second survey (UNESCWA)
+
+GAIN 2026 also runs as "GAIN 2026 + ESCWA regional module", a second Kobo form with the same GAIN questions plus a
+regional module. It is listed under `extra_forms` in `kobo_config.json`; `kobo_to_csv.py` reads its examples into the
+same columns and sets `survey` to `UNESCWA` (empty for the main survey). The regional questions (`ESC_…`) are not read.
+On the page those examples carry a coloured line and a UNESCWA tag, and a Survey filter appears once the first one
+arrives. If the extra form cannot be read, the main feed is still published and the job log says why.

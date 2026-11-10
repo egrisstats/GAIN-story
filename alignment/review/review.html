@@ -602,7 +602,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       var q = S.queue[k];
       if (q.organisation !== org) { org = q.organisation; html += '<div class="org">' + esc(org || 'Organisation not named') + '</div>'; }
       html += '<button class="item" data-k="' + esc(k) + '" aria-current="' + (S.sel === k) + '"><i style="background:var(--' + (q.answer === 'dk' ? 'dk' : 'no') + ')" aria-hidden="true"></i><span class="t">' + esc(q.title) + '</span>' +
-        '<span class="m">' + pill(outcomeOf(k)) + '<span class="hint">' + esc(ANS[q.answer] || q.answer) + (q.country ? ' · ' + esc(q.country) : '') + '</span></span></button>';
+        '<span class="m">' + pill(outcomeOf(k)) + '<span class="hint">' + esc(ANS[q.answer] || q.answer) + (q.country ? ' · ' + esc(q.country) : '') + (q.survey ? ' · ' + esc(q.survey) + ' survey' : '') + '</span></span></button>';
     });
     $('qlist').innerHTML = html;
   }
@@ -721,7 +721,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (!q) { box.innerHTML = '<div class="empty"><b>Pick an example from the queue or the tube.</b><span>Its evidence and the questions open here.</span></div>'; return; }
     var spec = S.spec, a = S.draft, saved = S.dec[k];
     var h = '<div class="case"><div class="eyebrow">' + esc(q.organisation || '') + '</div><h2>' + esc(q.title) + '</h2><div class="meta"><span class="ans ' + (q.answer === 'dk' ? 'dk' : 'no') + '">' + esc(ANS[q.answer] || q.answer) + '</span>' +
-      '<span>' + esc(q.country || 'Regional or global') + (q.region ? ' · ' + esc(q.region) : '') + '</span><span>' + esc(q.kind_name || q.source || '') + '</span>' + (q.phase ? '<span>' + esc(q.phase) + '</span>' : '') + pill(outcomeOf(k)) + '</div></div>';
+      '<span>' + esc(q.country || 'Regional or global') + (q.region ? ' · ' + esc(q.region) : '') + '</span><span>' + esc(q.kind_name || q.source || '') + '</span>' + (q.phase ? '<span>' + esc(q.phase) + '</span>' : '') + (q.survey ? '<span title="Submitted through the ' + esc(q.survey) + ' survey">' + esc(q.survey) + ' survey</span>' : '') + pill(outcomeOf(k)) + '</div></div>';
     h += '<div class="section-h"><span class="n">1</span><h3>Look at the evidence</h3></div><div class="evidence">' + webCard(q) + peersCard(q) + '</div>';
     var facts = [['Their answer', q.answer_text || ANS[q.answer] || q.answer, 'PRO09'], ['Data source', [q.source, q.sources_more].filter(Boolean).join('; '), 'PRO08'], ['Groups covered', q.population, 'PRO07'],
       ['Partners', q.partners, 'PRO18'], ['Recommendations they know', q.known_publications, 'ACT04']];

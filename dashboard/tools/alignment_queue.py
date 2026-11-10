@@ -180,59 +180,59 @@ def suggest(ex, siblings, prior):
 def build():
     """{"meta", "queue"} for every example that said No or Don't know. Holds descriptions and partners:
     callers must keep it out of the repo (main refuses) or strip those fields (review_sync.py)."""
-    asset, subs = K.load()
-    labels = K.label_maps(asset)
-    N = resolve_names(asset)
-    blocked = K.blocked_questions(asset)
-    if any(q in blocked for v in N.values() for q in v):
-        sys.exit("Refusing: a mapped question sits in a blocked group.")
-    skip = set(K.CFG.get("skip_validation_status", []))
-
-    def val(objs, key):
-        for q in N[key]:
-            for o in objs:
-                _, v = K.find(o, q)
-                if v is not None:
-                    return K.scrub(K.as_text(v, q, labels))
-        return ""
-
     past = list(csv.DictReader(open(PAST, encoding="utf-8"))) if PAST.exists() else []
     queue, n_ex = [], 0
-    for s in subs:
-        if (s.get("_validation_status") or {}).get("uid") in skip:
-            continue
-        exs = K.find(s, K.CFG["examples_repeat"])[1] or []
-        org = K.scrub(K.as_text(K.find(s, K.CFG["fields"]["organisation"])[1], "organization", labels))
-        rid = K.anon_id(s)
-        rows = []
-        for i, ex in enumerate(exs):
-            n_ex += 1
-            rows.append({
-                "title": K.tidy_title(val([ex], "title")) or f"Example {i + 1}",
-                "recommendations": val([ex], "recommendations"),
-                "source": val([ex], "source"), "sources_more": val([ex], "sources_more"),
-                "population": val([ex], "population"), "phase": val([ex], "phase"),
-                "description": val([ex], "description"), "partners": val([ex], "partners"),
-                "country": K.scrub(K.as_text(K.find(ex, K.CFG["fields"]["country"])[1] or K.find(s, K.CFG["fields"]["country"])[1], "PRO03C", labels)),
-            })
-        known = val([s], "known")
-        prior = [{"year": p["gain_year"], "title": p["title"], "uses": p["uses_recommendations"]}
-                 for p in past if okey(p["organisation"]) == okey(org)]
-        prior.sort(key=lambda p: p["year"], reverse=True)
-        for r in rows:
-            rec = r["recommendations"]
-            ans = "dk" if DK_ANS.search(rec) else "no" if NONE_ANS.search(rec) else None
-            if not ans:
+    for asset, subs, survey in K.forms():
+        labels = K.label_maps(asset)
+        N = resolve_names(asset)
+        blocked = K.blocked_questions(asset)
+        if any(q in blocked for v in N.values() for q in v):
+            sys.exit("Refusing: a mapped question sits in a blocked group.")
+        skip = set(K.CFG.get("skip_validation_status", []))
+
+        def val(objs, key):
+            for q in N[key]:
+                for o in objs:
+                    _, v = K.find(o, q)
+                    if v is not None:
+                        return K.scrub(K.as_text(v, q, labels))
+            return ""
+
+        for s in subs:
+            if (s.get("_validation_status") or {}).get("uid") in skip:
                 continue
-            sib = [{"title": x["title"], "recommendations": x["recommendations"]} for x in rows if x is not r]
-            ex = {**r, "organisation": org}
-            key = rid + "-" + re.sub(r"[^a-z0-9]+", "-", r["title"].lower()).strip("-")[:40]
-            queue.append({
-                "key": key, "response_id": rid, "title_start": r["title"][:60], "answer": ans, "answer_text": rec,
-                "organisation": org, **{k: r[k] for k in ("title", "country", "source", "sources_more", "population", "phase", "description", "partners")},
-                "known_publications": known, "siblings": sib, "prior": prior[:6],
-                "submitted_at": s.get("_submission_time", ""), "suggest": suggest(ex, sib, prior),
-            })
+            exs = K.find(s, K.CFG["examples_repeat"])[1] or []
+            org = K.scrub(K.as_text(K.find(s, K.CFG["fields"]["organisation"])[1], "organization", labels))
+            rid = K.anon_id(s)
+            rows = []
+            for i, ex in enumerate(exs):
+                n_ex += 1
+                rows.append({
+                    "title": K.tidy_title(val([ex], "title")) or f"Example {i + 1}",
+                    "recommendations": val([ex], "recommendations"),
+                    "source": val([ex], "source"), "sources_more": val([ex], "sources_more"),
+                    "population": val([ex], "population"), "phase": val([ex], "phase"),
+                    "description": val([ex], "description"), "partners": val([ex], "partners"),
+                    "country": K.scrub(K.as_text(K.find(ex, K.CFG["fields"]["country"])[1] or K.find(s, K.CFG["fields"]["country"])[1], "PRO03C", labels)),
+                })
+            known = val([s], "known")
+            prior = [{"year": p["gain_year"], "title": p["title"], "uses": p["uses_recommendations"]}
+                     for p in past if okey(p["organisation"]) == okey(org)]
+            prior.sort(key=lambda p: p["year"], reverse=True)
+            for r in rows:
+                rec = r["recommendations"]
+                ans = "dk" if DK_ANS.search(rec) else "no" if NONE_ANS.search(rec) else None
+                if not ans:
+                    continue
+                sib = [{"title": x["title"], "recommendations": x["recommendations"]} for x in rows if x is not r]
+                ex = {**r, "organisation": org}
+                key = rid + "-" + re.sub(r"[^a-z0-9]+", "-", r["title"].lower()).strip("-")[:40]
+                queue.append({
+                    "key": key, "response_id": rid, "title_start": r["title"][:60], "answer": ans, "answer_text": rec,
+                    "organisation": org, **{k: r[k] for k in ("title", "country", "source", "sources_more", "population", "phase", "description", "partners")},
+                    "known_publications": known, "siblings": sib, "prior": prior[:6],
+                    "submitted_at": s.get("_submission_time", ""), "survey": survey, "suggest": suggest(ex, sib, prior),
+                })
     meta = {"pulled_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "examples": n_ex, "in_review": len(queue), "spec_version": SPEC.get("version")}
     return {"meta": meta, "queue": queue}

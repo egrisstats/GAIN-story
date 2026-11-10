@@ -44,7 +44,7 @@ PERSONAL = re.compile(r"(^|_)(name_?resp|respondent|focal|contact|e?mail|phone|t
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d ()./-]{7,}\d")
 COLUMNS = ["response_id", "submitted_at", "kind", "country", "organisation", "lead", "title",
-           "recommendations", "data_source", "population_groups", "phase", "reported_before", "possible_duplicate",
+           "recommendations", "data_source", "population_groups", "phase", "survey", "reported_before", "possible_duplicate",
            "repeat_reason", "repeat_caveat", "repeat_suggested", "repeat_checked"]
 
 
@@ -54,12 +54,12 @@ def get(url):
         return json.load(r)
 
 
-def load():
+def load(uid=None):
     files = os.environ.get("KOBO_FILES")
     if files:
         d = pathlib.Path(files)
         return json.loads((d / "asset.json").read_text()), json.loads((d / "data.json").read_text())["results"]
-    base = CFG["server"].rstrip("/") + "/api/v2/assets/" + CFG["asset_uid"]
+    base = CFG["server"].rstrip("/") + "/api/v2/assets/" + (uid or CFG["asset_uid"])
     asset = get(base + "/?format=json")
     rows, url = [], base + "/data/?format=json&limit=1000"
     while url:  # the API pages its results
@@ -67,6 +67,21 @@ def load():
         rows += page["results"]
         url = page.get("next")
     return asset, rows
+
+
+def forms():
+    """(asset, submissions, survey tag) for the GAIN form and every extra form in kobo_config.json
+    ("extra_forms": same GAIN questions, e.g. the UN-ESCWA version). An extra form that cannot be read
+    is skipped with a warning: it never blocks the main feed."""
+    out = [(*load(), "")]
+    if os.environ.get("KOBO_FILES"):
+        return out
+    for f in CFG.get("extra_forms", []):
+        try:
+            out.append((*load(f["asset_uid"]), f.get("survey", "")))
+        except Exception as e:
+            print(f"extra form {f.get('survey') or f['asset_uid']} skipped: {e}")
+    return out
 
 
 def label_maps(asset):
@@ -179,64 +194,64 @@ def main():
     bad = {q for q in mapped if PERSONAL.search(q)}
     if bad:
         sys.exit(f"Refusing: these questions look like respondent details and would go public: {sorted(bad)}")
-    asset, subs = load()
-    bad = mapped & blocked_questions(asset)
-    if bad:
-        sys.exit(f"Refusing: these questions sit in a blocked group ({sorted(BLOCKED)}): {sorted(bad)}")
-    labels = label_maps(asset)
-    L, scope = CFG["lead"], CFG.get("no_country_scope", {})
-    combine = set(CFG.get("combine", []))
-    skip = set(CFG.get("skip_validation_status", []))
     out, n_sub = [], 0
+    for asset, subs, survey in forms():
+        bad = mapped & blocked_questions(asset)
+        if bad:
+            sys.exit(f"Refusing: these questions sit in a blocked group ({sorted(BLOCKED)}): {sorted(bad)}")
+        labels = label_maps(asset)
+        L, scope = CFG["lead"], CFG.get("no_country_scope", {})
+        combine = set(CFG.get("combine", []))
+        skip = set(CFG.get("skip_validation_status", []))
 
-    def text(objs, key):
-        names = F.get(key)
-        names = [names] if isinstance(names, str) else names
-        vals = []
-        for q in names:
-            for o in objs:
-                _, v = find(o, q)
-                if v is not None:
-                    vals.append(scrub(as_text(v, q, labels)))
+        def text(objs, key):
+            names = F.get(key)
+            names = [names] if isinstance(names, str) else names
+            vals = []
+            for q in names:
+                for o in objs:
+                    _, v = find(o, q)
+                    if v is not None:
+                        vals.append(scrub(as_text(v, q, labels)))
+                        break
+                if vals and key not in combine:
                     break
-            if vals and key not in combine:
-                break
-        return ";".join(dict.fromkeys(x for v in vals for x in v.split(";") if x))
+            return ";".join(dict.fromkeys(x for v in vals for x in v.split(";") if x))
 
-    for s in subs:
-        if (s.get("_validation_status") or {}).get("uid") in skip:
-            continue
-        n_sub += 1
-        t = s.get("_submission_time") or s.get("end") or ""
-        _, rtype = find(s, L["respondent_type"])
-        resp_country_led = rtype in L["country_led"]
-        base = {
-            "response_id": anon_id(s),
-            "submitted_at": t if t.endswith("Z") or "+" in t else t + "Z",
-            "organisation": text([s], "organisation"),
-        }
-        examples = find(s, CFG["examples_repeat"])[1] or []
-        if not examples:  # a response that reports no new example still counts as a response
-            out.append({**base, "kind": "response", "lead": "Country-led" if resp_country_led else "Institution-led",
-                        "country": text([s], "country") if resp_country_led else ""})
-            continue
-        for i, ex in enumerate(examples):
-            _, elead = find(ex, L.get("example_lead"))
-            country_led = True if elead in L.get("example_country_led", []) else False if elead in L.get("example_institution_led", []) else resp_country_led
-            _, sc = find(ex, scope.get("field"))
-            if sc in scope.get("codes", []):
-                country = ""  # a global or regional example
-            else:
-                # the example's own country; the respondent's country only for national institutions
-                country = text([ex], "country") or (text([s], "country") if resp_country_led else "")
-            out.append({**base, "kind": "example",
-                        "lead": "Country-led" if country_led else "Institution-led",
-                        "country": country,
-                        "title": tidy_title(text([ex], "title")) or f"Example {i + 1}",
-                        "recommendations": text([ex], "recommendations"),
-                        "data_source": text([ex], "data_source"),
-                        "population_groups": text([ex], "population_groups"),
-                        "phase": text([ex], "phase") if "phase" in F else ""})
+        for s in subs:
+            if (s.get("_validation_status") or {}).get("uid") in skip:
+                continue
+            n_sub += 1
+            t = s.get("_submission_time") or s.get("end") or ""
+            _, rtype = find(s, L["respondent_type"])
+            resp_country_led = rtype in L["country_led"]
+            base = {
+                "response_id": anon_id(s),
+                "submitted_at": t if t.endswith("Z") or "+" in t else t + "Z",
+                "organisation": text([s], "organisation"), "survey": survey,
+            }
+            examples = find(s, CFG["examples_repeat"])[1] or []
+            if not examples:  # a response that reports no new example still counts as a response
+                out.append({**base, "kind": "response", "lead": "Country-led" if resp_country_led else "Institution-led",
+                            "country": text([s], "country") if resp_country_led else ""})
+                continue
+            for i, ex in enumerate(examples):
+                _, elead = find(ex, L.get("example_lead"))
+                country_led = True if elead in L.get("example_country_led", []) else False if elead in L.get("example_institution_led", []) else resp_country_led
+                _, sc = find(ex, scope.get("field"))
+                if sc in scope.get("codes", []):
+                    country = ""  # a global or regional example
+                else:
+                    # the example's own country; the respondent's country only for national institutions
+                    country = text([ex], "country") or (text([s], "country") if resp_country_led else "")
+                out.append({**base, "kind": "example",
+                            "lead": "Country-led" if country_led else "Institution-led",
+                            "country": country,
+                            "title": tidy_title(text([ex], "title")) or f"Example {i + 1}",
+                            "recommendations": text([ex], "recommendations"),
+                            "data_source": text([ex], "data_source"),
+                            "population_groups": text([ex], "population_groups"),
+                            "phase": text([ex], "phase") if "phase" in F else ""})
     out.sort(key=lambda r: r["submitted_at"])
     # hints for checking: looks like an example from GAIN 2023-2025, or one another 2026 response gave
     try:

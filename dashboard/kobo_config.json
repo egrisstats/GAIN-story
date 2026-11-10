@@ -60,5 +60,12 @@
   "review_form": {
     "_note": "The decisions form of the standalone review page (dashboard/review/), made by dashboard/tools/review_form.py from alignment/spec/review_form.json. Reviewers submit to it without an account; the publish workflow reads it with KOBO_TOKEN.",
     "asset_uid": "a44XxVhhGUbREcVYxtpuQU"
-  }
+  },
+  "extra_forms": [
+    {
+      "_note": "'GAIN 2026 + ESCWA regional module': the same GAIN questions plus a regional module for UN-ESCWA members. Only the GAIN columns are read; the ESC_ questions are not. Its examples carry survey=UNESCWA in the feed.",
+      "asset_uid": "aXgNMxsYVsyBLcanmpWusC",
+      "survey": "UNESCWA"
+    }
+  ]
 }

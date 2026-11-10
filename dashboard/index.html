@@ -41,6 +41,7 @@
   --good: #5cc99a;
   --warn: #f5b041;
   --new: var(--accent);
+  --escwa: #b06ab3;
   /* past rounds: a neutral scale, so blue, teal and beige keep one meaning across the page */
   --y2025: #aab6cc;
   --y2024: #7f8ba6;
@@ -221,6 +222,8 @@ th { text-align: left; font: 500 var(--fs-s) "IBM Plex Mono", monospace; letter-
 td { padding: 8px 8px; border-bottom: 1px solid var(--grid); color: var(--ink-2); vertical-align: top; }
 td:first-child { white-space: nowrap; color: var(--ink-3); font-family: "IBM Plex Mono", monospace; font-size: var(--fs-m); }
 tr.new td { background: color-mix(in srgb, var(--new) 7%, transparent); }
+tr.esc td:first-child { box-shadow: inset 4px 0 0 var(--escwa); }
+.tag.esc { background: color-mix(in srgb, var(--escwa) 16%, transparent); color: var(--ink); border: 1px solid color-mix(in srgb, var(--escwa) 55%, transparent); }
 .tag { display: inline-block; border-radius: var(--r-s); padding: 1px 6px; font-size: var(--fs-s); margin: 1px 2px 1px 0; background: var(--chip); color: var(--ink-2); white-space: nowrap; }
 .tag .sw { width: 7px; height: 7px; margin-right: 4px; }
 input[type=search] { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-m); padding: 6px 10px; font-size: var(--fs-m); width: 220px; max-width: 100%; }
@@ -285,6 +288,11 @@ footer a { color: var(--ink-2); }
       <option value="None">Not used / don’t know</option>
     </select></div>
     <div><label for="fReg">Region</label><select id="fReg"><option value="all">All regions</option></select></div>
+    <div id="fSurveyBox" hidden><label title="GAIN 2026 runs as two Kobo surveys: the main one, and one for UN-ESCWA members with an extra regional module. Both ask the same GAIN questions.">Survey</label><span class="seg" id="fSurvey">
+      <button type="button" data-v="all" aria-pressed="true">All</button>
+      <button type="button" data-v="GAIN" aria-pressed="false">Main survey</button>
+      <button type="button" data-v="UNESCWA" aria-pressed="false">UNESCWA</button>
+    </span></div>
     <span class="chip" id="countryChip"><span id="countryChipTxt"></span><button type="button" aria-label="Clear country" id="countryClear">×</button></span>
     <span class="spacer"></span>
     <button class="btn" type="button" id="resetBtn">Reset filters</button>
@@ -587,6 +595,7 @@ footer a { color: var(--ink-2); }
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
         title: get(o, ['title', 'example_title']), review: review, before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), caveat: get(o, ['repeat_caveat']), suggested: get(o, ['repeat_suggested']), phase: get(o, ['phase']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
+        survey: String(get(o, ['survey']) || '').trim(),
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
       };
     }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
@@ -673,6 +682,7 @@ footer a { color: var(--ink-2); }
     if (!skip.rec && S.rec !== 'all') { if (S.rec === 'using') { if (d.rec === 'None') return false; } else if (d.rec !== S.rec) return false; }
     if (!skip.reg && S.reg !== 'all' && d.region !== S.reg) return false;
     if (!skip.country && S.country && d.mn !== S.country) return false;
+    if (S.survey && S.survey !== 'all' && (d.survey || 'GAIN') !== S.survey) return false;
     return true;
   }
   // examples only; responses(): every response, including those that report no new example
@@ -1413,8 +1423,8 @@ footer a { color: var(--ink-2); }
       var rec = RECBY[d.rec];
       var recTags = d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i class="sw" style="background:' + (RECBY[c] ? RECBY[c].color : rec.color) + '"></i>' + c + '</span>'; }).join('')
         : '<span class="tag"><i class="sw" style="background:' + rec.color + '"></i>' + esc(d.recTxt || 'Not reported') + '</span>';
-      return '<tr class="' + (d.t > dayAgo ? 'new' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
-        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + flagTags(d) + alignTag(d) + '</td></tr>';
+      return '<tr class="' + (d.t > dayAgo ? 'new' : '') + (d.survey ? ' esc' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
+        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + (d.survey ? ' <span class="tag esc" title="Submitted through the ' + esc(d.survey) + ' survey (GAIN 2026 with the regional module)">' + esc(d.survey) + '</span>' : '') + flagTags(d) + alignTag(d) + '</td></tr>';
     }).join('') || '<tr><td colspan="6" class="empty">No examples match your search or filters. Use Reset filters to see them all.</td></tr>';
   }
 
@@ -1488,6 +1498,9 @@ footer a { color: var(--ink-2); }
   document.querySelectorAll('#fLead button').forEach(function (b) {
     b.addEventListener('click', function () { S.lead = b.dataset.v; render(); });
   });
+  document.querySelectorAll('#fSurvey button').forEach(function (b) {
+    b.addEventListener('click', function () { S.survey = b.dataset.v; render(); });
+  });
   document.getElementById('fRec').addEventListener('change', function (e) { S.rec = e.target.value; render(); });
   document.getElementById('fReg').addEventListener('change', function (e) { S.reg = e.target.value; render(); });
   document.querySelectorAll('#donutSeg button').forEach(function (b) {
@@ -1499,7 +1512,7 @@ footer a { color: var(--ink-2); }
   });
   document.getElementById('countryClear').addEventListener('click', function () { S.country = null; render(); });
   document.getElementById('resetBtn').addEventListener('click', function () {
-    S.lead = 'all'; S.rec = 'all'; S.reg = 'all'; S.country = null; S.q = ''; document.getElementById('q').value = '';
+    S.lead = 'all'; S.rec = 'all'; S.reg = 'all'; S.survey = 'all'; S.country = null; S.q = ''; document.getElementById('q').value = '';
     document.getElementById('fRec').value = 'all'; document.getElementById('fReg').value = 'all'; stopPlay(); S.asOf = latest(); render();
   });
   document.getElementById('q').addEventListener('input', function (e) { S.q = e.target.value; renderFeed(); });
@@ -1507,6 +1520,8 @@ footer a { color: var(--ink-2); }
 
   function syncControls() {
     document.querySelectorAll('#fLead button').forEach(function (o) { o.setAttribute('aria-pressed', o.dataset.v === S.lead); });
+    document.querySelectorAll('#fSurvey button').forEach(function (o) { o.setAttribute('aria-pressed', o.dataset.v === (S.survey || 'all')); });
+    document.getElementById('fSurveyBox').hidden = (S.survey || 'all') === 'all' && !S.rows.some(function (d) { return d.survey; });
     var chip = document.getElementById('countryChip');
     chip.style.display = S.country ? 'inline-flex' : 'none';
     document.getElementById('countryChipTxt').textContent = S.country || '';
