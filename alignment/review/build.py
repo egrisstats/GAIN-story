@@ -38,10 +38,11 @@ TOOLBAR = """<div class="toolbar"><div class="wrap">
   <button class="btn" id="dlMails" title="Every email draft in one text file">Emails</button>
   <button class="btn" id="dlDocx" title="The yearly report: decisions and reasons, in Word">Word</button>
   <button class="btn" id="dlXlsx" title="The yearly report as a workbook, one row per example">Excel</button>
+  <button class="btn" id="dlPptx" title="A presentation of the decisions: summary, outcomes, and one slide per decided example with the paragraphs of the recommendations quoted">Slides</button>
   <button class="btn" id="dlJson" title="A backup file of every decision shown here">Backup</button>
   <button class="btn" id="tubeBtn" title="Show or hide the diagram of every example moving through the review">Diagram</button>
   <button class="btn" id="howBtn" title="Three short cards on how the review works, and a practice example">How it works</button>
-  <a class="btn" href="../review-guide.pptx" download title="The same guide as a slide deck, to keep or present">Slides</a>
+  <a class="btn" href="../review-guide.pptx" download title="The how-to guide as a slide deck, to keep or present">Guide</a>
 </div></div>"""
 
 if public:

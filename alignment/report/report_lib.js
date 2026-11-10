@@ -43,6 +43,7 @@
         seen_in: Object.keys(seen).join(', '),
         similar: g.peers ? g.peers.used + ' of ' + g.peers.n : '',
         paragraphs: g.paragraphs.map(T.paraName).join('; '), quoted: g.paragraphs.length ? (g.quoted.length ? (g.quoted.length === g.paragraphs.length ? 'Yes' : 'Some (' + g.quoted.length + ' of ' + g.paragraphs.length + ')') : 'No, summary only') : '',
+        quotes: g.paragraphs.filter(function (x) { return excerpts[x]; }).map(function (x) { return { ref: T.paraName(x), text: excerpts[x] }; }),
         email: email, reviewed_on: (d.saved_at || '').slice(0, 10), note: d.note || '',
         why: d.rationale || g.text, why_edited: !!d.rationale_edited
       });
@@ -192,5 +193,70 @@
     return wb;
   }
 
-  return { buildModel: buildModel, buildDocx: buildDocx, buildXlsx: buildXlsx, OUT: OUT, ORDER: ORDER };
+  // ---------- PowerPoint (pptxgenjs): summary, outcomes, one slide per decided example with the paragraphs quoted ----------
+  function buildPptx(Pptx, m) {
+    var pres = new Pptx(); pres.layout = 'LAYOUT_WIDE'; pres.title = m.title; pres.author = 'EGRISS Secretariat';
+    var NAVY = '1C2D5A', INK = '14234C', TEAL = '4CC3C9', BAND = 'EFF7FF', MUTE = '5F6B87', F = 'Arial';
+    var TINT = { edit: 'E3F4EE', aligned: 'E6EEF9', outreach: 'FBF0DC', keep: 'EEF1F6', deliberate: 'EEF1F6', nocat: 'EEF1F6', outscope: 'EEF1F6' };
+    var rows = m.rows, reviewed = rows.filter(function (r) { return r.outcome !== 'open'; }), open = rows.length - reviewed.length;
+    var count = function (o) { return rows.filter(function (r) { return r.outcome === o; }).length; };
+    var total = m.examples_2026, base = total ? total - rows.length : null, pct = function (n) { return total ? Math.round(100 * n / total) + '%' : 'n/a'; };
+    var T = function (s, text, o) { s.addText(text, Object.assign({ isTextBox: true, margin: 0, fontFace: F, fontSize: 14, color: INK, valign: 'top' }, o)); };
+    var cut = function (t, n) { t = String(t || ''); return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t; };
+    var head = function (s, title) { T(s, title, { x: 0.7, y: 0.45, w: 11.9, h: 0.9, fontSize: 30, bold: true, valign: 'middle' }); T(s, 'GAIN 2026 alignment review · EGRISS Secretariat · ' + m.made_on, { x: 0.7, y: 6.95, w: 9, h: 0.3, fontSize: 10, color: MUTE }); };
+    var box = function (s, x, y, w, h, fill) { s.addShape(pres.ShapeType.roundRect, { x: x, y: y, w: w, h: h, rectRadius: 0.1, fill: { color: fill }, line: { color: fill } }); };
+    // 1 title
+    var s = pres.addSlide(); s.background = { color: NAVY };
+    T(s, 'GAIN 2026 alignment review', { x: 0.9, y: 2.4, w: 11.5, h: 1.0, fontSize: 44, bold: true, color: 'FFFFFF' });
+    T(s, 'Examples that said the recommendations were not used, or did not know, and what the Secretariat decided · ' + m.made_on, { x: 0.9, y: 3.7, w: 10.5, h: 1.0, fontSize: 20, color: '8DB8E3' });
+    // 2 summary
+    s = pres.addSlide(); head(s, reviewed.length + ' of ' + rows.length + ' examples reviewed');
+    [[rows.length, 'said No or Don’t know'], [count('edit'), 'counted as using'], [count('aligned'), 'aligned, not counted as use'], [open, 'still to review']].forEach(function (k, i) {
+      var x = 0.7 + i * 3.02; box(s, x, 1.7, 2.8, 2.2, i === 3 ? 'EEF1F6' : BAND);
+      T(s, String(k[0]), { x: x + 0.3, y: 1.9, w: 2.2, h: 1.0, fontSize: 54, bold: true }); T(s, k[1], { x: x + 0.3, y: 3.0, w: 2.2, h: 0.7, fontSize: 15, color: MUTE });
+    });
+    if (total) [['Using, as they told us', pct(base)], ['Using, after our review', pct(base + count('edit'))], ['Using or aligned', pct(base + count('edit') + count('aligned'))]].forEach(function (k, i) {
+      var x = 0.7 + i * 4.0; T(s, k[0], { x: x, y: 4.4, w: 3.7, h: 0.4, fontSize: 15, color: MUTE }); T(s, k[1], { x: x, y: 4.8, w: 3.7, h: 0.9, fontSize: 40, bold: true, color: i ? '3B71B9' : INK });
+    });
+    if (total) T(s, 'Share of the ' + total + ' GAIN 2026 examples so far.', { x: 0.7, y: 5.9, w: 11.9, h: 0.4, fontSize: 12, color: MUTE });
+    // 3 outcomes
+    s = pres.addSlide(); head(s, 'What we decided');
+    var orow = ORDER.filter(count).map(function (o) { return [OUT[o], String(count(o)), m.outcomes[o].detail]; }); if (open) orow.push(['To review', String(open), 'Not reviewed yet']);
+    s.addTable([[{ text: 'Outcome', options: { bold: true, fill: { color: BAND } } }, { text: 'Examples', options: { bold: true, fill: { color: BAND } } }, { text: 'What happens', options: { bold: true, fill: { color: BAND } } }]].concat(orow),
+      { x: 0.7, y: 1.6, w: 11.9, colW: [4.2, 1.3, 6.4], fontFace: F, fontSize: 14, color: INK, border: { type: 'solid', color: 'DDE4EF', pt: 1 }, margin: 0.08 });
+    // one slide per decided example
+    ORDER.forEach(function (o) {
+      reviewed.filter(function (r) { return r.outcome === o; }).forEach(function (r) {
+        s = pres.addSlide(); T(s, cut(r.title, 110), { x: 0.7, y: 0.4, w: 11.9, h: 1.0, fontSize: 24, bold: true, valign: 'middle', fit: 'shrink' }); T(s, 'GAIN 2026 alignment review · EGRISS Secretariat · ' + m.made_on, { x: 0.7, y: 6.95, w: 9, h: 0.3, fontSize: 10, color: MUTE });
+        T(s, [r.organisation, r.country, 'said: ' + String(r.answer).toLowerCase(), r.kind].filter(Boolean).join(' · '), { x: 0.7, y: 1.45, w: 11.9, h: 0.35, fontSize: 13, color: MUTE });
+        box(s, 0.7, 1.95, 11.9, 0.6, TINT[o] || BAND); T(s, [{ text: r.outcome_label, options: { bold: true } }, { text: r.recommendations ? '   ·   ' + r.recommendations : '' }], { x: 0.95, y: 1.95, w: 11.4, h: 0.6, fontSize: 16, valign: 'middle' });
+        var found = (r.found || []).slice(0, 5), qs = (r.quotes || []).slice(0, 2), wide = !qs.length;
+        T(s, 'What we found', { x: 0.7, y: 2.8, w: 5.6, h: 0.4, fontSize: 16, bold: true });
+        if (found.length) T(s, found.map(function (f, i) { return { text: cut(f, wide ? 220 : 130), options: { bullet: true, breakLine: i < found.length - 1 } }; }), { x: 0.7, y: 3.25, w: wide ? 11.9 : 5.6, h: 3.3, fontSize: 14, paraSpaceAfter: 6 });
+        else T(s, cut(String(r.why || '').split(/\n\s*\n/)[0], wide ? 700 : 420), { x: 0.7, y: 3.25, w: wide ? 11.9 : 5.6, h: 3.3, fontSize: 14 });
+        if ((r.found || []).length > 5) T(s, '+ ' + (r.found.length - 5) + ' more in the report', { x: 0.7, y: 6.5, w: 5.6, h: 0.3, fontSize: 11, color: MUTE });
+        if (qs.length) {
+          T(s, 'What the recommendations say', { x: 6.7, y: 2.8, w: 5.9, h: 0.4, fontSize: 16, bold: true });
+          qs.forEach(function (q, i) {
+            var y = 3.25 + i * 1.72; box(s, 6.7, y, 5.9, 1.6, BAND);
+            T(s, '“' + cut(q.text, 345) + '”', { x: 6.9, y: y + 0.1, w: 5.5, h: 1.12, fontSize: 11, italic: true });
+            T(s, q.ref, { x: 6.9, y: y + 1.25, w: 5.5, h: 0.3, fontSize: 11, bold: true, color: MUTE });
+          });
+          if ((r.quotes || []).length > 2) T(s, '+ ' + (r.quotes.length - 2) + ' more paragraphs in the report', { x: 6.7, y: 6.65, w: 5.9, h: 0.3, fontSize: 11, color: MUTE });
+        }
+        s.addNotes(String(r.why || ''));
+      });
+    });
+    // contact
+    var out = reviewed.filter(function (r) { return r.outcome === 'edit' || r.outcome === 'outreach'; });
+    if (out.length) {
+      s = pres.addSlide(); head(s, 'Who we contact');
+      s.addTable([['Organisation', 'Example', 'Why', 'Email'].map(function (h) { return { text: h, options: { bold: true, fill: { color: BAND } } }; })].concat(out.slice(0, 9).map(function (r) { return [cut(r.organisation, 60), cut(r.title, 80), cut(contactWhy(r), 90), r.email]; })),
+        { x: 0.7, y: 1.6, w: 11.9, colW: [3.0, 4.3, 3.2, 1.4], fontFace: F, fontSize: 12, color: INK, border: { type: 'solid', color: 'DDE4EF', pt: 1 }, margin: 0.06 });
+      if (out.length > 9) T(s, '+ ' + (out.length - 9) + ' more in the Excel report', { x: 0.7, y: 6.55, w: 11.9, h: 0.3, fontSize: 11, color: MUTE });
+    }
+    return pres;
+  }
+
+  return { buildModel: buildModel, buildDocx: buildDocx, buildXlsx: buildXlsx, buildPptx: buildPptx, OUT: OUT, ORDER: ORDER };
 });

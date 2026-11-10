@@ -197,6 +197,12 @@
       saveFile('gain2026_alignment_review_' + today() + '.xlsx', new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
     }).catch(function () {});
   }
+  var PPTX_SRC = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+  function downloadPptx() {
+    lib('PowerPoint', PPTX_SRC, function () { return !!window.PptxGenJS; }).then(function () {
+      return window.AlignmentReport.buildPptx(window.PptxGenJS, reportModel()).write({ outputType: 'blob' });
+    }).then(function (b) { saveFile('gain2026_alignment_review_' + today() + '.pptx', b); }).catch(function () {});
+  }
   function downloadMails() {
     var ds = mailDrafts();
     if (!ds.length) { note('No email drafts yet: they appear once an example is saved as Count as using or Send the recommendations.'); return; }
@@ -210,7 +216,7 @@
 
   document.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    if (b.id === 'dlDocx') downloadDocx(); else if (b.id === 'dlXlsx') downloadXlsx(); else if (b.id === 'dlMails') downloadMails(); else if (b.id === 'dlJson') downloadDecisions();
+    if (b.id === 'dlDocx') downloadDocx(); else if (b.id === 'dlPptx') downloadPptx(); else if (b.id === 'dlXlsx') downloadXlsx(); else if (b.id === 'dlMails') downloadMails(); else if (b.id === 'dlJson') downloadDecisions();
     else if (b.id === 'printChk') printChecklist(); else if (b.id === 'evOpen') $('evFile').click();
     else if (b.dataset.forget) { var pp = readPending(); delete pp[b.dataset.forget]; writePending(pp); loadDecisions().then(function () { if (!S.dec[S.sel]) select(S.sel); }).catch(function () {}); }
     else if (b.id === 'tubeBtn') { document.body.classList.toggle('show-tube'); renderTube(); }
