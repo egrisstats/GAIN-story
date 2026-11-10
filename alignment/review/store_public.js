@@ -81,14 +81,35 @@
   try { var kept = sessionStorage.getItem(EVID_KEY); if (kept) { PUB.evidence = JSON.parse(kept); } } catch (x) {}
 
   // ---------- saving through the Kobo form ----------
+  // The Kobo web form server refuses links over about 2,000 characters, and text that looks like markup or script.
+  // So the link carries the decision itself, never the reason the page writes from the checklist (that text is
+  // rebuilt from the answers wherever it is shown). A reason the reviewer edited, and the note, are sent and
+  // shortened only if they would not fit; PUB.cut says when that happened.
+  var URL_MAX = 1950;
+  function clean(v) { return String(v).replace(/</g, '‹').replace(/>/g, '›').replace(/\b(on[a-z]+)\s*=/gi, '$1 :').replace(/javascript:/gi, 'javascript '); }
   function formUrl(fields) {
     if (!PUB.form || !PUB.form.url) return null;
-    var root = PUB.form.root || 'data';
-    var qs = Object.keys(fields).filter(function (n) { return fields[n] != null && fields[n] !== ''; })
-      .map(function (n) { return 'd[/' + root + '/' + n + ']=' + encodeURIComponent(String(fields[n])); });
-    // back to the dashboard, review open, after Submit; the Kobo server refuses local (http) return addresses, so only when published
-    if (location.protocol === 'https:') qs.push('returnUrl=' + encodeURIComponent(new URL('../#review', location.href).href));
-    return PUB.form.url + (PUB.form.url.indexOf('?') >= 0 ? '&' : '?') + qs.join('&');
+    var root = PUB.form.root || 'data', f = Object.assign({}, fields);
+    if (f.rationale_edited !== 'yes') delete f.rationale;
+    if (f.title) f.title = String(f.title).slice(0, 80);
+    var build = function () {
+      var qs = Object.keys(f).filter(function (n) { return f[n] != null && f[n] !== ''; })
+        .map(function (n) { return 'd[/' + root + '/' + n + ']=' + encodeURIComponent(clean(f[n])); });
+      // back to the dashboard, review open, after Submit; the Kobo server refuses local (http) return addresses, so only when published
+      if (location.protocol === 'https:') qs.push('returnUrl=' + encodeURIComponent(new URL('../#review', location.href).href));
+      return PUB.form.url + (PUB.form.url.indexOf('?') >= 0 ? '&' : '?') + qs.join('&');
+    };
+    PUB.cut = false;
+    if (f.note && String(f.note).length > 300) { f.note = String(f.note).slice(0, 300).replace(/\s+\S*$/, '') + ' […]'; PUB.cut = true; }
+    var url = build();
+    ['rationale', 'note', 'title'].forEach(function (n) {
+      var guard = 0;
+      while (url.length > URL_MAX && f[n] && guard++ < 40) {
+        var over = url.length - URL_MAX, keep = Math.max(0, String(f[n]).length - Math.ceil(over / 3) - 12);
+        f[n] = keep > 20 ? String(f[n]).slice(0, keep).replace(/\s+\S*$/, '') + ' […]' : ''; PUB.cut = true; url = build();
+      }
+    });
+    return url;
   }
   function setMe(v) {
     S.me = (v || '').trim().slice(0, 12) || null;
@@ -109,6 +130,7 @@
       var n = $('note');
       if (!w) { n.innerHTML = 'Your browser blocked the Kobo form. <a href="' + esc(url) + '" target="_blank" rel="noopener">Open the Kobo form</a> and press Submit there.'; n.hidden = false; }
       else { n.innerHTML = 'One more step: press <b>Submit</b> in the Kobo tab that just opened. If it didn’t open, <a href="' + esc(url) + '" target="_blank" rel="noopener">open the Kobo form</a>.'; n.hidden = false; }
+      if (PUB.cut) n.innerHTML += ' <b>Your reason or note was too long for the Kobo form and was shortened there.</b> The full text stays on this computer; keep edits under about 600 characters.';
       return true;
     }
     note('The Kobo review form isn’t set up yet (no form link in the queue file), so this is saved on this computer only.');
