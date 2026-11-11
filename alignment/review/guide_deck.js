@@ -126,7 +126,7 @@ if (want()) { const s = pres.addSlide({ masterName: 'Content' });
 if (want()) { const s = pres.addSlide({ masterName: 'Content' });
   s.addText('After the review: emails and reports', { placeholder: 'title' });
   card(s, 0.7, 1.7, 5.8, 4.6, null, 'Emails to send', ['A draft appears for each organisation with an example counted as using, or one that should receive the recommendations.', 'Copy the draft into your own email. Nothing is sent from the page.', 'The page never reads contact details: find the focal point’s name and email in Kobo.', 'Press Mark as sent, then Submit. The page then shows the reply date, 10 working days later.']);
-  card(s, 6.8, 1.7, 5.8, 4.6, null, 'Reports', ['Word: every decision with its reason, for the yearly report.', 'Excel: one row per example, with counts by outcome.', 'Print checklist: one example’s checklist, on paper or as PDF.', 'Backup: a file with every decision shown on the page.'], 'E3F4F5');
+  card(s, 6.8, 1.7, 5.8, 4.6, null, 'Reports', ['Slides: one slide per decided example, with its reason and the paragraphs quoted.', 'Excel: one row per example, with counts by outcome.', 'Print checklist: one example’s checklist, on paper or as PDF.', 'Email drafts are not a report: they are on the Emails to send tab.'], 'E3F4F5');
   s.addNotes('Questions on a decision, or on what counts as evidence: ask the Secretariat before saving. A decision can always be changed or undone.'); }
 
 pres.writeFile({ fileName: out }).then(async () => {
