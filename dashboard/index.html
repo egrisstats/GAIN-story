@@ -144,7 +144,11 @@ svg text { fill: var(--ink-3); font: 400 var(--fs-s) "IBM Plex Sans", sans-serif
 #globe:active { cursor: grabbing; }
 .country { stroke: rgba(10,22,52,0.9); stroke-width: .4; cursor: pointer; }
 .country:hover { stroke: var(--ink); stroke-width: 1; }
+.country.esc { stroke: var(--escwa); stroke-width: 1.3; }
 .country.sel { stroke: var(--ink); stroke-width: 1.6; }
+.esc-key { display: none; }
+body.has-esc .esc-key { display: inline; }
+body.has-esc div.esc-key { display: block; }
 .pulse { fill: var(--accent); }
 .ring { fill: none; stroke: var(--accent); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: ring 2.2s ease-out infinite; }
 @keyframes ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(4); opacity: 0; } }
@@ -315,7 +319,7 @@ footer a { color: var(--ink-2); }
         <svg id="globe" role="img" aria-label="Globe of countries with GAIN 2026 examples"></svg>
         <div class="globe-ui">
           <div class="ramp"><div>Examples per country</div><div class="rbar" id="rampBar"></div><div class="rl"><span>1</span><span id="rampMax">–</span></div>
-            <div style="margin-top:6px"><i class="sw dot" style="--c:var(--new)"></i>New in the last 24 hours</div></div>
+            <div style="margin-top:6px"><i class="sw dot" style="--c:var(--new)"></i>New in the last 24 hours</div><div class="esc-key" style="margin-top:4px"><i class="sw dot" style="--c:var(--escwa)"></i>Has an example from the UNESCWA survey</div></div>
           <div class="ramp" id="noCountry" style="text-align:right"></div>
         </div>
       </div>
@@ -340,7 +344,7 @@ footer a { color: var(--ink-2); }
           <div class="sub" style="margin-top:6px">Responses by survey day. Day 1 is each round’s first submission after launch; earlier test submissions count on day 1. Filters don’t apply here.</div>
         </div>
         <div id="nowView">
-        <div class="legend key"><span><i class="sw" style="--c:var(--country)"></i>Country-led</span><span><i class="sw" style="--c:var(--inst)"></i>Institution-led</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
+        <div class="legend key"><span><i class="sw" style="--c:var(--country)"></i>Country-led</span><span><i class="sw" style="--c:var(--inst)"></i>Institution-led</span><span class="esc-key"><i class="sw dot" style="--c:var(--escwa)"></i>From the UNESCWA survey</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
         <div id="timeline"></div>
         <div class="sub" style="margin:10px 0 2px">New responses per day <span class="muted">· <span style="color:var(--y2025)">—</span> GAIN 2025 on the same survey day</span></div>
         <div id="daily"></div>
@@ -507,7 +511,8 @@ footer a { color: var(--ink-2); }
   // one legend for the dot charts: who led the example, and the ring for 'not using'
   var LEGENDS = { lead: '<span><i class="sw dot glow" style="--c:var(--country)"></i>Country-led</span>' +
     '<span><i class="sw dot glow" style="--c:var(--inst)"></i>Institution-led</span>' +
-    '<span><i class="sw dot ring"></i>Ring: not using the Recommendations, or don’t know</span>' };
+    '<span><i class="sw dot ring"></i>Ring: not using the Recommendations, or don’t know</span>' +
+    '<span class="esc-key"><i class="sw dot glow" style="--c:var(--escwa)"></i>From the UNESCWA survey</span>' };
   document.querySelectorAll('[data-legend]').forEach(function (el) { el.innerHTML = LEGENDS[el.dataset.legend] || ''; });
   var LEAD = { C: { name: 'Country-led', color: C('country') }, I: { name: 'Institution-led', color: C('inst') } };
   var RECS = [
@@ -747,7 +752,7 @@ footer a { color: var(--ink-2); }
     return { x: h(1) * W + Math.sin(time * 0.001 * (0.35 + h(5) * 0.8) + h(6) * 6.28) * (6 + h(4) * 14),
              y: ((h(2) * span + time * spd) % span) - 15, r: 2 + h(7) * 2.2 };
   }
-  var RGB = { C: hexRgb(LEAD.C.color), I: hexRgb(LEAD.I.color) };
+  var RGB = { C: hexRgb(LEAD.C.color), I: hexRgb(LEAD.I.color), E: hexRgb(C('escwa')) };   // E: from the UNESCWA survey
   function drawSnow(time) {
     var W = snowCv.clientWidth, H = snowCv.clientHeight, dpr = devicePixelRatio || 1;
     if (snowCv.width !== Math.round(W * dpr)) { snowCv.width = Math.round(W * dpr); snowCv.height = Math.round(H * dpr); }
@@ -758,7 +763,7 @@ footer a { color: var(--ink-2); }
       ctx.beginPath(); ctx.arc(q.x, q.y, q.r * 0.8, 0, 6.2832); ctx.fillStyle = 'rgba(207,224,244,0.13)'; ctx.fill();
     }
     snow.list.forEach(function (o) {
-      var p = snowPos(o.seed, W, H, t), c = RGB[o.d.lead], using = o.d.rec !== 'None';
+      var p = snowPos(o.seed, W, H, t), c = o.d.survey ? RGB.E : RGB[o.d.lead], using = o.d.rec !== 'None';
       o.x = p.x; o.y = p.y; o.r = p.r;
       var col = 'rgba(' + c.join(',') + ',1)';
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832);
@@ -779,7 +784,7 @@ footer a { color: var(--ink-2); }
     if (!best) { hideTip(); return; }
     var d = best.d;
     showTip('<b>' + esc(d.country || 'Regional / global') + '</b> · ' + LEAD[d.lead].name + '<div>' + esc(d.org) + '</div><div class="muted" style="margin:3px 0">' + esc(d.title) + '</div>' +
-      '<span class="tag"><i class="sw" style="background:' + RECBY[d.rec].color + '"></i>' + (d.codes.length ? d.codes.join(' + ') : RECBY[d.rec].name) + '</span><div class="muted" style="margin-top:3px">Submitted ' + fmtTime(d.t) + '</div>', ev);
+      '<span class="tag"><i class="sw" style="background:' + RECBY[d.rec].color + '"></i>' + (d.codes.length ? d.codes.join(' + ') : RECBY[d.rec].name) + '</span>' + (d.survey ? ' <span class="tag esc">' + esc(d.survey) + ' survey</span>' : '') + '<div class="muted" style="margin-top:3px">Submitted ' + fmtTime(d.t) + '</div>', ev);
   });
   snowCv.addEventListener('mouseleave', function () { snow.hover = null; hideTip(); });
 
@@ -835,6 +840,13 @@ footer a { color: var(--ink-2); }
     gp.append('path').datum(pts).attr('d', aI).attr('fill', LEAD.I.color).attr('opacity', .9);
     gp.append('path').datum(pts).attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 1.5)
       .attr('d', d3.line().curve(step).x(function (p) { return x(p.t); }).y(function (p) { return y(p.C + p.I); }));
+    // examples from the UNESCWA survey, marked on the line
+    var nn = 0;
+    rows.forEach(function (d) {
+      nn++;
+      if (!d.survey || d.t > S.asOf) return;
+      svg.append('circle').attr('cx', x(d.t)).attr('cy', y(nn)).attr('r', 4).attr('fill', C('escwa')).attr('stroke', '#fff').attr('stroke-width', 1.2).style('pointer-events', 'none');
+    });
     // as-of marker
     var ax = x(S.asOf), atNow = cumAt(pts, S.asOf);
     svg.append('line').attr('x1', ax).attr('x2', ax).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C('accent')).attr('stroke-width', 1.5);
@@ -859,10 +871,10 @@ footer a { color: var(--ink-2); }
   function renderDaily(rows, x, W) {
     var box = document.getElementById('daily'), H = 74, m = { t: 4, b: 18, l: 34, r: 46 };
     var days = d3.utcDay.range(x.domain()[0], x.domain()[1]);
-    var seen = {}, byDay = days.map(function (d) { return { d: d, C: 0, I: 0 }; });
+    var seen = {}, byDay = days.map(function (d) { return { d: d, C: 0, I: 0, E: 0 }; });
     rows.forEach(function (r) { // count responses, not examples: first example row of a response
       if (seen[r.id]) return; seen[r.id] = 1;
-      var k = d3.utcDay.count(x.domain()[0], r.t); if (byDay[k]) byDay[k][r.lead]++;
+      var k = d3.utcDay.count(x.domain()[0], r.t); if (byDay[k]) { byDay[k][r.lead]++; if (r.survey) byDay[k].E++; }
     });
     byDay.forEach(function (b) { var p = S.demo ? null : pastAt('2025', dayIdx(open26(), b.d)); b.p = p ? p.n : null; });
     var y = d3.scaleLinear().domain([0, Math.max(4, d3.max(byDay, function (b) { return Math.max(b.C + b.I, b.p || 0); }))]).range([H - m.b, m.t]);
@@ -877,12 +889,16 @@ footer a { color: var(--ink-2); }
     g.append('rect').attr('width', bw).attr('y', function (b) { return y(b.C + b.I) - (b.C && b.I ? 2 : 0); })
       .attr('height', function (b) { return y(b.C) - y(b.C + b.I); }).attr('rx', 2)
       .attr('fill', LEAD.I.color).attr('opacity', function (b) { return b.d <= S.asOf ? 1 : .25; });
+    // the UNESCWA survey's responses that day, as the top of the bar
+    g.filter(function (b) { return b.E; }).append('rect').attr('width', bw).attr('rx', 2).attr('y', function (b) { return y(b.C + b.I); })
+      .attr('height', function (b) { return Math.max(3, y(b.C + b.I - b.E) - y(b.C + b.I)); }).attr('fill', C('escwa')).attr('opacity', function (b) { return b.d <= S.asOf ? 1 : .25; });
     // the same survey day in GAIN 2025, as a short light tick
     g.filter(function (b) { return b.p; }).append('line').attr('x1', -1).attr('x2', bw + 1).attr('y1', function (b) { return y(b.p); }).attr('y2', function (b) { return y(b.p); })
       .attr('stroke', C('y2025')).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('opacity', .9);
     g.append('rect').attr('width', bw + 4).attr('x', -2).attr('y', m.t).attr('height', H - m.t - m.b).attr('fill', 'transparent')
       .on('mousemove', function (ev, b) {
         showTip('<b>' + d3.utcFormat('%a %d %b')(b.d) + '</b><div class="row"><span>Country-led responses</span><b>' + b.C + '</b></div><div class="row"><span>Institution-led responses</span><b>' + b.I + '</b></div>' +
+          (b.E ? '<div class="row"><span><i class="sw" style="--c:var(--escwa)"></i>of these, UNESCWA survey</span><b>' + b.E + '</b></div>' : '') +
           (b.p != null ? '<div class="row"><span><i class="sw" style="--c:var(--y2025)"></i>GAIN 2025, same survey day</span><b>' + b.p + '</b></div>' : ''), ev);
       }).on('mouseleave', hideTip);
     svg.append('text').attr('x', W - m.r + 4).attr('y', H - m.b).text('per day');
@@ -1076,8 +1092,8 @@ footer a { color: var(--ink-2); }
     path = d3.geoPath(proj);
   }
   function computeCounts() {
-    counts = {};
-    current({ country: true }).forEach(function (d) { if (d.mn) counts[d.mn] = (counts[d.mn] || 0) + 1; });
+    counts = {}; escCounts = {};
+    current({ country: true }).forEach(function (d) { if (d.mn) { counts[d.mn] = (counts[d.mn] || 0) + 1; if (d.survey) escCounts[d.mn] = (escCounts[d.mn] || 0) + 1; } });
     cmax = Math.max(1, d3.max(Object.values(counts)) || 1);
     color = d3.scaleSequentialSqrt(d3.interpolateLab(C('country'), C('glow-hi'))).domain([1, Math.max(2, cmax)]);
     document.getElementById('rampBar').style.background = 'linear-gradient(90deg,' + d3.range(0, 1.01, .25).map(function (k) { return color(1 + k * (Math.max(2, cmax) - 1)); }).join(',') + ')';
@@ -1085,13 +1101,16 @@ footer a { color: var(--ink-2); }
     var noC = current().filter(function (d) { return !d.mn; }).length;
     document.getElementById('noCountry').innerHTML = noC ? noC + ' regional or global example' + (noC > 1 ? 's' : '') + '<br>not shown on the map' : '';
   }
-  function fillOf(name) { return counts[name] ? color(counts[name]) : C('land'); }
+  // a country whose examples all came through the UNESCWA survey is purple; one with both keeps its shade and gets a purple outline
+  var escCounts = {};
+  function fillOf(name) { return !counts[name] ? C('land') : escCounts[name] === counts[name] ? C('escwa') : color(counts[name]); }
   function tipCountry(ev, name) {
     var rows = current({ country: true }).filter(function (d) { return d.mn === name; });
     var nC = rows.filter(function (d) { return d.lead === 'C'; }).length;
     var resp = new Set(rows.map(function (d) { return d.id; })).size;
     var recs = d3.rollups(rows, function (v) { return v.length; }, function (d) { return d.rec; });
     showTip('<b>' + esc(name) + '</b>' + (rows.length ? '<div class="row"><span>Examples</span><b>' + rows.length + '</b></div><div class="row"><span>Responses</span><b>' + resp + '</b></div>' +
+      (escCounts[name] ? '<div class="row"><span><i class="sw" style="--c:var(--escwa)"></i>From the UNESCWA survey</span><b>' + escCounts[name] + '</b></div>' : '') +
       '<div class="row"><span>Country-led · institution-led</span><b>' + nC + ' · ' + (rows.length - nC) + '</b></div>' +
       '<div style="margin-top:4px">' + recs.map(function (r) { return '<span class="tag"><i class="sw" style="background:' + RECBY[r[0]].color + '"></i>' + RECBY[r[0]].name + ' ' + r[1] + '</span>'; }).join('') + '</div>'
       : '<div class="muted">No examples yet</div>') + (rows.length ? '<div class="muted" style="margin-top:4px">Click to filter the page</div>' : ''), ev);
@@ -1110,12 +1129,13 @@ footer a { color: var(--ink-2); }
         .on('mouseleave', hideTip)
         .on('click', function (ev, f) { var n = f.properties.name; if (!counts[n] && S.country !== n) return; S.country = S.country === n ? null : n; render(); });
     }).attr('d', path).attr('fill', function (f) { return fillOf(f.properties.name); })
+      .classed('esc', function (f) { return !!escCounts[f.properties.name]; })
       .classed('sel', function (f) { return f.properties.name === S.country; });
     var visible = function (ll) { return !isG || d3.geoDistance(ll, [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2 - .05; };
     // small countries as dots
     var pts = Object.keys(POINTS).filter(function (n) { return counts[n] && visible(POINTS[n]); });
     gSvg.select('.pts').selectAll('circle').data(pts, String).join('circle').attr('r', 4).attr('stroke', C('bg')).attr('stroke-width', 1)
-      .attr('fill', function (n) { return fillOf(n); }).attr('cx', function (n) { return proj(POINTS[n])[0]; }).attr('cy', function (n) { return proj(POINTS[n])[1]; })
+      .attr('fill', function (n) { return fillOf(n); }).attr('stroke', function (n) { return escCounts[n] ? C('escwa') : C('bg'); }).attr('cx', function (n) { return proj(POINTS[n])[0]; }).attr('cy', function (n) { return proj(POINTS[n])[1]; })
       .style('cursor', 'pointer').on('mousemove', function (ev, n) { tipCountry(ev, n); }).on('mouseleave', hideTip)
       .on('click', function (ev, n) { S.country = S.country === n ? null : n; render(); });
     // pulses: countries with a response in the 24 hours before asOf
@@ -1127,6 +1147,13 @@ footer a { color: var(--ink-2); }
       var g = en.append('g').style('pointer-events', 'none'); g.append('circle').attr('class', 'ring').attr('r', 3); g.append('circle').attr('class', 'pulse').attr('r', 3); return g;
     });
     gs.attr('transform', function (p) { var xy = proj(p.ll); return 'translate(' + xy[0] + ',' + xy[1] + ')'; });
+    // a purple marker on every country with an example from the UNESCWA survey, so small countries show too
+    var em = Object.keys(escCounts).map(function (n) { return { n: n, ll: POINTS[n] || cen[n] }; }).filter(function (p) { return p.ll && visible(p.ll); });
+    var ge = gSvg.selectAll('g.escpts').data([0]).join('g').attr('class', 'escpts');
+    ge.selectAll('circle').data(em, function (p) { return p.n; }).join('circle').attr('r', 4.5).attr('fill', C('escwa')).attr('stroke', '#fff').attr('stroke-width', 1.3)
+      .attr('cx', function (p) { return proj(p.ll)[0]; }).attr('cy', function (p) { return proj(p.ll)[1]; })
+      .style('cursor', 'pointer').on('mousemove', function (ev, p) { tipCountry(ev, p.n); }).on('mouseleave', hideTip)
+      .on('click', function (ev, p) { S.country = S.country === p.n ? null : p.n; render(); });
   }
   document.querySelectorAll('#projSeg button').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -1312,7 +1339,7 @@ footer a { color: var(--ink-2); }
   // filled if it uses the Recommendations and a ring if not.
   function exTip(d) {
     return '<b>' + esc(d.country || 'Regional / global') + '</b> · ' + LEAD[d.lead].name + '<div>' + esc(d.org) + '</div><div class="muted" style="margin:3px 0">' + esc(d.title) + '</div>' +
-      '<span class="tag"><i class="sw" style="background:' + RECBY[d.rec].color + '"></i>' + (d.codes.length ? d.codes.join(' + ') : RECBY[d.rec].name) + '</span>';
+      '<span class="tag"><i class="sw" style="background:' + RECBY[d.rec].color + '"></i>' + (d.codes.length ? d.codes.join(' + ') : RECBY[d.rec].name) + '</span>' + (d.survey ? ' <span class="tag esc">' + esc(d.survey) + ' survey</span>' : '');
   }
   function dotrows(el, items, opts) {
     opts = opts || {};
@@ -1327,7 +1354,7 @@ footer a { color: var(--ink-2); }
         (it.globe != null ? '<canvas class="mg" data-reg="' + it.globe + '" aria-hidden="true"></canvas>' : '') +
         '<span class="lab" title="' + esc(it.label) + '">' + esc(it.label) + '</span><span class="pts">' +
         v.map(function (d, j) {
-          var c = LEAD[d.lead].color, on = d.rec !== 'None';
+          var c = d.survey ? C('escwa') : LEAD[d.lead].color, on = d.rec !== 'None';
           return '<i data-j="' + j + '" style="width:' + size + 'px;height:' + size + 'px;' + (on ? 'background:' + c + ';box-shadow:0 0 5px ' + c : 'box-shadow:inset 0 0 0 1.5px ' + c) + '"></i>';
         }).join('') + '</span><span class="n">' + v.length + '<small>' + (opts.noPct ? '' : pct(using, v.length) + ' using') + '</small></span></div>';
     }).join('');
@@ -1532,6 +1559,7 @@ footer a { color: var(--ink-2); }
   function syncControls() {
     document.querySelectorAll('#fLead button').forEach(function (o) { o.setAttribute('aria-pressed', o.dataset.v === S.lead); });
     document.querySelectorAll('#fSurvey button').forEach(function (o) { o.setAttribute('aria-pressed', o.dataset.v === (S.survey || 'all')); });
+    document.body.classList.toggle('has-esc', S.rows.some(function (d) { return d.survey; }));
     document.getElementById('fSurveyBox').hidden = (S.survey || 'all') === 'all' && !S.rows.some(function (d) { return d.survey; });
     var chip = document.getElementById('countryChip');
     chip.style.display = S.country ? 'inline-flex' : 'none';
