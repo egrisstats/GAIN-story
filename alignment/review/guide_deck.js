@@ -52,7 +52,7 @@ if (want()) { const s = pres.addSlide({ masterName: 'Content' });
   s.addText('What we review, and why', { placeholder: 'title' });
   card(s, 0.7, 1.7, 3.8, 3.4, null, 'What', ['Every GAIN 2026 example where the respondent said the recommendations were not used, or that they don’t know.', 'One example at a time.']);
   card(s, 4.75, 1.7, 3.8, 3.4, null, 'Why', ['Some of these examples do follow the recommendations without naming them.', 'We check the evidence so the use figure reflects practice, not only awareness.']);
-  card(s, 8.8, 1.7, 3.8, 3.4, null, 'What never changes', ['Their own answer stays on record.', 'If we count an example as using, we tell the organisation why, and they can ask us to restore it.', 'Suggestions on the page are hints. Every decision is yours.'], 'E3F4F5');
+  card(s, 8.8, 1.7, 3.8, 3.4, null, 'Their answer', ['If we count an example as using, we email the organisation why.', 'No objection within 10 working days: the answer is edited in Kobo, and the original is kept in the cleaning log.', 'Suggestions on the page are hints. Every decision is yours.'], 'E3F4F5');
   s.addNotes('The review exists because respondents often apply the approach of the recommendations without knowing the documents by name.'); }
 
 // 3
@@ -75,7 +75,7 @@ if (want()) { const s = pres.addSlide({ masterName: 'Content' });
 if (want()) { const s = pres.addSlide({ masterName: 'Content' });
   s.addText('Before you start', { placeholder: 'title' });
   card(s, 0.7, 1.7, 3.8, 3.7, 1, 'Open the review', ['Go to the GAIN 2026 tracker.', 'Press Review answers at the top.', 'No sign-in is needed.']);
-  card(s, 4.75, 1.7, 3.8, 3.7, 2, 'Type your initials', ['They are saved with your decisions so colleagues see who reviewed what.', 'Nothing else about you is recorded.']);
+  card(s, 4.75, 1.7, 3.8, 3.7, 2, 'Type your initials', ['They are saved with your decisions so colleagues see who reviewed what.', 'Nothing else about you is recorded. You cannot save without them.']);
   card(s, 8.8, 1.7, 3.8, 3.7, 3, 'Open the descriptions file', ['It holds what respondents wrote and what we found online.', 'The file is called review-evidence.json. Ask the Secretariat where it is kept.', 'It is read on your computer and never uploaded.']);
   s.addNotes('Without the descriptions file the page shows titles and similar examples only, which is not enough to review.'); }
 
@@ -102,7 +102,7 @@ if (want()) { const s = pres.addSlide({ masterName: 'Content' });
 // 6
 if (want()) { const s = pres.addSlide({ masterName: 'Content' });
   s.addText('The checklist, and how the result is decided', { placeholder: 'title' });
-  card(s, 0.7, 1.7, 5.7, 4.6, null, 'Marking the checklist', ['Choose what the example really is: a survey, a register, a census, training, and so on. The list depends on it.', 'Mark each item Found, Not found or Can’t tell.', 'For each item found, say where you saw it: their description, online, or a similar example.', 'Strong items are what the recommendations specifically ask for, and signs they already use them. Supporting items are good practice.']);
+  card(s, 0.7, 1.7, 5.7, 4.6, null, 'Marking the checklist', ['Choose what the example really is: a survey, a register, a census, training, and so on. The list depends on it.', 'Mark each item Found, Not found or Can’t tell.', 'For each item found, say where you saw it: their description, online, or a similar example.', 'Strong items are what the recommendations ask for, and signs they already use them. Not sure at the end? Write why in the note and press Park for consultation.']);
   const res = [['Said “don’t know”', 'Two strong items are enough to count it as using.'], ['Said “not used”', 'We ask for more, including a sign they already use them.'], ['Some evidence, below that', 'Recorded as aligned: it counts for alignment, not for use.']];
   res.forEach((r, i) => {
     const y = 1.7 + i * 1.57;
@@ -125,7 +125,7 @@ if (want()) { const s = pres.addSlide({ masterName: 'Content' });
 // 8
 if (want()) { const s = pres.addSlide({ masterName: 'Content' });
   s.addText('After the review: emails and reports', { placeholder: 'title' });
-  card(s, 0.7, 1.7, 5.8, 4.6, null, 'Emails to send', ['A draft appears for each organisation with an example counted as using, or one that should receive the recommendations.', 'Copy the draft into your own email. Nothing is sent from the page.', 'The page never reads contact details: find the focal point’s name and email in Kobo.', 'Press Mark as sent, then Submit, so colleagues don’t send it twice.']);
+  card(s, 0.7, 1.7, 5.8, 4.6, null, 'Emails to send', ['A draft appears for each organisation with an example counted as using, or one that should receive the recommendations.', 'Copy the draft into your own email. Nothing is sent from the page.', 'The page never reads contact details: find the focal point’s name and email in Kobo.', 'Press Mark as sent, then Submit. The page then shows the reply date, 10 working days later.']);
   card(s, 6.8, 1.7, 5.8, 4.6, null, 'Reports', ['Word: every decision with its reason, for the yearly report.', 'Excel: one row per example, with counts by outcome.', 'Print checklist: one example’s checklist, on paper or as PDF.', 'Backup: a file with every decision shown on the page.'], 'E3F4F5');
   s.addNotes('Questions on a decision, or on what counts as evidence: ask the Secretariat before saving. A decision can always be changed or undone.'); }
 
