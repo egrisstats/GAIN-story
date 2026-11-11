@@ -346,7 +346,7 @@ footer a { color: var(--ink-2); }
         <div id="nowView">
         <div class="legend key"><span><i class="sw" style="--c:var(--country)"></i>Country-led</span><span><i class="sw" style="--c:var(--inst)"></i>Institution-led</span><span class="esc-key"><i class="sw dot" style="--c:var(--escwa)"></i>From the UNESCWA survey</span><span class="muted">- - GAIN 2025 total (117 examples)</span></div>
         <div id="timeline"></div>
-        <div class="sub" style="margin:10px 0 2px">New responses per day <span class="muted">· <span style="color:var(--y2025)">—</span> GAIN 2025 on the same survey day</span></div>
+        <div class="sub" style="margin:10px 0 2px">New responses per day</div>
         <div id="daily"></div>
         </div>
       </section>
@@ -875,8 +875,7 @@ footer a { color: var(--ink-2); }
       if (seen[r.id]) return; seen[r.id] = 1;
       var k = d3.utcDay.count(x.domain()[0], r.t); if (byDay[k]) { byDay[k][r.lead]++; if (r.survey) byDay[k].E++; }
     });
-    byDay.forEach(function (b) { var p = S.demo ? null : pastAt('2025', dayIdx(open26(), b.d)); b.p = p ? p.n : null; });
-    var y = d3.scaleLinear().domain([0, Math.max(4, d3.max(byDay, function (b) { return Math.max(b.C + b.I, b.p || 0); }))]).range([H - m.b, m.t]);
+    var y = d3.scaleLinear().domain([0, Math.max(4, d3.max(byDay, function (b) { return b.C + b.I; }))]).range([H - m.b, m.t]);
     var bw = Math.max(2, (x(days[1] || x.domain()[1]) - x(days[0])) - 4);
     var svg = d3.select(box).selectAll('svg').data([0]).join('svg').attr('width', W).attr('height', H).attr('role', 'img').attr('aria-label', 'New responses per day');
     svg.selectAll('*').remove();
@@ -891,14 +890,10 @@ footer a { color: var(--ink-2); }
     // the UNESCWA survey's responses that day, as the top of the bar
     g.filter(function (b) { return b.E; }).append('rect').attr('width', bw).attr('rx', 2).attr('y', function (b) { return y(b.C + b.I); })
       .attr('height', function (b) { return Math.max(3, y(b.C + b.I - b.E) - y(b.C + b.I)); }).attr('fill', C('escwa')).attr('opacity', function (b) { return b.d <= S.asOf ? 1 : .25; });
-    // the same survey day in GAIN 2025, as a short light tick
-    g.filter(function (b) { return b.p; }).append('line').attr('x1', -1).attr('x2', bw + 1).attr('y1', function (b) { return y(b.p); }).attr('y2', function (b) { return y(b.p); })
-      .attr('stroke', C('y2025')).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('opacity', .9);
     g.append('rect').attr('width', bw + 4).attr('x', -2).attr('y', m.t).attr('height', H - m.t - m.b).attr('fill', 'transparent')
       .on('mousemove', function (ev, b) {
         showTip('<b>' + d3.utcFormat('%a %d %b')(b.d) + '</b><div class="row"><span>Country-led responses</span><b>' + b.C + '</b></div><div class="row"><span>Institution-led responses</span><b>' + b.I + '</b></div>' +
-          (b.E ? '<div class="row"><span><i class="sw" style="--c:var(--escwa)"></i>of these, UNESCWA survey</span><b>' + b.E + '</b></div>' : '') +
-          (b.p != null ? '<div class="row"><span><i class="sw" style="--c:var(--y2025)"></i>GAIN 2025, same survey day</span><b>' + b.p + '</b></div>' : ''), ev);
+          (b.E ? '<div class="row"><span><i class="sw" style="--c:var(--escwa)"></i>of these, UNESCWA survey</span><b>' + b.E + '</b></div>' : ''), ev);
       }).on('mouseleave', hideTip);
     svg.append('text').attr('x', W - m.r + 4).attr('y', H - m.b).text('per day');
   }
