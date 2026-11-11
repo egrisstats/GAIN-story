@@ -717,8 +717,7 @@ footer a { color: var(--ink-2); }
     var tiles = [
       { k: 'Examples', v: rows.length, s: pct(rows.length, CONFIG.bench) + ' of GAIN 2025 (' + CONFIG.bench + ')' + escNote(exE),
         bar: [[fill * (1 - shareE), C('ink-2')], [fill * shareE, C('escwa')]] },
-      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') + escNote(respE) +
-        (function () { var k = dayIdx(open26(), S.asOf || new Date()), p = !S.demo && pastAt('2025', k); return p ? '<br>GAIN 2025 had ' + p.c + ' by day ' + k : ''; })() },
+      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') + escNote(respE) },
       { k: 'Countries', v: ctry, s: 'with at least one example' },
       { k: 'Country · institution', v: nC + ' · ' + nI, s: '<i class="sw" style="--c:var(--country)"></i>country-led · <i class="sw" style="--c:var(--inst)"></i>institution-led',
         bar: rows.length ? [[nC / rows.length, LEAD.C.color], [nI / rows.length, LEAD.I.color]] : [] },
