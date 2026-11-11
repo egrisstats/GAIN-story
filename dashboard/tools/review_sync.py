@@ -88,6 +88,9 @@ def parse_ticks(s):
     return ticks, states, where
 
 
+PARKED = "Parked for consultation: "
+
+
 def fold(log):
     """one current decision per example, in the shape the review page and the report use"""
     dec = {}
@@ -119,6 +122,10 @@ def fold(log):
             "spec_version": r.get("spec_version") or None, "rationale": r.get("rationale") or "", "rationale_edited": r.get("rationale_edited") == "yes",
             "notified_on": prev.get("notified_on"), "objection": prev.get("objection"), "kobo_id": r["_id"],
         }
+        # parked for consultation: saved with what was found, still waiting for a decision. The form only
+        # knows the checklist's outcomes, so the page marks it in the note's opening words.
+        if dec[k]["note"].startswith(PARKED):
+            dec[k]["checklist_outcome"], dec[k]["outcome"] = dec[k]["outcome"], "parked"
     return dec
 
 
@@ -127,6 +134,8 @@ def write_tracker_csv(dec, path):
         w = csv.writer(f)
         w.writerow(["response_id", "title_start", "outcome", "score", "reviewed_on"])
         for d in sorted(dec.values(), key=lambda d: d["key"]):
+            if d["outcome"] == "parked":   # not decided yet: the tracker keeps it under "to review"
+                continue
             w.writerow([d["response_id"], d["title_start"], d["outcome"], d["score"] if d["score"] is not None else "", (d["saved_at"] or "")[:10]])
 
 

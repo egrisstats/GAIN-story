@@ -131,6 +131,7 @@ main { padding-block: 18px 48px; }
 .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 1px 8px; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; background: var(--keep-bg); color: var(--keep); }
 .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .pill.edit { background: var(--edit-bg); color: var(--edit); } .pill.outreach { background: var(--outreach-bg); color: var(--outreach); } .pill.aligned { background: var(--aligned-bg); color: var(--aligned); }
+.pill.parked { background: #fdf3d6; color: #7a5a00; }
 .pill.open { background: none; color: var(--ink-3); border: 1px dashed var(--line); } .pill.open::before { display: none; }
 
 .detail { padding: 18px; display: grid; gap: 18px; }
@@ -144,7 +145,7 @@ main { padding-block: 18px 48px; }
 .card { border: 1px solid var(--line); border-radius: var(--r-m); padding: 12px 14px; display: grid; gap: 8px; align-content: start; background: var(--panel); }
 .card h3 { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .sig { font: 600 var(--fs-xs) var(--sans); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
-.sig.supports { background: var(--edit-bg); color: var(--edit); } .sig.against { background: #fde8e8; color: #b23a3b; } .sig.unclear, .sig.none { background: var(--keep-bg); color: var(--keep); } .sig.mixed { background: var(--outreach-bg); color: var(--outreach); }
+.sig.supports { background: var(--edit-bg); color: var(--edit); } .sig.against { background: #fde8e8; color: #b23a3b; } .sig.unclear, .sig.none { background: var(--keep-bg); color: var(--keep); } .sig.mixed { background: var(--outreach-bg); color: var(--outreach); } .sig.partly { background: var(--outreach-bg); color: var(--outreach); }
 :root[data-theme="dark"] .sig.against { background: #3d1c25; color: #ff9b9c; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sig.against { background: #3d1c25; color: #ff9b9c; } }
 .links { margin: 0; padding-left: 16px; font-size: var(--fs-s); display: grid; gap: 3px; }
@@ -416,7 +417,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     edit: { label: 'Count as using · tell them', cls: 'edit' }, outreach: { label: 'Keep their answer · send the recommendations', cls: 'outreach' },
     aligned: { label: 'Aligned · not counted as use', cls: 'aligned' }, keep: { label: 'Keep their answer', cls: 'keep' },
     outscope: { label: 'Keep · not statistics (check if valid)', cls: 'keep' }, deliberate: { label: 'Keep · they chose not to use them', cls: 'keep' },
-    nocat: { label: 'Keep · no matching groups', cls: 'keep' }
+    nocat: { label: 'Keep · no matching groups', cls: 'keep' },
+    parked: { label: 'Parked for consultation', cls: 'parked' }
   };
   var Q2 = { none: 'No reason given', other: 'They follow another framework (national law, EU Regulation 862/2007, UN migration recommendations)', unaware: 'They don’t know the recommendations', deliberate: 'They decided not to use them' };
   var ANS = { no: 'Said: not used', dk: 'Said: don’t know' };
@@ -430,7 +432,11 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   });
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function safeUrl(u) { return /^https?:\/\//i.test(String(u || '')) ? String(u) : null; }
-  function outcomeOf(k) { var d = S.dec[k]; return d && d.outcome ? d.outcome : null; }
+  // a parked example is saved with what was found so far, but still waits for a decision
+  var PARK = 'Parked for consultation: ';
+  function isParked(k) { var d = S.dec[k]; return !!(d && d.outcome === 'parked'); }
+  function outcomeOf(k) { var d = S.dec[k]; return d && d.outcome && d.outcome !== 'parked' ? d.outcome : null; }
+  function pillOf(k) { return isParked(k) ? pill('parked') : pill(outcomeOf(k)); }
   function bucket(o) { return !o ? 'open' : (o === 'edit' || o === 'outreach' || o === 'aligned') ? o : 'keep'; }
   function pill(o) { if (!o) return '<span class="pill open">To review</span>'; var x = OUT[o]; return '<span class="pill ' + x.cls + '">' + esc(x.label) + '</span>'; }
   function note(msg) { var n = $('note'); n.textContent = msg || ''; n.hidden = !msg; }
@@ -506,7 +512,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (!ks.length) { $('status').innerHTML = S.loaded ? 'No examples in the review yet.' : 'Loading the review queue…'; return; }
     var when = m && m.pulled_at ? new Date(m.pulled_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
     var web = m && m.context && m.context.web_searched_on;
-    $('status').innerHTML = '<span><b>' + ks.length + '</b> in the review' + (m ? ' of ' + m.examples + ' GAIN 2026 examples' : '') + '</span><span><b>' + open + '</b> to review</span><span><b>' + (ks.length - open) + '</b> reviewed</span>' +
+    $('status').innerHTML = '<span><b>' + ks.length + '</b> in the review' + (m ? ' of ' + m.examples + ' GAIN 2026 examples' : '') + '</span><span><b>' + open + '</b> to review' + (function () { var n = ks.filter(isParked).length; return n ? ' · ' + n + ' parked for consultation' : ''; })() + '</span><span><b>' + (ks.length - open) + '</b> reviewed</span>' +
       (when ? '<span>Queue taken from Kobo on ' + esc(when) + '</span>' : '') + (web ? '<span>Web check run on ' + esc(web) + '</span>' : '') +
       (S.storeNote ? '<span>' + S.storeNote + '</span>' : '') + '<span class="muted">Suggestions and checks are hints; every decision is yours.</span>';
   }
@@ -638,7 +644,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       var q = S.queue[k];
       if (q.organisation !== org) { org = q.organisation; html += '<div class="org">' + esc(org || 'Organisation not named') + '</div>'; }
       html += '<button class="item" data-k="' + esc(k) + '" aria-current="' + (S.sel === k) + '"><i style="background:var(--' + (q.answer === 'dk' ? 'dk' : 'no') + ')" aria-hidden="true"></i><span class="t">' + esc(q.title) + '</span>' +
-        '<span class="m">' + pill(outcomeOf(k)) + '<span class="hint">' + esc(ANS[q.answer] || q.answer) + (q.country ? ' · ' + esc(q.country) : '') + (q.survey ? ' · ' + esc(q.survey) + ' survey' : '') + '</span></span></button>';
+        '<span class="m">' + pillOf(k) + '<span class="hint">' + esc(ANS[q.answer] || q.answer) + (q.country ? ' · ' + esc(q.country) : '') + (q.survey ? ' · ' + esc(q.survey) + ' survey' : '') + '</span></span></button>';
     });
     $('qlist').innerHTML = html;
   }
@@ -656,6 +662,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     S.draft = withStates(d && d.answers ? JSON.parse(JSON.stringify(d.answers)) : blankDraft(q));
     if (d && d.rationale_edited) S.draft.rationale = d.rationale;
     if (S.draft.note == null) S.draft.note = (d && d.note) || '';
+    if (S.draft.note.indexOf(PARK) === 0) S.draft.note = S.draft.note.slice(PARK.length);
     if (S.view !== 'queue') { S.view = 'queue'; document.querySelectorAll('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t.dataset.view === 'queue'); }); }
     render();
     var e = $('detail'), top = e.getBoundingClientRect().top;
@@ -685,7 +692,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   }
   function webCard(q) {
     var w = q.web;
-    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">' + (window.PUBLIC_PAGE ? (q.description ? 'Not checked online yet.' : 'Open the descriptions file (top of the page) to see what was found online for this example.') : 'No web check yet for this example. Ask Claude to run the web check on the queue.') + '</div></section>';
+    if (!w) return '<section class="card"><h3>Online <span class="sig none">Not checked</span></h3><div class="hint">' + (window.PUBLIC_PAGE ? (q.description ? 'Not checked online yet.' : S.evidenceNote ? S.evidenceNote(q, 'online') : 'Open the descriptions file (top of the page) to see what was found online for this example.') : 'No web check yet for this example. Ask Claude to run the web check on the queue.') + '</div></section>';
     var d = w.docs, sigKey = d && d.signal ? d.signal : w.signal, s = SIG[sigKey] || SIG.unclear;
     var head = '<section class="card"><h3>Online <span class="sig ' + s[0] + '" title="' + esc(d && d.reason || '') + '">' + s[1] + '</span></h3>';
     if (d) {
@@ -726,19 +733,24 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
   // the combined check: the tree, similar examples and the web, side by side
   function checks(q, res) {
     var rows = [], lean = [];
-    var t = !res.outcome ? ['none', 'Answer the questions first'] : (res.outcome === 'edit' || res.outcome === 'aligned') ? ['supports', OUT[res.outcome].label] : ['against', OUT[res.outcome].label];
-    rows.push(['Checklist', t]); if (t[0] !== 'none') lean.push(t[0]);
+    var t = !res.outcome ? ['none', 'Answer the questions first'] : res.outcome === 'edit' ? ['supports', OUT[res.outcome].label] : res.outcome === 'aligned' ? ['partly', OUT[res.outcome].label] : ['against', OUT[res.outcome].label];
+    rows.push(['Checklist', t]);
     var tag = defaultTag(q), ps = peersOf(q, tag), sh = ps.length ? ps.filter(peerUsed).length / ps.length : null;
     var name = { org: 'examples from the same organisation', country: 'examples from the same country', region_source: 'examples from the same region and source', source: 'examples with the same source' }[tag];
     var p = ps.length < 2 ? ['none', 'Too few similar examples'] : sh >= .6 ? ['supports', Math.round(sh * 100) + '% of ' + name + ' used them'] : sh <= .3 ? ['against', Math.round(sh * 100) + '% of ' + name + ' used them'] : ['mixed', Math.round(sh * 100) + '% of ' + name + ' used them'];
     rows.push(['Similar examples', p]); if (p[0] === 'supports' || p[0] === 'against') lean.push(p[0]);
     var wsg = q.web && q.web.docs && q.web.docs.signal ? q.web.docs.signal : (q.web && q.web.signal), w = q.web ? (SIG[wsg] || SIG.unclear) : ['none', 'Not checked'];
     var wl = [w[0], w[1]]; rows.push(['Online', wl]); if (w[0] === 'supports' || w[0] === 'against') lean.push(w[0]);
-    var sup = lean.filter(function (x) { return x === 'supports'; }).length, ag = lean.length - sup;
-    var v = !lean.length ? 'Not enough to compare yet.' : !ag ? 'The checks agree: this looks like use of the recommendations.' : !sup ? 'The checks agree: this does not look like use.' : 'The checks disagree. Look again at the evidence before you save.';
+    // compare the checklist's result with what similar examples and the documents online point to
+    var sup = lean.filter(function (x) { return x === 'supports'; }).length, ag = lean.length - sup, o = res.outcome;
+    var v = !o ? 'Answer the questions first.'
+      : !lean.length ? 'Similar examples and the online check do not point either way, so the checklist decides.'
+      : o === 'edit' ? (ag ? 'The checklist says count as using, but ' + (sup ? 'the other checks are split' : 'the other checks point the other way') + '. Look again at the evidence before you save, or park it.' : 'The other checks point the same way as the checklist: count as using.')
+      : o === 'aligned' ? (sup && !ag ? 'The other checks point to use, but the checklist is short of the bar. Look once more for a sign they already use them. If you are unsure, park it.' : 'Nothing here pushes the checklist result up: aligned, not counted as use.')
+      : (sup && !ag ? 'The other checks point to use, but the checklist found too little. Look again at the evidence, or park it.' : 'Nothing here contradicts the checklist: keep their answer.');
     return '<section class="card"><h3>Do the checks agree?</h3><div class="checks">' + rows.map(function (r) {
-      return '<div class="chk"><span class="w">' + r[0] + '</span><span>' + esc(r[1][1]) + '</span><span class="sig ' + r[1][0] + '">' + ({ supports: 'Suggests use', against: 'Suggests no use', mixed: 'Mixed', unclear: 'Doesn’t settle it', none: 'Not enough' }[r[1][0]]) + '</span></div>';
-    }).join('') + '</div><div class="verdict">' + esc(v) + '</div><div class="hint">A hint only: the decision is the reviewer’s, and the respondent’s answer is never overwritten.</div></section>';
+      return '<div class="chk"><span class="w">' + r[0] + '</span><span>' + esc(r[1][1]) + '</span><span class="sig ' + r[1][0] + '">' + ({ supports: 'Suggests use', against: 'Suggests no use', partly: 'Some evidence', mixed: 'Mixed', unclear: 'Doesn’t settle it', none: 'Not enough' }[r[1][0]]) + '</span></div>';
+    }).join('') + '</div><div class="verdict">' + esc(v) + '</div><div class="hint">A hint only: the decision is yours.</div></section>';
   }
 
   // the agreed thresholds, said as items instead of points: markers and signs of use weigh the same, good practice half
@@ -749,7 +761,8 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       (ns ? ' and ' + ns + ' good practice item' + (ns > 1 ? 's' : '') : '') + (sign ? ', one of them a sign they already use them' : '') + '. Strong items are markers of the recommendations’ approach and signs they already use them.';
     if (res.outcome === 'edit') return { state: 'Enough evidence to count it as using the recommendations.', rule: rule };
     var miss = Math.max(0, need - res.score), parts = [];
-    if (miss) parts.push(miss <= small ? 'one more good practice item, or one more strong item' : miss <= big ? 'one more strong item' : Math.ceil(miss / big) + ' more strong items');
+    if (miss) { var mb = Math.floor(miss / big), msm = Math.ceil((miss - mb * big) / small);
+      parts.push(miss <= small ? 'one more good practice item, or one more strong item' : miss <= big ? 'one more strong item' : mb + ' more strong item' + (mb > 1 ? 's' : '') + (msm ? ' and ' + msm + ' good practice item' + (msm > 1 ? 's' : '') : '')); }
     if (sign && !res.use_sign) parts.push('a sign they already use them');
     return { state: (res.outcome === 'aligned' ? 'Some evidence. ' : 'Not enough evidence yet. ') + (parts.length ? 'To count as using, it still needs ' + listJoin(parts) + '.' : ''), rule: rule };
   }
@@ -765,14 +778,14 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var facts = [['Their answer', q.answer_text || ANS[q.answer] || q.answer, 'PRO09'], ['Data source', [q.source, q.sources_more].filter(Boolean).join('; '), 'PRO08'], ['Groups covered', q.population, 'PRO07'],
       ['Partners', q.partners, 'PRO18'], ['Recommendations they know', q.known_publications, 'ACT04']];
     h += '<details open><summary class="eyebrow" style="cursor:pointer">What they told us</summary><div style="display:grid;gap:10px;margin-top:8px"><div class="facts">' + facts.map(function (f) { return '<div class="fact"><div class="k" title="Kobo question ' + f[2] + '">' + esc(f[0]) + '</div><div class="v">' + (f[1] ? esc(f[1]) : '<span class="muted">Not given</span>') + '</div></div>'; }).join('') + '</div>' +
-      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : window.PUBLIC_PAGE ? '<span class="muted">Open the descriptions file (top of the page) to see what they wrote and what was found online.</span>' : '<span class="muted">No description given.</span>') + '</div></div></details>';
+      '<div class="fact"><div class="k" title="Kobo question PRO13">Their description</div></div><div class="desc">' + (q.description ? esc(q.description) : window.PUBLIC_PAGE ? '<span class="muted">' + (S.evidenceNote ? S.evidenceNote(q, 'desc') : 'Open the descriptions file (top of the page) to see what they wrote and what was found online.') + '</span>' : '<span class="muted">No description given.</span>') + '</div></div></details>';
     if (guided()) h += evCards;
     if (!spec) { box.innerHTML = '<div class="detail">' + head + h + '<div class="empty">Loading the decision tree…</div></div>'; return; }
     var res = decideFor(k, a), st = spec.steps, o2 = st[1].options;
     var go2 = a.q1 === true, go3 = go2 && o2[a.q2 || 'none'].then === 'continue', goList = go3 && a.q4 === true;
     var t = '<div class="section-h"><span class="n">2</span><h3 style="flex:1">Before you start</h3>' + (q.suggest ? '<span class="hint">You can change any of them</span><button class="btn" id="useSugg">Use the suggestions</button>' : '') + '</div>';
     t += '<div class="screen"><div class="step' + (a.q1 != null ? ' done' : '') + '"><div class="q"><span class="n">a</span><div><b>Is this about producing statistics?</b><div class="hint">Yes for data, registers, surveys, censuses, or guidance and training on them. No for programmes that deliver aid or services (cash, health care, awareness).</div></div></div>' + yesNo('q1', a.q1) + suggLine('q1', function (v) { return v ? 'Yes' : 'No'; }) + '</div>';
-    t += '<div class="step' + (go2 ? ' done' : ' off') + '"><div class="q"><span class="n">b</span><div><b>Do they say why they didn’t use the recommendations?</b><div class="hint">Look in their description and in their answers about the recommendations.</div></div></div><div class="choice col">' +
+    t += '<div class="step' + (go2 ? ' done' : ' off') + '"><div class="q"><span class="n">b</span><div><b>Do they say why they didn’t use the recommendations?</b><div class="hint">Look in their description and in their answers about the recommendations. Choose a reason only if they state one: an empty “Recommendations they know” is not a reason.</div></div></div><div class="choice col">' +
       Object.keys(o2).map(function (x) { return '<button data-set="q2" data-v="' + x + '" aria-pressed="' + ((a.q2 || (go2 ? 'none' : '')) === x) + '"' + (go2 ? '' : ' disabled') + '>' + esc(Q2[x] || o2[x].label) + (o2[x].points ? ' <span class="hint">This counts toward use</span>' : '') + '</button>'; }).join('') +
       '</div>' + suggLine('q2', function (v) { return Q2[v] || (o2[v] ? o2[v].label : v); }) + '</div>';
     var gv = a.q4 === false ? 'none' : (a.q4 === true ? a.populations || '' : '');
@@ -795,7 +808,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
           if (c.group !== last) { last = c.group; t += '<div class="crit-group">' + esc(GH[c.group][0]) + (GH[c.group][1] ? ' <span class="muted">· ' + GH[c.group][1] + '</span>' : '') + '</div>'; }
           var stt = a.states[c.id] || '', src = a.where[c.id] || ''; if (stt) done++;
           t += '<div class="ck ' + stt + '"><div><div class="ct">' + esc(c.text) + '</div>' + (c.refs ? '<div class="refs">' + esc(c.refs) + '</div>' : '') + (sugT[c.id] ? '<div class="sugg">Suggested: found' + (/^online/.test(sugT[c.id]) ? ' ' : ' · ') + esc(sugT[c.id]) + '</div>' : '') +
-            (stt === 'found' ? '<div class="seen"><span class="hint">Seen in:</span>' + Object.keys(WHERE).map(function (w) { return '<button data-where="' + c.id + '" data-v="' + w + '" aria-pressed="' + (src === w) + '">' + WHERE[w] + '</button>'; }).join('') + '</div>' : '') + '</div>' +
+            (stt === 'found' ? '<div class="seen"><span class="hint"' + (src ? '' : ' style="color:var(--coral);font-weight:600"') + '>' + (src ? 'Seen in:' : 'Where did you see it?') + '</span>' + Object.keys(WHERE).map(function (w) { return '<button data-where="' + c.id + '" data-v="' + w + '" aria-pressed="' + (src === w) + '">' + WHERE[w] + '</button>'; }).join('') + '</div>' : '') + '</div>' +
             '<span class="tri" role="group" aria-label="' + esc(c.text) + '">' + [['found', 'Found'], ['not', 'Not found'], ['unsure', 'Can’t tell']].map(function (x) { return '<button data-state="' + c.id + '" data-v="' + x[0] + '" aria-pressed="' + (stt === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</span></div>';
         });
         t = t.replace('<span class="hint" id="ckCount"></span>', '<span class="hint" id="ckCount">' + done + ' of ' + crit.length + ' checked</span>');
@@ -812,7 +825,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
         r += '<div class="scoreline" title="' + res.score + ' of ' + need + ' points"><span>' + esc(w.state) + '</span><span class="hint">' + esc(w.rule) + '</span></div>' +
           '<div class="bar" aria-hidden="true"><i style="width:' + Math.min(100, 100 * res.score / max) + '%"></i><u style="left:' + (100 * need / max) + '%"></u></div>';
       }
-      if (res.fill) r += '<details><summary>What gets recorded</summary><div class="hint" title="PRO09_reviewed, PRO10_reviewed, PRO12_reviewed, review_source">Uses the recommendations: yes (after review) · Which: ' + esc(res.fill.PRO10_reviewed || 'choose the groups') + ' · How: ' + esc(res.fill.PRO12_reviewed.join('; ') || 'nothing found yet') + ' · Source: Secretariat review, respondent told. Their original answer stays as it was.</div></details>';
+      if (res.fill) r += '<details><summary>What gets recorded</summary><div class="hint" title="PRO09_reviewed, PRO10_reviewed, PRO12_reviewed, review_source">Uses the recommendations: yes (after review) · Which: ' + esc(res.fill.PRO10_reviewed || 'choose the groups') + ' · How: ' + esc(res.fill.PRO12_reviewed.join('; ') || 'nothing found yet') + ' · Source: Secretariat review, respondent told. If they do not object in the waiting period, the survey answer is edited in Kobo; the original is kept in the cleaning log.</div></details>';
       r += '</div>';
     } else {
       var nextQ = a.q1 == null ? 'question a' : a.q4 == null ? 'question c' : 'the kind of example';
@@ -820,9 +833,9 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     }
     var who = saved && saved.saved_at ? 'Saved ' + new Date(saved.saved_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + (saved.reviewer ? ' by ' + (saved.reviewer === S.me ? 'you' : (S.names[saved.reviewer] || 'a reviewer')) : '') + ': ' + (OUT[saved.outcome] ? OUT[saved.outcome].label : saved.outcome) + (saved.unsent ? ' · NOT received by Kobo: submit it again' : saved.pending ? ' · being shared with colleagues' : '') : 'Not saved yet';
     var nxt = nextOpen(k), can = !!res.outcome && !S.readOnly;
-    var noteBox = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later">' + esc(a.note || '') + '</textarea></div>';
+    var noteBox = '<div><label class="eyebrow" for="dnote">Reviewer note</label><textarea id="dnote" placeholder="Why, in a line, for whoever reads this later. If you park it: what you are unsure about.">' + esc(a.note || '') + '</textarea></div>';
     var save = '<div class="save"><button class="btn primary" id="saveNext"' + (can && nxt ? '' : ' disabled') + ' title="' + (nxt ? 'Save, then open the next example not reviewed yet' : 'No other example is waiting') + '">Save and go to next</button>' +
-      '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Undo this decision</button>' : '') +
+      '<button class="btn" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + '<button class="btn" id="parkBtn"' + (can ? '' : ' disabled') + ' title="Not sure? Write what you are unsure about in the reviewer note, then park it. It is saved with what you found and stays in To review.">Park for consultation</button>' + (saved ? '<button class="btn" id="clearBtn"' + (S.readOnly ? ' disabled' : '') + '>Undo this decision</button>' : '') +
       (window.PUBLIC_PAGE ? '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button>' : '') +
       '<span class="savest" id="saveStatus">' + esc(S.readOnly ? 'You can read this review but not save decisions.' : who) + '</span></div>';
     var why = '';
@@ -855,7 +868,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     var nav = '<div class="save">' + (s > 1 ? '<button class="btn" data-step="' + prev + '">← Back</button>' : '') +
       (s < 4 ? '<button class="btn primary" data-step="' + next + '"' + (nextOk ? '' : ' disabled') + '>Next →</button>' + (nextOk ? '' : '<span class="savest">' + (s === 2 ? 'Answer the questions to go on.' : 'Choose the kind of example to go on.') + '</span>') : '') +
       (s === 4 && S.practice ? '<button class="btn primary" id="practiceEnd">Finish practice</button><span class="savest">Nothing here is saved.</span>' : '') +
-      (s === 4 && !S.practice ? '<button class="btn primary" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + (saved ? '<button class="btn" id="clearBtn">Undo this decision</button>' : '') + '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') +
+      (s === 4 && !S.practice ? '<button class="btn primary" id="saveBtn"' + (can ? '' : ' disabled') + '>Save</button>' + '<button class="btn" id="parkBtn"' + (can ? '' : ' disabled') + ' title="Not sure? Write what you are unsure about in the reviewer note, then park it. It is saved with what you found and stays in To review.">Park for consultation</button>' + (saved ? '<button class="btn" id="clearBtn">Undo this decision</button>' : '') + '<button class="btn" id="printChk" title="Print this example’s checklist, or save it as PDF">Print checklist</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') +
       (s === 5 ? '<button class="btn primary" id="gNext">' + (nxt ? 'Next example →' : 'Back to the list') + '</button><span class="savest" id="saveStatus">' + esc(who) + '</span>' : '') + '</div>';
     if (S.practice) head = '<div class="coach top"><b>Practice example.</b> This one is already decided. Walk through the steps to see how; change anything you like, nothing is saved. <button class="linkbtn" id="practiceEnd">Leave practice</button></div>' + head;
     box.innerHTML = '<div class="detail">' + head + strip + body + '<div class="dock" aria-live="polite">' + r + nav + '</div></div>';
@@ -922,10 +935,10 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (!ds.length) { $('mails').innerHTML = '<div class="panel empty"><b>No drafts yet.</b><span>A draft appears here for each organisation with at least one example saved as Count as using or Send the recommendations. One email covers all of its examples.</span></div>'; return; }
     $('mails').innerHTML = ds.map(function (d, i) {
       return '<section class="panel mail"><div class="row"><div><div class="eyebrow">' + d.ks.length + ' example' + (d.ks.length > 1 ? 's' : '') + '</div><h2>' + esc(d.org) + '</h2></div>' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (d.sent ? '<span class="pill edit">Sent ' + esc(d.sent) + '</span>' : '') +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (d.sent ? '<span class="pill edit">Sent ' + esc(d.sent) + '</span>' : '') + (d.sent && d.edits.length ? '<span class="pill aligned">Reply due ' + esc(replyBy(d.ks)) + '</span>' : '') +
         '<button class="btn primary" data-copy="' + i + '">Copy draft</button><button class="btn" data-sent="' + esc(d.ks.join('|')) + '"' + (S.readOnly ? ' disabled' : '') + '>' + (d.sent ? 'Mark as not sent' : 'Mark as sent today') + '</button></div></div>' +
         d.parts.map(function (p) { return '<pre data-mail="' + i + '">' + esc(p) + '</pre>'; }).join('') + d.notes +
-        (d.edits.length ? '<div class="hint">If they reply that it is wrong, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + (window.PUBLIC_PAGE ? '<div class="hint">This page never reads contact details. Find the focal point’s name and email in Kobo.</div>' : '') + '</section>';
+        (d.edits.length ? '<div class="hint"><b>What happens next.</b> ' + (d.sent ? 'Wait until ' + esc(replyBy(d.ks)) + ' (' + WAIT_DAYS + ' working days). No objection by then: edit the answer in the Kobo submission and fill the cleaning log.' : 'Send it, then press “Mark as sent today”. The reply date in the draft counts ' + WAIT_DAYS + ' working days from the day it is sent.') + ' If they object, open the example, add their reply to the note and change the decision: their original answer stands.</div>' : '') + (window.PUBLIC_PAGE ? '<div class="hint">This page never reads contact details. Find the focal point’s name and email in Kobo.</div>' : '') + '</section>';
     }).join('');
   }
   // what the referenced paragraphs say: the official wording when excerpts.json has it, else the criterion's plain summary
@@ -986,8 +999,13 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       (anyNo ? 'You indicated that the recommendations were not used. ' : 'You indicated that you did not know whether the recommendations were used. ') +
       'We looked at ' + (ks.length > 1 ? 'each example' : 'the example') + ' against the recommendations, and here is what we found.\n\n' + blocks.join('\n\n') +
       (sim ? '\n\n' + sim : '') + refBlock +
-      '\n\nIf any of these points is wrong, just reply and we will restore your original answer.\n\nWith thanks,\n[names], EGRISS Secretariat';
+      '\n\nIf any of these points is wrong, please reply by ' + replyBy(ks) + ' and we will keep your original answer. If we do not hear from you by then, we will update your answer in the GAIN 2026 survey to show the ' + (A.join(' and ') || 'recommendations') + ' as used.\n\nWith thanks,\n[names], EGRISS Secretariat';
   }
+  // the waiting period: working days after the email goes out (today, until it is marked as sent)
+  var WAIT_DAYS = 10;
+  function addWorkdays(d, n) { d = new Date(d); while (n > 0) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) n--; } return d; }
+  function longDate(d) { return d.getDate() + ' ' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][d.getMonth()] + ' ' + d.getFullYear(); }
+  function replyBy(ks) { var s = ks.map(function (k) { return S.dec[k] && S.dec[k].notified_on; }).filter(Boolean)[0]; return longDate(addWorkdays(s ? new Date(s + 'T12:00:00') : new Date(), WAIT_DAYS)); }
   function outreachMail(org, ks) {
     var acr = {}, kinds = {}; ks.forEach(function (k) { var a = S.dec[k].answers, sq = S.queue[k].suggest || {}; acronyms(a.populations || sq.populations).forEach(function (x) { acr[x] = 1; }); var kd = a.kind || (sq.kind && sq.kind.value); if (kd) kinds[kd] = 1; });
     var A = Object.keys(acr); if (!A.length) A = ['IRRS'];
@@ -1047,7 +1065,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (b.dataset.state && S.draft) {
       var id = b.dataset.state; S.draft.states[id] = S.draft.states[id] === b.dataset.v ? undefined : b.dataset.v;
       if (!S.draft.states[id]) delete S.draft.states[id];
-      if (S.draft.states[id] === 'found' && !S.draft.where[id]) { var sw = ((S.queue[S.sel].suggest || {}).ticks || []).filter(function (x) { return x.id === id; })[0]; S.draft.where[id] = sw ? guessWhere(sw.why) : 'desc'; }
+      if (S.draft.states[id] === 'found' && !S.draft.where[id]) { var sw = ((S.queue[S.sel].suggest || {}).ticks || []).filter(function (x) { return x.id === id; })[0]; S.draft.where[id] = sw ? guessWhere(sw.why) : docHits(S.queue[S.sel]).some(function (x) { return x.id === id; }) ? 'web' : ''; }
       syncTicks(S.draft); renderDetail(); renderTube(); return;
     }
     if (b.dataset.where && S.draft) { S.draft.where[b.dataset.where] = b.dataset.v; renderDetail(); return; }
@@ -1074,6 +1092,10 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
     if (b.id === 'modeBtn') { S.onePage = !S.onePage; try { if (S.onePage) localStorage.setItem('gainReviewOnePage', '1'); else localStorage.removeItem('gainReviewOnePage'); } catch (x) {} render(); return; }
     if (b.id === 'gStart' || b.id === 'gNext') { var n2 = b.id === 'gNext' ? nextOpen(S.sel) : keys().filter(function (x) { return !outcomeOf(x); })[0]; if (n2) { select(n2); } else { S.sel = null; S.draft = null; render(); } return; }
     if (b.id === 'saveBtn') { save(); return; }
+    if (b.id === 'parkBtn') {
+      if (!(S.draft.note || '').trim()) { var nb = $('dnote'); if (nb) { nb.focus(); nb.placeholder = 'What are you unsure about? Write it here, then press Park for consultation again.'; } if ($('saveStatus')) $('saveStatus').textContent = 'Write what you are unsure about in the reviewer note first.'; return; }
+      save(null, { park: true }); return;
+    }
     if (b.id === 'saveNext') { var nx = nextOpen(S.sel); save(function () { if (nx) { select(nx); $('detail').scrollIntoView({ block: 'start' }); } }); return; }
     if (b.id === 'clearBtn') { clearDecision(); return; }
     if (b.dataset.copy != null) {
@@ -1097,7 +1119,7 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
 
   // @actions-claude
   var saving = false;
-  function save(then) {
+  function save(then, opt) {
     if (saving || !S.db || !S.sel) return;
     var q = S.queue[S.sel], a = S.draft, res = decideFor(S.sel, a);
     if (!res.outcome) return;
@@ -1107,8 +1129,9 @@ textarea { width: 100%; min-height: 60px; background: var(--panel); border: 1px 
       fill: res.fill || null, reviewer: S.me || null, saved_at: new Date().toISOString(), spec_version: S.spec.version || null,
       notified_on: prev.notified_on || null, objection: prev.objection || null,
       rationale: a.rationale != null ? a.rationale : (S.genWhy || ''), rationale_edited: a.rationale != null };
+    if (opt && opt.park) { doc.outcome = 'parked'; doc.note = PARK + (a.note || ''); }
     saving = true; $('saveStatus').textContent = 'Saving…';
-    S.db.collection('decisions').doc(S.sel).set(doc).then(function () { saving = false; $('saveStatus').textContent = 'Saved: ' + OUT[res.outcome].label; if (then) then(); })
+    S.db.collection('decisions').doc(S.sel).set(doc).then(function () { saving = false; $('saveStatus').textContent = 'Saved: ' + OUT[doc.outcome].label; if (then) then(); })
       .catch(function (e) { saving = false; if (e.code === 'invalid_argument') { S.readOnly = true; renderDetail(); } $('saveStatus').textContent = 'Not saved (' + e.code + '). ' + (e.code === 'invalid_argument' ? 'Your access lets you read the review but not save to it.' : 'Try again in a moment.'); });
   }
   function clearDecision() {

@@ -29,7 +29,7 @@
         web: WEB[sig] || 'Not checked', docs_read: docs ? (docs.documents || []).filter(function (x) { return x.read; }).length : 0, online: docs ? (docs.summary || []).join(' ') : ((q.web && q.web.summary) || ''),
         org_before: (h.org || []).filter(function (x) { return x.year !== '2026'; }).map(function (x) { return x.year + ' ' + (x.used ? (x.recs && x.recs !== 'Not named' ? x.recs.replace(/;/g, '+') : 'used, not named') : 'not used'); }).join(', '),
         country_before: q.country ? fmtB(h.country) : '' };
-      if (!d || !d.outcome) return Object.assign(base, { outcome: 'open', outcome_label: 'To review' });
+      if (!d || !d.outcome || d.outcome === 'parked') return Object.assign(base, { outcome: 'open', outcome_label: d && d.outcome === 'parked' ? 'To review · parked for consultation' : 'To review' });
       var g = T.rationale(R, spec, q, d, { excerpts: excerpts, peerUsed: peerUsed });
       var a = d.answers || {}, where = a.where || {};
       var email = d.outcome === 'edit' || d.outcome === 'outreach' ? (d.notified_on ? 'Sent ' + d.notified_on : 'To send') : 'No email';

@@ -78,6 +78,12 @@
   loadDecisions().catch(function () {});
   PUB.refresh = setInterval(function () { loadDecisions().catch(function () {}); loadQueue().catch(function () {}); }, 5 * 60000);
 
+  // why an example shows no description: no file open, or the file was made before the example arrived
+  S.evidenceNote = function (q, what) {
+    var ev = PUB.evidence, thing = what === 'online' ? 'what was found online for this example' : 'what they wrote and what was found online';
+    if (!ev) return 'Open the descriptions file (top of the page) to see ' + thing + '.';
+    return 'This example arrived after your descriptions file was made (' + esc(String(ev.pulled_at || ev.made_at || '').slice(0, 10)) + '), so the file does not cover it. Ask the Secretariat for a newer file before you review it.';
+  };
   // ---------- the evidence file ----------
   function applyEvidence() {
     var ev = PUB.evidence; if (!ev) return;
@@ -156,17 +162,24 @@
     return '<div class="gsub ok"><h3>Shared</h3><div>Kobo has this decision, and colleagues can see it.</div></div>';
   };
   var saving = false;
-  function save(then) {
+  function save(then, opt) {
     if (saving || !S.sel) return;
     var q = S.queue[S.sel], a = S.draft, res = decideFor(S.sel, a);
     if (!res.outcome) return;
-    askMe();
+    if (!askMe()) {   // every decision carries who made it
+      var mi = $('meInput'); if (mi) { mi.focus(); mi.style.outline = '2px solid var(--coral)'; mi.scrollIntoView({ block: 'center' }); }
+      if ($('saveStatus')) $('saveStatus').textContent = 'Type your initials at the top of the page first, then save.';
+      return;
+    }
+    var park = !!(opt && opt.park);
     var prev = S.dec[S.sel] || {};
     var doc = { key: S.sel, response_id: q.response_id, title_start: q.title_start, answer: q.answer, outcome: res.outcome, score: res.score, use_sign: res.use_sign,
       answers: { q1: a.q1, q2: a.q2 || 'none', kind: a.kind, q4: a.q4, ticks: a.ticks.slice(), states: a.states || {}, where: a.where || {}, populations: a.populations || '' }, note: a.note || '',
       fill: res.fill || null, reviewer: S.me || null, saved_at: new Date().toISOString(), spec_version: S.spec.version || null,
       notified_on: prev.notified_on || null, objection: prev.objection || null,
       rationale: a.rationale != null ? a.rationale : (S.genWhy || ''), rationale_edited: a.rationale != null };
+    // parked: the form still gets the checklist's outcome (it only knows those); the note's opening words mark it as parked
+    if (park) { doc.outcome = 'parked'; doc.note = PARK + (a.note || ''); }
     var sent = submit(S.sel, 'save', doc, { outcome: res.outcome, score: res.score, use_sign: yn(res.use_sign), q1: yn(a.q1), q2: a.q2 || 'none', q4: yn(a.q4),
       populations: a.populations || '', kind: a.kind || '', ticks: encodeTicks(a), rationale: doc.rationale, rationale_edited: yn(doc.rationale_edited), note: doc.note });
     if (guided()) S.step = 5;
@@ -236,7 +249,7 @@
     else if (b.id === 'evClose') { PUB.evidence = null; try { sessionStorage.removeItem(EVID_KEY); } catch (x) {} loadQueue().catch(function () {}); }
   });
   document.addEventListener('change', function (e) {
-    if (e.target.id === 'meInput') { setMe(e.target.value); render(); }
+    if (e.target.id === 'meInput') { e.target.style.outline = ''; setMe(e.target.value); render(); }
     if (e.target.id === 'evFile' && e.target.files && e.target.files[0]) { var f = e.target.files[0], rd = new FileReader(); rd.onload = function () { openEvidence(String(rd.result)); }; rd.readAsText(f); e.target.value = ''; }
   });
   window.addEventListener('focus', function () { loadDecisions().catch(function () {}); });
@@ -246,8 +259,8 @@
   // ---------- first visit: three short cards on what this is, how a decision is made, and how saving works ----------
   var INTRO_KEY = 'gainReviewIntroSeen', introAt = 0;
   var INTRO = [
-    ['What we check', '<p>Some respondents say the recommendations were <b>not used</b>, or that they <b>don’t know</b>. Some of those examples follow the recommendations’ approach without naming them.</p><ul><li>You look at one example at a time and decide what the evidence shows.</li><li>Their own answer is never changed. If we count an example as using, we tell the organisation why.</li><li>Suggestions on the page are hints. Every decision is yours.</li></ul>'],
-    ['How a decision is made', '<div class="flow"><span>1 Read</span><span>2 Three questions</span><span>3 Checklist</span><span>4 Decide</span><span>5 Submit</span></div><ul><li>The evidence stays beside you while you answer.</li><li>Said <b>don’t know</b>: two strong items are enough to count it as using.</li><li>Said <b>not used</b>: we ask for more, including a sign they already use them.</li><li>Some evidence below that is recorded as <b>aligned</b>.</li></ul>'],
+    ['What we check', '<p>Some respondents say the recommendations were <b>not used</b>, or that they <b>don’t know</b>. Some of those examples follow the recommendations’ approach without naming them.</p><ul><li>You look at one example at a time and decide what the evidence shows.</li><li>If we count an example as using, we email the organisation why. If they do not object within 10 working days, their answer is edited in Kobo; the original is kept in the cleaning log.</li><li>Suggestions on the page are hints. Every decision is yours.</li></ul>'],
+    ['How a decision is made', '<div class="flow"><span>1 Read</span><span>2 Three questions</span><span>3 Checklist</span><span>4 Decide</span><span>5 Submit</span></div><ul><li>The evidence stays beside you while you answer.</li><li>Said <b>don’t know</b>: two strong items are enough to count it as using.</li><li>Said <b>not used</b>: we ask for more, including a sign they already use them.</li><li>Some evidence below that is recorded as <b>aligned</b>.</li><li>Not sure? Write why in the note and press <b>Park for consultation</b>.</li></ul>'],
     ['Before you start, and when you save', '<ul><li>Type <b>your initials</b> at the top, and press <b>Open descriptions file</b>: it holds what respondents wrote and what we found online. Ask the Secretariat where it is kept.</li><li>Saving takes two presses: <b>Save</b> here, then <b>Submit</b> in the Kobo tab that opens.</li><li>Colleagues see your decision within about 20 minutes.</li></ul>']
   ];
   function showIntro(i) {
