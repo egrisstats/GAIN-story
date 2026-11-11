@@ -52,8 +52,7 @@ def resolve_names(asset):
         hit = [c for c in cands if c in names]
         if not hit and label_start:
             for s in survey:
-                lab = s.get("label", [""])
-                lab = strip_html(lab[0] if isinstance(lab, list) and lab else lab).lower()
+                lab = strip_html(K.pick(s.get("label", ""), K.english(asset))).lower()
                 if lab.startswith(label_start) and s.get("name"):
                     hit = [s["name"]]; break
         out[key] = hit or cands
@@ -181,9 +180,10 @@ def build():
     """{"meta", "queue"} for every example that said No or Don't know. Holds descriptions and partners:
     callers must keep it out of the repo (main refuses) or strip those fields (review_sync.py)."""
     past = list(csv.DictReader(open(PAST, encoding="utf-8"))) if PAST.exists() else []
-    queue, n_ex = [], 0
+    queue, n_ex, main_labels = [], 0, None
     for asset, subs, survey in K.forms():
-        labels = K.label_maps(asset)
+        labels = K.label_maps(asset, main_labels)   # the other surveys read with the main form's labels
+        main_labels = main_labels or labels
         N = resolve_names(asset)
         blocked = K.blocked_questions(asset)
         if any(q in blocked for v in N.values() for q in v):

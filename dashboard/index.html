@@ -223,6 +223,8 @@ td { padding: 8px 8px; border-bottom: 1px solid var(--grid); color: var(--ink-2)
 td:first-child { white-space: nowrap; color: var(--ink-3); font-family: "IBM Plex Mono", monospace; font-size: var(--fs-m); }
 tr.new td { background: color-mix(in srgb, var(--new) 7%, transparent); }
 tr.esc td:first-child { box-shadow: inset 4px 0 0 var(--escwa); }
+tr.esc td { background: color-mix(in srgb, var(--escwa) 7%, transparent); }
+.escn { white-space: nowrap; }
 .tag.esc { background: color-mix(in srgb, var(--escwa) 16%, transparent); color: var(--ink); border: 1px solid color-mix(in srgb, var(--escwa) 55%, transparent); }
 .tag { display: inline-block; border-radius: var(--r-s); padding: 1px 6px; font-size: var(--fs-s); margin: 1px 2px 1px 0; background: var(--chip); color: var(--ink-2); white-space: nowrap; }
 .tag .sw { width: 7px; height: 7px; margin-right: 4px; }
@@ -702,10 +704,15 @@ footer a { color: var(--ink-2); }
     var dayAgo = new Date(+S.asOf - 864e5);
     var last24 = new Set(allResp.filter(function (d) { return d.t > dayAgo; }).map(function (d) { return d.id; })).size;
     var left = Math.ceil((CONFIG.deadline - S.asOf) / 864e5);
+    // the UNESCWA survey's share of the examples and responses, shown in its own colour
+    var exE = rows.filter(function (d) { return d.survey; }).length;
+    var respE = new Set(allResp.filter(function (d) { return d.survey; }).map(function (d) { return d.id; })).size;
+    var escNote = function (n) { return n ? '<br><span class="escn" title="Submitted through the UNESCWA survey: GAIN 2026 with the regional module. Counted in the total."><i class="sw" style="--c:var(--escwa)"></i>' + n + ' from the UNESCWA survey</span>' : ''; };
+    var fill = Math.min(1, rows.length / CONFIG.bench), shareE = rows.length ? exE / rows.length : 0;
     var tiles = [
-      { k: 'Examples', v: rows.length, s: pct(rows.length, CONFIG.bench) + ' of GAIN 2025 (' + CONFIG.bench + ')',
-        bar: [[Math.min(1, rows.length / CONFIG.bench), C('ink-2')]] },
-      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') +
+      { k: 'Examples', v: rows.length, s: pct(rows.length, CONFIG.bench) + ' of GAIN 2025 (' + CONFIG.bench + ')' + escNote(exE),
+        bar: [[fill * (1 - shareE), C('ink-2')], [fill * shareE, C('escwa')]] },
+      { k: 'Responses', v: resp, s: last24 + ' in the last 24 hours' + (noEx ? ' · ' + noEx + ' with no new example' : '') + escNote(respE) +
         (function () { var k = dayIdx(open26(), S.asOf || new Date()), p = !S.demo && pastAt('2025', k); return p ? '<br>GAIN 2025 had ' + p.c + ' by day ' + k : ''; })() },
       { k: 'Countries', v: ctry, s: 'with at least one example' },
       { k: 'Country · institution', v: nC + ' · ' + nI, s: '<i class="sw" style="--c:var(--country)"></i>country-led · <i class="sw" style="--c:var(--inst)"></i>institution-led',
@@ -1242,11 +1249,12 @@ footer a { color: var(--ink-2); }
       } else {
         g.append('circle').attr('r', dr).attr('fill', byLead ? LEAD[d.lead].color : RECBY[d.rec].color);
       }
+      if (d.survey) g.append('circle').attr('r', dr + 1.6).attr('fill', 'none').attr('stroke', C('escwa')).attr('stroke-width', 1.4);
       g.append('circle').attr('r', Math.max(dr + 2, p / 2)).attr('fill', 'transparent')
         .on('mousemove', function (ev) {
           showTip('<b>' + esc(d.country || 'Regional / global') + '</b> · ' + LEAD[d.lead].name + '<div>' + esc(d.org) + '</div><div class="muted" style="margin:3px 0">' + esc(d.title) + '</div>' +
             (d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i class="sw" style="background:' + RECBY[c].color + '"></i>' + c + '</span>'; }).join('') : '<span class="tag"><i class="sw" style="background:' + RECBY[d.rec].color + '"></i>' + RECBY[d.rec].name + '</span>') +
-            '<div class="muted" style="margin-top:3px">Submitted ' + fmtTime(d.t) + '</div>', ev);
+            '<div class="muted" style="margin-top:3px">Submitted ' + fmtTime(d.t) + (d.survey ? ' · <i class="sw" style="--c:var(--escwa)"></i>' + esc(d.survey) + ' survey' : '') + '</div>', ev);
         }).on('mouseleave', hideTip);
     });
     // inner ring
@@ -1420,7 +1428,8 @@ footer a { color: var(--ink-2); }
     var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats: ' + nFlag + (nOpen ? ' · ' + nOpen + ' to check' : ''); fb.setAttribute('aria-pressed', !!S.flagOnly);
     var nRev = all.filter(function (d) { return d.review; }), nDone = nRev.filter(alignOf).length, ab = document.getElementById('alignBtn');
     ab.textContent = 'Answers to review: ' + nRev.length + (nRev.length ? ' · ' + nDone + ' reviewed' : ''); ab.setAttribute('aria-pressed', !!S.alignOnly);
-    document.getElementById('feedSub').textContent = rows.length + ' examples' + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + (S.alignOnly ? ' answered No or Don’t know' : '') + ' · newest first · highlighted: last 24 hours';
+    var nE = rows.filter(function (d) { return d.survey; }).length;
+    document.getElementById('feedSub').textContent = rows.length + ' examples' + (nE ? ' (' + nE + ' from the UNESCWA survey, marked in purple)' : '') + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + (S.alignOnly ? ' answered No or Don’t know' : '') + ' · newest first · highlighted: last 24 hours';
     document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
       var rec = RECBY[d.rec];
       var recTags = d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i class="sw" style="background:' + (RECBY[c] ? RECBY[c].color : rec.color) + '"></i>' + c + '</span>'; }).join('')

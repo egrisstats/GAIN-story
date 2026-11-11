@@ -84,18 +84,35 @@ def forms():
     return out
 
 
-def label_maps(asset):
-    """question name -> {choice name: label}, from the deployed form."""
+def english(asset):
+    """index of the English labels in the form's translations (0 when the form has one language).
+    The UN-ESCWA form lists Arabic first; the feed always carries the English choice labels."""
+    for i, name in enumerate(asset.get("content", {}).get("translations") or []):
+        if name and re.search(r"english|\(en\)", str(name), re.I):
+            return i
+    return 0
+
+
+def pick(label, i, fallback=""):
+    """a question's or choice's label in translation i, else the first one given"""
+    if not isinstance(label, list):
+        return label or fallback
+    return (label[i] if i < len(label) and label[i] else next((x for x in label if x), "")) or fallback
+
+
+def label_maps(asset, base=None):
+    """question name -> {choice name: label}, from the deployed form. With `base` (the main form's map),
+    a choice the main form also has takes the main form's label, so both surveys read the same in the feed."""
     content = asset.get("content", {})
+    en = english(asset)
     lists = {}
     for c in content.get("choices", []):
-        lab = c.get("label") or [c["name"]]
-        lists.setdefault(c["list_name"], {})[c["name"]] = (lab[0] if isinstance(lab, list) else lab) or c["name"]
+        lists.setdefault(c["list_name"], {})[c["name"]] = pick(c.get("label"), en, c["name"])
     q = {}
     for s in content.get("survey", []):
         ln = s.get("select_from_list_name")
         if ln and "name" in s:
-            q[s["name"]] = lists.get(ln, {})
+            q[s["name"]] = {**lists.get(ln, {}), **{k: v for k, v in (base or {}).get(s["name"], {}).items() if k in lists.get(ln, {})}}
     return q
 
 
@@ -194,12 +211,13 @@ def main():
     bad = {q for q in mapped if PERSONAL.search(q)}
     if bad:
         sys.exit(f"Refusing: these questions look like respondent details and would go public: {sorted(bad)}")
-    out, n_sub = [], 0
+    out, n_sub, main_labels = [], 0, None
     for asset, subs, survey in forms():
         bad = mapped & blocked_questions(asset)
         if bad:
             sys.exit(f"Refusing: these questions sit in a blocked group ({sorted(BLOCKED)}): {sorted(bad)}")
-        labels = label_maps(asset)
+        labels = label_maps(asset, main_labels)
+        main_labels = main_labels or labels
         L, scope = CFG["lead"], CFG.get("no_country_scope", {})
         combine = set(CFG.get("combine", []))
         skip = set(CFG.get("skip_validation_status", []))
