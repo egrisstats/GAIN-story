@@ -527,7 +527,7 @@ footer a { color: var(--ink-2); }
 
   // ---------- country names and regions ----------
   var ALIAS = { 'Democratic Republic of the Congo': 'Dem. Rep. Congo', 'DR Congo': 'Dem. Rep. Congo', 'Central African Republic': 'Central African Rep.',
-    'Republic of the Congo': 'Congo', 'South Sudan': 'S. Sudan', 'Republic of Moldova': 'Moldova', 'State of Palestine': 'Palestine',
+    'Republic of the Congo': 'Congo', 'South Sudan': 'S. Sudan', 'Republic of Moldova': 'Moldova', 'Rep. of Chad': 'Chad', 'Republic of Chad': 'Chad', 'State of Palestine': 'Palestine',
     'Syrian Arab Republic': 'Syria', 'Turkiye': 'Turkey', 'Türkiye': 'Turkey', 'Kosovo*': 'Kosovo', 'Bosnia and Herzegovina': 'Bosnia and Herz.',
     'Dominican Republic': 'Dominican Rep.', 'Lao PDR': 'Laos', "Lao People's Democratic Republic": 'Laos', 'Iran (Islamic Republic of)': 'Iran',
     'Russian Federation': 'Russia', 'United Republic of Tanzania': 'Tanzania', 'Viet Nam': 'Vietnam', 'North Macedonia': 'Macedonia',
@@ -564,7 +564,14 @@ footer a { color: var(--ink-2); }
     for (var k = 0; k < STORY_REG.length; k++) if (inPoly(c, STORY_REG[k].poly)) return STORY_REG[k].name;
     return 'Other';
   }
-  function assignRegions() { S.rows.forEach(function (d) { if (!d.fixedRegion) d.region = regionOf(d.mn); }); }
+  // a country the map does not know by the survey's name: try it without "Republic of" and the like, so it never falls into "Other" silently
+  function plainName(n) { return String(n || '').replace(/\*+$/, '').replace(/^(the\s+)?((federal|islamic|united|democratic|people.s|arab|state|kingdom|rep\.?|republic)\s+)*of\s+(the\s+)?/i, '').trim(); }
+  function assignRegions() {
+    S.rows.forEach(function (d) {
+      if (d.mn && !CENTROID[d.mn] && !POINTS[d.mn]) { var pn = plainName(d.mn); if (CENTROID[pn] || POINTS[pn]) d.mn = pn; }
+      if (!d.fixedRegion) d.region = regionOf(d.mn);
+    });
+  }
   function mapName(c) { return ALIAS[c] || c; }
 
   // ---------- state ----------
