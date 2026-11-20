@@ -310,16 +310,19 @@ footer a { color: var(--ink-2); }
     <section class="panel" aria-labelledby="hGlobe">
       <div class="ph">
         <div><h2 id="hGlobe">Where examples come from</h2><div class="sub" id="globeSub">Examples per country · drag to turn, Ctrl/⌘ + scroll to zoom, click a country to filter</div></div>
-        <span class="seg" id="projSeg">
-          <button type="button" data-v="globe" aria-pressed="true">Globe</button>
-          <button type="button" data-v="flat" aria-pressed="false">Map</button>
+        <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <button class="btn" type="button" id="noExBtn" aria-pressed="false" title="Also mark countries that responded but reported no example">Responded, no examples</button>
+          <span class="seg" id="projSeg">
+            <button type="button" data-v="globe" aria-pressed="true">Globe</button>
+            <button type="button" data-v="flat" aria-pressed="false">Map</button>
+          </span>
         </span>
       </div>
       <div id="globeBox">
         <svg id="globe" role="img" aria-label="Globe of countries with GAIN 2026 examples"></svg>
         <div class="globe-ui">
           <div class="ramp"><div>Examples per country</div><div class="rbar" id="rampBar"></div><div class="rl"><span>1</span><span id="rampMax">–</span></div>
-            <div style="margin-top:6px"><i class="sw dot" style="--c:var(--new)"></i>New in the last 24 hours</div><div class="esc-key" style="margin-top:4px"><i class="sw dot" style="--c:var(--escwa)"></i>Has an example from the UNESCWA survey</div></div>
+            <div style="margin-top:6px"><i class="sw dot" style="--c:var(--new)"></i>New in the last 24 hours</div><div class="esc-key" style="margin-top:4px"><i class="sw dot" style="--c:var(--escwa)"></i>Has an example from the UNESCWA survey</div><div id="noExKey" style="margin-top:4px;display:none"><i class="sw" style="background:repeating-linear-gradient(45deg,rgba(207,224,244,.75) 0 2px,rgba(207,224,244,.16) 2px 5px)"></i>Responded, no examples reported</div></div>
           <div class="ramp" id="noCountry" style="text-align:right"></div>
         </div>
       </div>
@@ -527,7 +530,7 @@ footer a { color: var(--ink-2); }
 
   // ---------- country names and regions ----------
   var ALIAS = { 'Democratic Republic of the Congo': 'Dem. Rep. Congo', 'DR Congo': 'Dem. Rep. Congo', 'Central African Republic': 'Central African Rep.',
-    'Republic of the Congo': 'Congo', 'South Sudan': 'S. Sudan', 'Republic of Moldova': 'Moldova', 'Rep. of Chad': 'Chad', 'Republic of Chad': 'Chad', 'State of Palestine': 'Palestine',
+    'Republic of the Congo': 'Congo', 'South Sudan': 'S. Sudan', 'Republic of Moldova': 'Moldova', 'Rep. of Chad': 'Chad', 'Cape Verde': 'Cabo Verde', 'Republic of Chad': 'Chad', 'State of Palestine': 'Palestine',
     'Syrian Arab Republic': 'Syria', 'Turkiye': 'Turkey', 'Türkiye': 'Turkey', 'Kosovo*': 'Kosovo', 'Bosnia and Herzegovina': 'Bosnia and Herz.',
     'Dominican Republic': 'Dominican Rep.', 'Lao PDR': 'Laos', "Lao People's Democratic Republic": 'Laos', 'Iran (Islamic Republic of)': 'Iran',
     'Russian Federation': 'Russia', 'United Republic of Tanzania': 'Tanzania', 'Viet Nam': 'Vietnam', 'North Macedonia': 'Macedonia',
@@ -541,7 +544,7 @@ footer a { color: var(--ink-2); }
     'Seychelles': [55.45, -4.6], 'Andorra': [1.6, 42.5], 'Monaco': [7.42, 43.74], 'San Marino': [12.45, 43.94], 'Barbados': [-59.55, 13.15] };
   // the five GAIN regions of the story, drawn as lon/lat outlines; a country belongs to the one holding its centroid
   var STORY_REG = [
-    { name: 'Africa', at: [18, 4], poly: [[-20, 38], [10, 38], [32, 32], [35, 29], [43, 12], [52, 12], [52, -36], [-20, -36]] },
+    { name: 'Africa', at: [18, 4], poly: [[-20, 38], [10, 38], [32, 32], [35, 29], [43, 12], [52, 12], [52, -36], [-26, -36], [-26, 30]] },
     { name: 'Europe', at: [18, 48], poly: [[-30, 72], [60, 72], [60, 42], [42, 42], [26, 41], [27, 36], [-10, 35], [-30, 40]] },
     { name: 'Americas', at: [-80, 10], poly: [[-180, 84], [-30, 84], [-30, -58], [-180, -58]] },
     { name: 'Asia and Oceania', at: [105, 15], poly: [[60, 84], [180, 84], [180, -58], [105, -58], [95, 6], [60, 20], [62, 40], [60, 42]] },
@@ -1068,6 +1071,9 @@ footer a { color: var(--ink-2); }
     var defs = gSvg.append('defs');
     var ag = defs.append('radialGradient').attr('id', 'atmo');
     [[0.80, 'rgba(76,195,201,0.32)'], [0.86, 'rgba(76,195,201,0.10)'], [1, 'rgba(76,195,201,0)']].forEach(function (st) { ag.append('stop').attr('offset', st[0]).attr('stop-color', st[1]); });
+    var hp = defs.append('pattern').attr('id', 'noExHatch').attr('patternUnits', 'userSpaceOnUse').attr('width', 5).attr('height', 5).attr('patternTransform', 'rotate(45)');
+    hp.append('rect').attr('width', 5).attr('height', 5).attr('fill', 'rgba(207,224,244,0.16)');
+    hp.append('rect').attr('width', 2).attr('height', 5).attr('fill', 'rgba(207,224,244,0.75)');
     var og = defs.append('radialGradient').attr('id', 'oceanLit').attr('cx', '31%').attr('cy', '29%').attr('r', '80%');
     [[0, C('ocean-hi')], [0.55, C('ocean')], [1, C('ocean-lo')]].forEach(function (st) { og.append('stop').attr('offset', st[0]).attr('stop-color', st[1]); });
     gSvg.append('circle').attr('class', 'atmo');
@@ -1095,6 +1101,13 @@ footer a { color: var(--ink-2); }
   function computeCounts() {
     counts = {}; escCounts = {};
     current({ country: true }).forEach(function (d) { if (d.mn) { counts[d.mn] = (counts[d.mn] || 0) + 1; if (d.survey) escCounts[d.mn] = (escCounts[d.mn] || 0) + 1; } });
+    // the optional layer: countries with a response that reported no example, and no example from anyone else
+    var ne = {};
+    S.rows.forEach(function (d) { if (d.kind === 'response' && d.mn && d.t <= S.asOf && !counts[d.mn] && passFilters(d, { country: true, rec: true })) (ne[d.mn] || (ne[d.mn] = new Set())).add(d.id); });
+    noEx = {}; Object.keys(ne).forEach(function (n) { noEx[n] = ne[n].size; });
+    var nNo = Object.keys(noEx).length, nb = document.getElementById('noExBtn');
+    nb.textContent = 'Responded, no examples' + (nNo ? ' (' + nNo + ')' : ''); nb.setAttribute('aria-pressed', !!S.noEx);
+    document.getElementById('noExKey').style.display = S.noEx ? 'block' : 'none';
     cmax = Math.max(1, d3.max(Object.values(counts)) || 1);
     color = d3.scaleSequentialSqrt(d3.interpolateLab(C('country'), C('glow-hi'))).domain([1, Math.max(2, cmax)]);
     document.getElementById('rampBar').style.background = 'linear-gradient(90deg,' + d3.range(0, 1.01, .25).map(function (k) { return color(1 + k * (Math.max(2, cmax) - 1)); }).join(',') + ')';
@@ -1103,8 +1116,8 @@ footer a { color: var(--ink-2); }
     document.getElementById('noCountry').innerHTML = noC ? noC + ' regional or global example' + (noC > 1 ? 's' : '') + '<br>not shown on the map' : '';
   }
   // a country whose examples all came through the UNESCWA survey is purple; one with both keeps its shade and gets a purple outline
-  var escCounts = {};
-  function fillOf(name) { return !counts[name] ? C('land') : escCounts[name] === counts[name] ? C('escwa') : color(counts[name]); }
+  var escCounts = {}, noEx = {};
+  function fillOf(name) { return !counts[name] ? (S.noEx && noEx[name] ? 'url(#noExHatch)' : C('land')) : escCounts[name] === counts[name] ? C('escwa') : color(counts[name]); }
   function tipCountry(ev, name) {
     var rows = current({ country: true }).filter(function (d) { return d.mn === name; });
     var nC = rows.filter(function (d) { return d.lead === 'C'; }).length;
@@ -1114,7 +1127,7 @@ footer a { color: var(--ink-2); }
       (escCounts[name] ? '<div class="row"><span><i class="sw" style="--c:var(--escwa)"></i>From the UNESCWA survey</span><b>' + escCounts[name] + '</b></div>' : '') +
       '<div class="row"><span>Country-led · institution-led</span><b>' + nC + ' · ' + (rows.length - nC) + '</b></div>' +
       '<div style="margin-top:4px">' + recs.map(function (r) { return '<span class="tag"><i class="sw" style="background:' + RECBY[r[0]].color + '"></i>' + RECBY[r[0]].name + ' ' + r[1] + '</span>'; }).join('') + '</div>'
-      : '<div class="muted">No examples yet</div>') + (rows.length ? '<div class="muted" style="margin-top:4px">Click to filter the page</div>' : ''), ev);
+      : S.noEx && noEx[name] ? '<div class="row"><span>Responses</span><b>' + noEx[name] + '</b></div><div class="muted">Responded, no examples reported</div>' : '<div class="muted">No examples yet</div>') + (rows.length ? '<div class="muted" style="margin-top:4px">Click to filter the page</div>' : ''), ev);
   }
   function drawGlobe() {
     if (!world) return;
@@ -1134,9 +1147,9 @@ footer a { color: var(--ink-2); }
       .classed('sel', function (f) { return f.properties.name === S.country; });
     var visible = function (ll) { return !isG || d3.geoDistance(ll, [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2 - .05; };
     // small countries as dots
-    var pts = Object.keys(POINTS).filter(function (n) { return counts[n] && visible(POINTS[n]); });
+    var pts = Object.keys(POINTS).filter(function (n) { return (counts[n] || (S.noEx && noEx[n])) && visible(POINTS[n]); });
     gSvg.select('.pts').selectAll('circle').data(pts, String).join('circle').attr('r', 4).attr('stroke', C('bg')).attr('stroke-width', 1)
-      .attr('fill', function (n) { return fillOf(n); }).attr('stroke', function (n) { return escCounts[n] ? C('escwa') : C('bg'); }).attr('cx', function (n) { return proj(POINTS[n])[0]; }).attr('cy', function (n) { return proj(POINTS[n])[1]; })
+      .attr('fill', function (n) { return counts[n] ? fillOf(n) : C('bg'); }).attr('stroke', function (n) { return escCounts[n] ? C('escwa') : counts[n] ? C('bg') : 'rgba(207,224,244,.8)'; }).attr('cx', function (n) { return proj(POINTS[n])[0]; }).attr('cy', function (n) { return proj(POINTS[n])[1]; })
       .style('cursor', 'pointer').on('mousemove', function (ev, n) { tipCountry(ev, n); }).on('mouseleave', hideTip)
       .on('click', function (ev, n) { S.country = S.country === n ? null : n; render(); });
     // pulses: countries with a response in the 24 hours before asOf
@@ -1156,6 +1169,7 @@ footer a { color: var(--ink-2); }
       .style('cursor', 'pointer').on('mousemove', function (ev, p) { tipCountry(ev, p.n); }).on('mouseleave', hideTip)
       .on('click', function (ev, p) { S.country = S.country === p.n ? null : p.n; render(); });
   }
+  document.getElementById('noExBtn').addEventListener('click', function () { S.noEx = !S.noEx; render(); });
   document.querySelectorAll('#projSeg button').forEach(function (b) {
     b.addEventListener('click', function () {
       S.proj = b.dataset.v; scaleK = 1;
