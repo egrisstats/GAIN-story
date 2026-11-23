@@ -45,7 +45,7 @@ EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d ()./-]{7,}\d")
 COLUMNS = ["response_id", "submitted_at", "kind", "country", "organisation", "lead", "title",
            "recommendations", "data_source", "population_groups", "phase", "survey", "reported_before", "possible_duplicate",
-           "repeat_reason", "repeat_caveat", "repeat_suggested", "repeat_checked"]
+           "repeat_reason", "repeat_caveat", "repeat_suggested", "repeat_checked", "scope_hint", "scope_reason"]
 
 
 def get(url):
@@ -212,6 +212,7 @@ def main():
     if bad:
         sys.exit(f"Refusing: these questions look like respondent details and would go public: {sorted(bad)}")
     out, n_sub, main_labels = [], 0, None
+    private = {}  # description and partners per example, for the scope hint only: read here, never written out
     for asset, subs, survey in forms():
         bad = mapped & blocked_questions(asset)
         if bad:
@@ -262,6 +263,8 @@ def main():
                 else:
                     # the example's own country; the respondent's country only for national institutions
                     country = text([ex], "country") or (text([s], "country") if resp_country_led else "")
+                if not {"PRO13", "PRO18"} & blocked_questions(asset):
+                    private[len(out)] = " ".join(scrub(str(find(ex, q)[1] or "")) for q in ("PRO13", "PRO18"))
                 out.append({**base, "kind": "example",
                             "lead": "Country-led" if country_led else "Institution-led",
                             "country": country,
@@ -270,6 +273,7 @@ def main():
                             "data_source": text([ex], "data_source"),
                             "population_groups": text([ex], "population_groups"),
                             "phase": text([ex], "phase") if "phase" in F else ""})
+    private = {id(out[i]): t for i, t in private.items()}
     out.sort(key=lambda r: r["submitted_at"])
     # hints for checking: looks like an example from GAIN 2023-2025, or one another 2026 response gave
     try:
@@ -278,6 +282,12 @@ def main():
         Matcher().tag(out)
     except Exception as e:  # never block the publish over the hints
         print("repeat check skipped:", e)
+    # hint: an institution-led example that may fall outside GAIN (the organisation's own operational data)
+    try:
+        from scope_hint import tag as scope_tag
+        print("scope hints:", scope_tag(out, private))
+    except Exception as e:
+        print("scope hint skipped:", e)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS, restval="")

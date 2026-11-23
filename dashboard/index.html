@@ -102,6 +102,16 @@ button, select, input { font: inherit; color: var(--ink); }
 .btn[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink-2); }
 .btn:disabled { opacity: .5; cursor: default; }
 #flagBtn[aria-pressed="true"] { box-shadow: inset 0 -2px 0 var(--warn); }
+#scopeBtn[aria-pressed="true"] { box-shadow: inset 0 -2px 0 var(--escwa); }
+.why.scope { color: var(--ink-2); }
+.backbar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; gap: 2px; margin: 4px 0 12px; }
+.backbar i { display: block; min-width: 2px; }
+.backcols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.backcols h3 { margin: 0 0 2px; font-size: var(--fs-m); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.backcols h3 b { font-size: var(--fs-l); }
+.backcols .sub { margin-bottom: 6px; }
+.backcols .tag { white-space: normal; }
+@media (max-width: 900px) { .backcols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink-2); }
 select { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-m); padding: 6px 8px; font-size: var(--fs-m); }
@@ -387,6 +397,18 @@ footer a { color: var(--ink-2); }
     </section>
   </div>
 
+  <section class="panel" aria-labelledby="hBack" id="backPanel" style="margin-bottom:14px" hidden>
+    <div class="ph">
+      <div><h2 id="hBack">Back from earlier rounds</h2><div class="sub" id="backSub"></div></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="seg" id="backWho"><button type="button" data-v="C" aria-pressed="true">Countries</button><button type="button" data-v="I" aria-pressed="false">Institutions</button></span>
+        <span class="seg" id="backBase"><button type="button" data-v="2025" aria-pressed="true">Reported in 2025</button><button type="button" data-v="all" aria-pressed="false">In 2023–2025</button></span>
+      </span>
+    </div>
+    <div class="backbar" id="backBar" role="img"></div>
+    <div class="backcols" id="backCols"></div>
+  </section>
+
   <div class="grid2">
     <section class="panel" aria-labelledby="hSrc">
       <div class="ph"><div><h2 id="hSrc">Data sources and tools</h2><div class="sub">Each dot is an example; one can report more than one source</div></div></div>
@@ -468,6 +490,7 @@ footer a { color: var(--ink-2); }
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <button class="btn" type="button" id="alignBtn" aria-pressed="false" title="Examples where the respondent said No or Don’t know to the recommendations, and what the Secretariat’s review decided">Answers to review</button>
         <button class="btn" type="button" id="flagBtn" aria-pressed="false" title="Examples that look like one reported in GAIN 2023–2025, or by another 2026 response">↺ Possible repeats</button>
+        <button class="btn" type="button" id="scopeBtn" aria-pressed="false" title="Institution-led examples that read as an organisation’s own operational data, with no statistics office or government named. A hint to check, not a decision">⚑ Maybe not GAIN</button>
         <input type="search" id="q" placeholder="Search country, organisation, title" aria-label="Search examples">
       </div>
     </div>
@@ -614,7 +637,7 @@ footer a { color: var(--ink-2); }
         id: get(o, ['response_id', '_uuid', 'id']) || ('row' + i), t: t, country: country, mn: mn, region: region,
         org: get(o, ['organisation', 'organization', 'institution']), lead: lead,
         title: get(o, ['title', 'example_title']), review: review, before: get(o, ['reported_before']), dup: get(o, ['possible_duplicate']), why: get(o, ['repeat_reason']), caveat: get(o, ['repeat_caveat']), suggested: get(o, ['repeat_suggested']), phase: get(o, ['phase']), checked: get(o, ['repeat_checked']), rec: rec, codes: codes, recTxt: recTxt,
-        survey: String(get(o, ['survey']) || '').trim(),
+        survey: String(get(o, ['survey']) || '').trim(), scope: get(o, ['scope_hint']), scopeWhy: get(o, ['scope_reason']),
         src: splitList(get(o, ['data_source', 'data_sources'])), pop: splitList(get(o, ['population_groups', 'populations']))
       };
     }).filter(function (d) { return !isNaN(d.t); }).sort(function (a, b) { return a.t - b.t; });
@@ -1452,6 +1475,47 @@ footer a { color: var(--ink-2); }
       return { label: e[0], rows: e[1], note: (function (n) { return n + (n === 1 ? ' country' : ' countries') + ', or regional or global'; })(new Set(e[1].map(function (d) { return d.country || 'Regional / global'; })).size) };
     }));
   }
+  // ---------- back from earlier rounds: who reported in GAIN 2023-2025 and where they stand in 2026 ----------
+  S.back = { who: 'C', base: '2025' };
+  fetch('data/gain_past.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j) { S.past = j; renderBack(); } }).catch(function () {});
+  function ckey(c) { var m = mapName(String(c).trim()); if (!CENTROID[m] && !POINTS[m]) { var pn = plainName(m); if (CENTROID[pn] || POINTS[pn]) m = pn; } return m.toLowerCase(); }
+  function okey(o) { var a = shortOrg(String(o).trim()); return (a !== String(o).trim() ? a : String(o).replace(/\(.*?\)/g, '')).normalize('NFKD').toLowerCase().replace(/^the\s+/, '').replace(/[^a-z]+/g, ''); }
+  function renderBack() {
+    var panel = document.getElementById('backPanel'); if (!S.past || S.demo) { panel.hidden = true; return; }
+    panel.hidden = false;
+    var C = S.back.who === 'C', key = C ? ckey : okey, src = C ? S.past.countries : S.past.orgs;
+    var inBase = function (ys) { return S.back.base === 'all' || ys.indexOf('2025') >= 0; };
+    var past = {}, ever = {};
+    Object.keys(src).forEach(function (n) { var k = key(n); ever[k] = 1; if (inBase(src[n])) past[k] = { name: C ? n : shortOrg(n), years: src[n] }; });
+    var ex = {}, any = {};
+    S.rows.forEach(function (d) {
+      if (d.t > S.asOf || d.lead !== S.back.who) return;
+      var n = C ? d.country : d.org; if (!n) return;
+      var k = key(n); any[k] = C ? n : shortOrg(n); if (d.kind === 'example') ex[k] = any[k];
+    });
+    var names = function (ks, from) { return ks.map(function (k) { return from(k); }).sort(d3.ascending); };
+    var pk = Object.keys(past), pn = function (k) { return past[k].name; };
+    var groups = [
+      { t: 'Example in 2026', c: C2('good'), sub: 'reported again this round', list: names(pk.filter(function (k) { return ex[k]; }), pn) },
+      { t: 'Responded, no example', c: 'rgba(207,224,244,.55)', sub: 'answered, nothing new to report', list: names(pk.filter(function (k) { return any[k] && !ex[k]; }), pn) },
+      { t: 'Not yet', c: C2('warn'), sub: 'no response so far', list: names(pk.filter(function (k) { return !any[k]; }), pn) },
+      { t: 'New in 2026', c: C2('country'), sub: S.back.base === 'all' ? 'no example in 2023–2025' : 'no example in 2025 · ↩ reported in 2023 or 2024', list: names(Object.keys(ex).filter(function (k) { return !past[k]; }), function (k) { return ex[k] + (S.back.base !== 'all' && ever[k] ? ' ↩' : ''); }) }
+    ];
+    var n = pk.length || 1, what = C ? 'countries' : 'institutions', when = S.back.base === 'all' ? 'GAIN 2023–2025' : 'GAIN 2025';
+    document.getElementById('backSub').textContent = pk.length + ' ' + what + ' reported an example in ' + when + ': ' + groups[0].list.length + ' have one in 2026, ' + groups[1].list.length + ' responded without one, ' + groups[2].list.length + ' not yet' + (C ? '' : ' · names matched by acronym, so check close ones');
+    var bar = document.getElementById('backBar');
+    bar.innerHTML = groups.slice(0, 3).map(function (g) { return '<i style="background:' + g.c + ';flex:' + g.list.length + ' 0 0" title="' + g.t + ': ' + g.list.length + ' (' + pct(g.list.length, n) + ')"></i>'; }).join('');
+    bar.setAttribute('aria-label', groups.slice(0, 3).map(function (g) { return g.t + ' ' + g.list.length; }).join(', '));
+    document.getElementById('backCols').innerHTML = groups.map(function (g, i) {
+      return '<div><h3><i class="sw" style="background:' + g.c + '"></i>' + g.t + ' <b>' + g.list.length + '</b></h3><div class="sub">' + g.sub + (i < 3 ? ' · ' + pct(g.list.length, n) : '') + '</div>' +
+        (g.list.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') || '<span class="muted">None</span>') + '</div>';
+    }).join('');
+    document.querySelectorAll('#backWho button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.v === S.back.who); });
+    document.querySelectorAll('#backBase button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.v === S.back.base); });
+  }
+  function C2(k) { return getComputedStyle(document.documentElement).getPropertyValue('--' + k).trim(); }
+  document.querySelectorAll('#backWho button').forEach(function (b) { b.addEventListener('click', function () { S.back.who = b.dataset.v; renderBack(); }); });
+  document.querySelectorAll('#backBase button').forEach(function (b) { b.addEventListener('click', function () { S.back.base = b.dataset.v; renderBack(); }); });
   function shortOrg(o) { var m = String(o).match(/\(([A-Z][A-Za-z&\-]{1,12})\)\s*$/); return m ? m[1] : o; }
   function renderMulti(el, field) {
     var rows = current(), tally = {};
@@ -1465,19 +1529,21 @@ footer a { color: var(--ink-2); }
   function renderFeed() {
     var q = S.q.toLowerCase();
     var all = current(), nFlag = all.filter(flagged).length, nOpen = all.filter(function (d) { return flagged(d) && !reviewOf(d); }).length;
-    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d) || reviewOf(d)) && (!S.alignOnly || d.review); }).slice().reverse();
+    var rows = all.filter(function (d) { return (!q || (d.country + ' ' + d.org + ' ' + d.title).toLowerCase().indexOf(q) >= 0) && (!S.flagOnly || flagged(d) || reviewOf(d)) && (!S.alignOnly || d.review) && (!S.scopeOnly || d.scope); }).slice().reverse();
     var dayAgo = new Date(+S.asOf - 864e5);
     var fb = document.getElementById('flagBtn'); fb.textContent = '↺ Possible repeats: ' + nFlag + (nOpen ? ' · ' + nOpen + ' to check' : ''); fb.setAttribute('aria-pressed', !!S.flagOnly);
     var nRev = all.filter(function (d) { return d.review; }), nDone = nRev.filter(alignOf).length, ab = document.getElementById('alignBtn');
     ab.textContent = 'Answers to review: ' + nRev.length + (nRev.length ? ' · ' + nDone + ' reviewed' : ''); ab.setAttribute('aria-pressed', !!S.alignOnly);
+    var nScope = all.filter(function (d) { return d.scope; }).length, sb = document.getElementById('scopeBtn');
+    sb.textContent = '⚑ Maybe not GAIN: ' + nScope; sb.setAttribute('aria-pressed', !!S.scopeOnly); sb.style.display = nScope || S.scopeOnly ? '' : 'none';
     var nE = rows.filter(function (d) { return d.survey; }).length;
-    document.getElementById('feedSub').textContent = rows.length + ' examples' + (nE ? ' (' + nE + ' from the UNESCWA survey, marked in purple)' : '') + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + (S.alignOnly ? ' answered No or Don’t know' : '') + ' · newest first · highlighted: last 24 hours';
+    document.getElementById('feedSub').textContent = rows.length + ' examples' + (nE ? ' (' + nE + ' from the UNESCWA survey, marked in purple)' : '') + (q ? ' matching “' + S.q + '”' : '') + (S.flagOnly ? ' flagged as possible repeats' : '') + (S.alignOnly ? ' answered No or Don’t know' : '') + (S.scopeOnly ? ' flagged to check if part of GAIN' : '') + ' · newest first · highlighted: last 24 hours';
     document.getElementById('feed').innerHTML = rows.slice(0, 300).map(function (d) {
       var rec = RECBY[d.rec];
       var recTags = d.codes.length ? d.codes.map(function (c) { return '<span class="tag"><i class="sw" style="background:' + (RECBY[c] ? RECBY[c].color : rec.color) + '"></i>' + c + '</span>'; }).join('')
         : '<span class="tag"><i class="sw" style="background:' + rec.color + '"></i>' + esc(d.recTxt || 'Not reported') + '</span>';
       return '<tr class="' + (d.t > dayAgo ? 'new' : '') + (d.survey ? ' esc' : '') + '"><td>' + fmtTime(d.t) + '</td><td>' + esc(d.country || 'Regional / global') + '</td><td>' + esc(d.org) +
-        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + (d.survey ? ' <span class="tag esc" title="Submitted through the ' + esc(d.survey) + ' survey (GAIN 2026 with the regional module)">' + esc(d.survey) + '</span>' : '') + flagTags(d) + alignTag(d) + '</td></tr>';
+        '</td><td><span class="tag"><i style="background:' + LEAD[d.lead].color + '"></i>' + LEAD[d.lead].name + '</span></td><td>' + recTags + '</td><td>' + esc(d.title) + (d.survey ? ' <span class="tag esc" title="Submitted through the ' + esc(d.survey) + ' survey (GAIN 2026 with the regional module)">' + esc(d.survey) + '</span>' : '') + flagTags(d) + alignTag(d) + scopeTag(d) + '</td></tr>';
     }).join('') || '<tr><td colspan="6" class="empty">No examples match your search or filters. Use Reset filters to see them all.</td></tr>';
   }
 
@@ -1516,6 +1582,9 @@ footer a { color: var(--ink-2); }
     return '<div class="why' + (a.outcome === 'edit' ? ' ok' : '') + '">' + said + ' · reviewed: <b>' + esc(ALIGN[a.outcome] || a.outcome) + '</b>' + (a.score ? ' (' + esc(a.score) + ' points)' : '') + (a.reviewed_on ? ' <span class="muted">' + esc(a.reviewed_on) + '</span>' : '') + '</div>';
   }
   document.getElementById('alignBtn').addEventListener('click', function () { S.alignOnly = !S.alignOnly; renderFeed(); });
+  // hint from the Kobo pull (tools/scope_hint.py): may be an organisation's own operational data, outside GAIN
+  function scopeTag(d) { return d.scope ? '<div class="why scope">⚑ Check if part of GAIN · ' + esc(d.scopeWhy || 'institution-led, no statistics office or government named') + ' · a hint only</div>' : ''; }
+  document.getElementById('scopeBtn').addEventListener('click', function () { S.scopeOnly = !S.scopeOnly; renderFeed(); });
   function flagged(d) { return !!(d.before || d.dup); }
   // 'GAIN 2025 ex196: title' -> a GAIN 2025 example: “title”, with the internal id kept on hover
   function pastRef(s) {
@@ -1636,7 +1705,7 @@ footer a { color: var(--ink-2); }
     renderRecs();
     if (fast && Math.random() < .6) return; // during replay, refresh the lower panels less often
     renderRegions();
-    renderTop();
+    renderTop(); renderBack();
     renderMulti('srcBars', 'src');
     renderMulti('popBars', 'pop');
     renderAlign();

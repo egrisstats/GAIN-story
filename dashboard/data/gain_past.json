@@ -1,0 +1,390 @@
+{
+ "_note": "Who reported an example in GAIN 2023-2025. Built by tools/past_respondents.py from pipeline/data/gain_examples.csv.",
+ "countries": {
+  "Armenia": [
+   "2023",
+   "2025"
+  ],
+  "Azerbaijan": [
+   "2024",
+   "2025"
+  ],
+  "Bangladesh": [
+   "2025"
+  ],
+  "Belarus": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Belgium": [
+   "2023",
+   "2025"
+  ],
+  "Belize": [
+   "2025"
+  ],
+  "Burkina Faso": [
+   "2024",
+   "2025"
+  ],
+  "Burundi": [
+   "2024"
+  ],
+  "Cambodia": [
+   "2024"
+  ],
+  "Cameroon": [
+   "2023",
+   "2025"
+  ],
+  "Canada": [
+   "2023"
+  ],
+  "Central African Republic": [
+   "2024",
+   "2025"
+  ],
+  "Chad": [
+   "2025"
+  ],
+  "Colombia": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Côte d'Ivoire": [
+   "2025"
+  ],
+  "Democratic Republic of the Congo": [
+   "2023",
+   "2025"
+  ],
+  "Djibouti": [
+   "2024",
+   "2025"
+  ],
+  "Egypt": [
+   "2025"
+  ],
+  "El Salvador": [
+   "2025"
+  ],
+  "Estonia": [
+   "2023"
+  ],
+  "Ethiopia": [
+   "2024",
+   "2025"
+  ],
+  "Finland": [
+   "2023"
+  ],
+  "France": [
+   "2023",
+   "2024"
+  ],
+  "Georgia": [
+   "2024"
+  ],
+  "Germany": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Ghana": [
+   "2024"
+  ],
+  "Greece": [
+   "2023",
+   "2024"
+  ],
+  "Haiti": [
+   "2025"
+  ],
+  "Honduras": [
+   "2024",
+   "2025"
+  ],
+  "Hungary": [
+   "2023"
+  ],
+  "Indonesia": [
+   "2024",
+   "2025"
+  ],
+  "Iraq": [
+   "2024",
+   "2025"
+  ],
+  "Italy": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Jordan": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Kazakhstan": [
+   "2023"
+  ],
+  "Kenya": [
+   "2024",
+   "2025"
+  ],
+  "Kosovo*": [
+   "2024"
+  ],
+  "Kyrgyzstan": [
+   "2023",
+   "2025"
+  ],
+  "Laos": [
+   "2023"
+  ],
+  "Lebanon": [
+   "2023",
+   "2024"
+  ],
+  "Liberia": [
+   "2025"
+  ],
+  "Liechtenstein": [
+   "2023",
+   "2025"
+  ],
+  "Malawi": [
+   "2024"
+  ],
+  "Mali": [
+   "2024",
+   "2025"
+  ],
+  "Marshall Islands": [
+   "2024"
+  ],
+  "Mauritania": [
+   "2024",
+   "2025"
+  ],
+  "Mexico": [
+   "2024",
+   "2025"
+  ],
+  "Morocco": [
+   "2024"
+  ],
+  "Mozambique": [
+   "2024"
+  ],
+  "Netherlands": [
+   "2023",
+   "2025"
+  ],
+  "Nigeria": [
+   "2024",
+   "2025"
+  ],
+  "Norway": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Panama": [
+   "2024"
+  ],
+  "Peru": [
+   "2023"
+  ],
+  "Philippines": [
+   "2024"
+  ],
+  "Poland": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Republic of Moldova": [
+   "2024"
+  ],
+  "Rwanda": [
+   "2023",
+   "2024"
+  ],
+  "Slovenia": [
+   "2024",
+   "2025"
+  ],
+  "Somalia": [
+   "2023",
+   "2024"
+  ],
+  "South Africa": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "South Sudan": [
+   "2023",
+   "2025"
+  ],
+  "Spain": [
+   "2023"
+  ],
+  "Sri Lanka": [
+   "2024"
+  ],
+  "State of Palestine": [
+   "2024",
+   "2025"
+  ],
+  "Sudan": [
+   "2024"
+  ],
+  "Sweden": [
+   "2024"
+  ],
+  "Switzerland": [
+   "2023"
+  ],
+  "Thailand": [
+   "2024",
+   "2025"
+  ],
+  "Turkmenistan": [
+   "2023"
+  ],
+  "Türkiye": [
+   "2023",
+   "2024"
+  ],
+  "Uganda": [
+   "2024",
+   "2025"
+  ],
+  "United Kingdom": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "Yemen": [
+   "2024"
+  ],
+  "Zimbabwe": [
+   "2024"
+  ]
+ },
+ "orgs": {
+  "AFRICAN UNION (AU)": [
+   "2025"
+  ],
+  "ASIAN DEVELOPMENT BANK (ADB)": [
+   "2025"
+  ],
+  "CENTRAL AGENCY FOR PUBLIC MOBILIZATION AND STATISTICS, EGYPT": [
+   "2023"
+  ],
+  "COMMON MARKET FOR EASTERN AND SOUTHERN AFRICA (COMESA)": [
+   "2023"
+  ],
+  "EAST AFRICAN COMMUNITY (EAC)": [
+   "2023",
+   "2025"
+  ],
+  "ECONOMIC COMMUNITY OF WEST AFRICAN STATES (ECOWAS)": [
+   "2023",
+   "2025"
+  ],
+  "EUROSTAT, EUROPEAN COMMISSION (EUROSTAT)": [
+   "2023",
+   "2024"
+  ],
+  "INTER-AMERICAN DEVELOPMENT BANK (IDB)": [
+   "2025"
+  ],
+  "INTERGOVERNMENTAL AUTHORITY ON DEVELOPMENT (IGAD)": [
+   "2023"
+  ],
+  "INTERNAL DISPLACEMENT MONITORING CENTRE (IDMC)": [
+   "2024",
+   "2025"
+  ],
+  "INTERNATIONAL DATA ALLIANCE FOR CHILDREN ON THE MOVE (IDAC)": [
+   "2023"
+  ],
+  "INTERNATIONAL ORGANIZATION FOR MIGRATION (IOM)": [
+   "2024",
+   "2025"
+  ],
+  "JOINT IDP PROFILING SERVICES (JIPS)": [
+   "2024",
+   "2025"
+  ],
+  "ORGANISATION FOR ECONOMIC CO-OPERATION AND DEVELOPMENT (OECD)": [
+   "2023"
+  ],
+  "SCALABRINI INTERNATIONAL MIGRATION NETWORK": [
+   "2024",
+   "2025"
+  ],
+  "STATISTICAL, ECONOMIC AND SOCIAL RESEARCH AND TRAINING CENTRE FOR ISLAMIC COUNTRIES (SESRIC)": [
+   "2024",
+   "2025"
+  ],
+  "STATISTICS SWEDEN AT STATAFRIC": [
+   "2023"
+  ],
+  "UNITED NATIONS CHILDREN’S FUND (UNICEF)": [
+   "2023"
+  ],
+  "UNITED NATIONS DEVELOPMENT PROGRAMME (UNDP)": [
+   "2025"
+  ],
+  "UNITED NATIONS ECONOMIC AND SOCIAL COMMISSION FOR ASIA AND THE PACIFIC (UN-ESCAP)": [
+   "2023",
+   "2024"
+  ],
+  "UNITED NATIONS ECONOMIC AND SOCIAL COMMISSION FOR WESTERN ASIA (UN-ESCWA)": [
+   "2023"
+  ],
+  "UNITED NATIONS ECONOMIC COMMISSION FOR EUROPE (UNECE)": [
+   "2024",
+   "2025"
+  ],
+  "UNITED NATIONS EDUCATIONAL, SCIENTIFIC AND CULTURAL ORGANIZATION (UNESCO)": [
+   "2023"
+  ],
+  "UNITED NATIONS HIGH COMMISSIONER FOR REFUGEES (UNHCR)": [
+   "2023",
+   "2024",
+   "2025"
+  ],
+  "UNITED NATIONS POPULATION FUND (UNFPA)": [
+   "2025"
+  ],
+  "UNITED NATIONS RELIEF AND WORKS AGENCY FOR PALESTINE REFUGEES IN THE NEAR EAST (UNRWA)": [
+   "2024",
+   "2025"
+  ],
+  "UNITED NATIONS STATISTICAL INSTITUTE FOR ASIA AND THE PACIFIC (UNSIAP)": [
+   "2023",
+   "2024"
+  ],
+  "US CENSUS BUREAU": [
+   "2023"
+  ],
+  "WORLD BANK (WB)": [
+   "2024",
+   "2025"
+  ],
+  "WORLD BANK-UNHCR JOINT DATA CENTER ON FORCED DISPLACEMENT (JDC)": [
+   "2024",
+   "2025"
+  ],
+  "WORLD HEALTH ORGANIZATION (WHO)": [
+   "2025"
+  ]
+ }
+}
