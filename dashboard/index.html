@@ -110,6 +110,7 @@ button, select, input { font: inherit; color: var(--ink); }
 tr.scope td:first-child { box-shadow: inset 4px 0 0 var(--scope); }
 tr.scope td { background: color-mix(in srgb, var(--scope) 7%, transparent); }
 .seg button:last-child { border-right: 0; }
+#projSeg button, #noExBtn { padding: 8px 16px; min-height: 36px; }
 .seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink-2); }
 select { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-m); padding: 6px 8px; font-size: var(--fs-m); }
 .chip { display: none; align-items: center; gap: 6px; background: var(--chip); border-radius: 999px; padding: 4px 4px 4px 10px; font-size: var(--fs-m); }
@@ -1091,9 +1092,17 @@ footer a { color: var(--ink-2); }
     gSvg.append('g').attr('class', 'lands');
     gSvg.append('g').attr('class', 'pts');
     gSvg.append('g').attr('class', 'pulses');
-    d3.timer(function () {
-      if (S.proj === 'globe' && spin && !matchMedia('(prefers-reduced-motion: reduce)').matches) { rot[0] += 0.06; drawGlobe(); }
+    // the globe turns slowly on its own. Redrawing it is heavy, so it turns in steps (about 12 a second), and it
+    // rests while the pointer is on the panel or the panel is off screen: the buttons and the page stay responsive
+    var gPanel = document.getElementById('globeBox').closest('.panel'), overPanel = false, onScreen = true, lastSpin = 0;
+    gPanel.addEventListener('pointerenter', function () { overPanel = true; });
+    gPanel.addEventListener('pointerleave', function () { overPanel = false; });
+    if (window.IntersectionObserver) new IntersectionObserver(function (en) { onScreen = en[0].isIntersecting; }).observe(gPanel);
+    d3.timer(function (t) {
       if (!spin && Date.now() - lastInteract > 6000 && lastInteract) { spin = true; }
+      if (S.proj !== 'globe' || !spin || overPanel || !onScreen || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) { lastSpin = t; return; }
+      if (t - lastSpin < 80) return;
+      rot[0] += 0.0036 * Math.min(400, t - lastSpin); lastSpin = t; drawGlobe();
     });
   }
   function sizeProj() {
