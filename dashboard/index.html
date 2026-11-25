@@ -1136,7 +1136,7 @@ footer a { color: var(--ink-2); }
       (escCounts[name] ? '<div class="row"><span><i class="sw" style="--c:var(--escwa)"></i>From the UNESCWA survey</span><b>' + escCounts[name] + '</b></div>' : '') +
       '<div class="row"><span>Country-led · institution-led</span><b>' + nC + ' · ' + (rows.length - nC) + '</b></div>' +
       '<div style="margin-top:4px">' + recs.map(function (r) { return '<span class="tag"><i class="sw" style="background:' + RECBY[r[0]].color + '"></i>' + RECBY[r[0]].name + ' ' + r[1] + '</span>'; }).join('') + '</div>'
-      : S.noEx && noEx[name] ? '<div class="row"><span>Responses</span><b>' + noEx[name] + '</b></div><div class="muted">Responded, no examples reported</div>' : '<div class="muted">No examples yet</div>') + (rows.length ? '<div class="muted" style="margin-top:4px">Click to filter the page</div>' : ''), ev);
+      : S.noEx && noEx[name] ? '<div class="row"><span>Responses</span><b>' + noEx[name] + '</b></div><div class="muted">Responded, no examples reported</div><div class="muted" style="margin-top:4px">Click to filter the page</div>' : '<div class="muted">No examples yet</div>') + (rows.length ? '<div class="muted" style="margin-top:4px">Click to filter the page</div>' : ''), ev);
   }
   function drawGlobe() {
     if (!world) return;
@@ -1150,7 +1150,7 @@ footer a { color: var(--ink-2); }
       return en.append('path').attr('class', 'country')
         .on('mousemove', function (ev, f) { tipCountry(ev, f.properties.name); })
         .on('mouseleave', hideTip)
-        .on('click', function (ev, f) { var n = f.properties.name; if (!counts[n] && S.country !== n) return; S.country = S.country === n ? null : n; render(); });
+        .on('click', function (ev, f) { var n = f.properties.name; if (!counts[n] && !(S.noEx && noEx[n]) && S.country !== n) return; S.country = S.country === n ? null : n; render(); });
     }).attr('d', path).attr('fill', function (f) { return fillOf(f.properties.name); })
       .classed('esc', function (f) { return !!escCounts[f.properties.name]; })
       .classed('sel', function (f) { return f.properties.name === S.country; });
